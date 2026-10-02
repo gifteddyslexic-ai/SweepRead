@@ -1,0 +1,638 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Flooent Reader Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap">
+<style>
+/* Layout: one calm reading column; a sweep highlight grows through each sentence; card pops up beside the word; control strip pinned to the bottom. Single warm light look by choice. */
+:root {
+  color-scheme: light;
+  --paper: #fdf8ef;
+  --page: #f6efe2;
+  --ink: #4a3c2f;
+  --ink-soft: #8a7a68;
+  --teal: #5fb3b3;
+  --teal-deep: #2f7d7d;
+  --teal-wash: #dcefee;
+  --line: #e6dccb;
+  --card: #fffdf8;
+  --deck: #1d2b4a;
+  --deck-btn: #2c3d63;
+  --deck-line: #41557f;
+  --deck-ink: #f3f5fa;
+  --deck-soft: #cbbcaa;
+  --sheet: #fdf8ef;
+  --hl: #dcefee;
+  --hl-deep: #5fb3b3;
+  --ul: #bfe0df;
+  --read: "Lexend", "Atkinson Hyperlegible", Verdana, sans-serif;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body {
+  background: var(--page); color: var(--ink);
+  font-family: var(--read);
+  padding-inline: 16px; padding-block: 0;
+}
+.wrap { max-width: 640px; margin: 0 auto; padding-block: 62px 140px; }
+.note {
+  font-size: 13px; line-height: 1.5; color: var(--ink-soft);
+  background: var(--paper); border: 1px dashed var(--line); border-radius: 12px;
+  padding: 10px 14px; margin: 0 0 20px;
+}
+.note b { color: var(--ink); font-weight: 600; }
+.reading {
+  position: relative;
+  background: var(--sheet); border-radius: 22px;
+  padding: 26px 22px;
+  font-size: clamp(24px, 6.4vw, 30px); line-height: 2.1;
+}
+.sweep {
+  position: absolute; z-index: 0; pointer-events: none; box-sizing: border-box;
+  background: var(--hl);
+  border-radius: 8px;
+}
+.sweep.lead { border-radius: 8px; }
+/* Dot marking where the sweep will start, shown until the band begins to grow. */
+.dot {
+  position: absolute; z-index: 2; pointer-events: none;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--hl-deep);
+  transform: translate(-50%, -50%);
+}
+
+/* settings sheet, opened from ☰ */
+.settings {
+  position: fixed; inset: 0; z-index: 20;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.panel {
+  width: min(640px, 100vw); box-sizing: border-box; background: var(--card);
+  border-radius: 20px 20px 0 0; border-top: 2px solid var(--line);
+  box-shadow: 0 -8px 24px color-mix(in srgb, var(--ink) 18%, transparent);
+  padding: 18px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  display: grid; gap: 16px; max-height: 75vh; overflow: auto;
+}
+.panel .head { display: flex; justify-content: space-between; align-items: center; }
+.panel h2 { margin: 0; font-size: 20px; font-weight: 600; }
+.field { display: grid; gap: 8px; font-size: 15px; }
+.field .top { display: flex; justify-content: space-between; align-items: baseline; }
+.field output { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 12px; }
+.field input { accent-color: var(--teal); width: 100%; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.sw {
+  width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  border: 2px solid var(--line); padding: 0;
+}
+.sw[aria-pressed="true"] { border: 3px solid var(--ink); }
+.sw:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.panel .done { background: var(--teal); border-color: var(--teal); color: #fff; width: auto; height: 44px; padding: 0 20px; font-size: 16px; }
+.w {
+  position: relative; z-index: 1;
+  display: inline-block;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.w.has-card .t { border-bottom: 2px solid var(--ul); padding-bottom: 1px; }
+/* The underline of the trigger word under the sweep brightens a little: a quiet cue that it can be tapped. */
+.w.has-card.now .t { border-bottom-color: var(--hl-deep); }
+@media (prefers-reduced-motion: no-preference) { .w.has-card .t { transition: border-color .25s; } }
+
+/* card: a speech bubble, above the word by default.
+   Stages 1-2 picture only (square); stages 3-4 picture + definition (2:1). */
+.card {
+  position: absolute; z-index: 5;
+  width: min(150px, calc(50vw - 24px)); aspect-ratio: 1 / 1;
+  background: var(--card); border: 3px solid var(--ink); border-radius: 18px;
+  box-shadow: 0 6px 0 var(--line);
+  cursor: pointer;
+  --tail-x: 50%;
+}
+.card[data-stage="3"], .card[data-stage="4"] {
+  width: min(300px, calc(100vw - 48px)); aspect-ratio: 2 / 1;
+}
+.card::before, .card::after {
+  content: ""; position: absolute; left: var(--tail-x);
+  width: 0; height: 0; border-style: solid; transform: translateX(-50%);
+}
+.card[data-side="above"]::before { top: 100%; border-width: 14px 12px 0; border-color: var(--ink) transparent transparent; }
+.card[data-side="above"]::after  { top: calc(100% - 1px); border-width: 10px 8.5px 0; border-color: var(--card) transparent transparent; }
+.card[data-side="below"]::before { bottom: 100%; border-width: 0 12px 14px; border-color: transparent transparent var(--ink); }
+.card[data-side="below"]::after  { bottom: calc(100% - 1px); border-width: 0 8.5px 10px; border-color: transparent transparent var(--card); }
+.inner {
+  position: absolute; inset: 0; overflow: hidden; border-radius: 15px;
+  display: grid; grid-template-columns: 1fr;
+}
+.card[data-stage="3"] .inner, .card[data-stage="4"] .inner { grid-template-columns: 1fr 1fr; }
+.pic { background: var(--paper); padding: 6px; }
+.card[data-stage="3"] .pic, .card[data-stage="4"] .pic { border-right: 2px solid var(--line); }
+.pic svg { width: 100%; height: 100%; display: block; }
+.def {
+  font: 600 clamp(20px, 6vw, 26px)/1.15 var(--read); color: var(--ink);
+  display: none; align-items: center; justify-content: center; text-align: center; padding: 8px;
+}
+.card[data-stage="3"] .def, .card[data-stage="4"] .def { display: flex; }
+.voice {
+  position: absolute; right: 8px; bottom: 8px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--teal-wash); color: var(--teal-deep);
+  display: none; place-items: center;
+}
+.card[data-stage="2"] .voice, .card[data-stage="4"] .voice { display: grid; }
+.voice svg { width: 17px; height: 17px; }
+
+/* control strip */
+.strip {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  background: var(--deck);
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+}
+.strip-in { max-width: 640px; margin: 0 auto; display: grid; gap: 12px; }
+.row { display: flex; gap: 10px; align-items: center; justify-content: center; }
+.btn {
+  width: 64px; height: 56px; padding: 0;
+  border-radius: 16px; border: 2px solid var(--deck-line); background: var(--deck-btn); color: var(--deck-ink);
+  font: 600 26px var(--read); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.btn svg { width: 26px; height: 26px; }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn.ask { font-size: 36px; font-weight: 700; }
+.btn.ask:disabled { opacity: 1; }
+/* Soft glow round ? while a trigger word is available */
+.btn.ask:not(:disabled) {
+  border-color: #8fd3d3;
+  box-shadow: 0 0 0 3px rgba(143, 211, 211, .35), 0 0 16px 4px rgba(143, 211, 211, .55);
+}
+@media (prefers-reduced-motion: no-preference) { .btn.ask { transition: box-shadow .25s, border-color .25s; } }
+.qbadge {
+  display: inline-grid; place-items: center; width: 28px; height: 28px; margin: 0 2px;
+  border-radius: 9px; background: var(--deck); color: var(--deck-ink);
+  font-weight: 700; font-size: 18px; line-height: 1; vertical-align: middle;
+}
+.btn:focus-visible { outline: 3px solid var(--deck-ink); outline-offset: 2px; }
+.btn.big {
+  width: 132px; height: 64px; border-radius: 22px;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+.btn.big svg { width: 34px; height: 34px; }
+.btn.big.holding { background: var(--deck-line); }
+.menu-btn {
+  position: fixed; z-index: 15; right: 12px; top: calc(10px + env(safe-area-inset-top, 0px));
+  width: 42px; height: 42px; border-radius: 12px; border: 0;
+  background: var(--deck); color: var(--deck-ink); opacity: .85;
+  display: grid; place-items: center; cursor: pointer;
+}
+.menu-btn svg { width: 22px; height: 22px; }
+.menu-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.slide { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--ink-soft); }
+.slide input { flex: 1; min-width: 0; accent-color: var(--teal); height: 28px; }
+.lab { width: 44px; flex: none; text-align: center; }
+.a-sm { font-size: 14px; font-weight: 600; color: var(--ink); }
+.a-lg { font-size: 24px; font-weight: 600; color: var(--ink); line-height: 1; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (max-width: 420px) {
+  .row { gap: 10px; }
+  .strip .btn { width: 58px; }
+  .strip .btn.big { width: 132px; }
+}
+</style>
+
+<div class="wrap">
+  <p class="note"><b>Demo for Axel.</b> <b>Tap the button</b> to sweep to the end of the sentence; tap again to pause. <b>Press and hold</b> to sweep only while you hold. <b>Tap an underlined word</b> for its pop-up, then tap the word or the pop-up again: 2 hear the word, 3 definition, 4 hear the definition, 5 close and carry on reading. <b>Tap in front of a word</b> (or the space before it) to read its sentence from the start; <b>tap after a word</b> (or the space after it) in the sentence being read to carry on from the next word. In a sentence that hasn't started, any tap starts it from the beginning. <b>☰</b> (top right) holds the settings. On a keyboard: Space = the button (tap, or hold to sweep while held), ← start of sentence, ↓ next word, ↑ pop-up for the word under the sweep.</p>
+  <div class="reading" id="reading"><div id="sweeps" aria-hidden="true"></div></div>
+</div>
+
+<div class="settings" id="settings" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="head"><h2 id="setTitle">Settings</h2><button class="btn done" id="closeSet">Done</button></div>
+    <label class="field" for="speed">
+      <span>Speed</span>
+      <span class="slide"><span class="lab">slower</span><input type="range" id="speed" min="30" max="260" value="80"><span class="lab">faster</span></span>
+    </label>
+    <label class="field" for="size">
+      <span>Text size</span>
+      <span class="slide"><span class="lab"><span class="a-sm" aria-hidden="true">A</span><span class="sr">smaller</span></span><input type="range" id="size" min="20" max="48" value="28"><span class="lab"><span class="a-lg" aria-hidden="true">A</span><span class="sr">larger</span></span></span>
+    </label>
+    <div class="field"><span>Highlighter colour</span><div class="swatches" id="hlSw"></div></div>
+    <div class="field"><span>Paper colour</span><div class="swatches" id="paperSw"></div></div>
+  </div>
+</div>
+
+<button class="menu-btn" id="menu" aria-label="Settings" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
+
+<div class="strip" role="toolbar" aria-label="Reading control">
+  <div class="strip-in">
+    <div class="row">
+      <button class="btn big" id="play" aria-label="Read to the end of the sentence. Hold to sweep while held."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path id="playIcon" d="M5 5l7 7-7 7M12 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TABLE = (topY) => `
+  <rect x="8" y="80" width="88" height="4" rx="2" fill="#ece3d3"/>
+  <ellipse cx="52" cy="81" rx="30" ry="2.5" fill="#e2d6c1"/>
+  <g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="26" y="${topY+6}" width="7" height="${81-topY-6}" rx="3.5" fill="#e9b97e"/>
+    <rect x="71" y="${topY+6}" width="7" height="${81-topY-6}" rx="3.5" fill="#e9b97e"/>
+    <rect x="18" y="${topY}" width="68" height="10" rx="5" fill="#f2c993"/>
+  </g>`;
+const BALL = (cy, r) => `
+  <circle cx="52" cy="${cy}" r="${r}" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/>
+  <path d="M${52-r*0.55} ${cy-r*0.4} a${r*0.6} ${r*0.6} 0 0 1 ${r*0.45} -${r*0.32}" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".7"/>`;
+const pic = inner => `<svg viewBox="6 24 92 64" aria-hidden="true">${inner}</svg>`;
+
+const CARDS = {
+  on: { def: "in contact with", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-on" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-on" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="50.0" cy="89" rx="32.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g><circle cx="50" cy="46" r="11" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M44.0 42.1 a6.6 6.6 0 0 1 5.0 -3.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="93" y1="7" x2="67.0" y2="30.5" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-on)"/></svg>` },
+  off: { def: "no longer on", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-off" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-off" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="34.0" cy="89" rx="24.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="14" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="46" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="4" y="58" width="60" height="11" rx="5.5" fill="#f2c993"/></g><path d="M34 44 C 58 16, 82 34, 82 62" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round" marker-end="url(#mov-off)"/><circle cx="82" cy="77" r="10" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M76.5 73.5 a6.0 6.0 0 0 1 4.5 -3.2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="58" y1="8" x2="74.8" y2="56.2" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-off)"/></svg>` },
+  in: { def: "contained by", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-in" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-in" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="54.0" cy="89" rx="24.0" ry="2.5" fill="#e2d6c1"/><path d="M34 60 L34 88 L74 88 L74 60" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M34 60 L27 52 M74 60 L81 52" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/><circle cx="54" cy="76" r="10" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M48.5 72.5 a6.0 6.0 0 0 1 4.5 -3.2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="93" y1="7" x2="64.8" y2="56.8" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-in)"/></svg>` },
+  out: { def: "from the inside", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-out" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-out" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="38.0" cy="89" rx="24.0" ry="2.5" fill="#e2d6c1"/><path d="M18 60 L18 88 L58 88 L58 60" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M18 60 L11 52 M58 60 L65 52" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/><path d="M36 72 C 38 34, 68 30, 76 62" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round" marker-end="url(#mov-out)"/><circle cx="80" cy="77" r="10" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M74.5 73.5 a6.0 6.0 0 0 1 4.5 -3.2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="93" y1="7" x2="84.0" y2="55.4" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-out)"/></svg>` },
+  up: { def: "toward a higher place", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-up" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-up" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="62" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path d="M34 88 L34 74 L50 74 L50 60 L66 60 L66 46 L90 46 L90 88 Z" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M10 76 L30 58.7" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round"/><path d="M50 41.3 L70 24" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round" marker-end="url(#mov-up)"/><circle cx="40" cy="50" r="9" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M35.0 46.9 a5.4 5.4 0 0 1 4.0 -2.9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="12" y1="8" x2="28.4" y2="32.5" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-up)"/></svg>` },
+  down: { def: "from a higher place", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-down" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-down" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="62" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path d="M34 88 L34 74 L50 74 L50 60 L66 60 L66 46 L90 46 L90 88 Z" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M70 24 L50 41.3" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round"/><path d="M30 58.7 L12 74.3" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round" marker-end="url(#mov-down)"/><circle cx="40" cy="50" r="9" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M35.0 46.9 a5.4 5.4 0 0 1 4.0 -2.9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="12" y1="8" x2="28.4" y2="32.5" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-down)"/></svg>` },
+  into: { def: "to the inside of", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-into" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-into" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="66.0" cy="89" rx="24.0" ry="2.5" fill="#e2d6c1"/><path d="M46 60 L46 88 L86 88 L86 60" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M46 60 L39 52 M86 60 L93 52" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/><path d="M12 80 C 14 30, 56 22, 62 60" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round" marker-end="url(#mov-into)"/><circle cx="68" cy="76" r="10" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M62.5 72.5 a6.0 6.0 0 0 1 4.5 -3.2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="95" y1="20" x2="77.6" y2="56.2" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-into)"/></svg>` },
+  onto: { def: "to a position on", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-onto" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-onto" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="59.0" cy="89" rx="29.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="34" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="76" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="24" y="58" width="70" height="11" rx="5.5" fill="#f2c993"/></g><path d="M10 80 C 8 36, 34 22, 52 38" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round" marker-end="url(#mov-onto)"/><circle cx="60" cy="46" r="11" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M54.0 42.1 a6.6 6.6 0 0 1 5.0 -3.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="95" y1="8" x2="75.6" y2="29.1" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-onto)"/></svg>` },
+  over: { def: "above", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-over" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-over" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="50.0" cy="89" rx="32.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g><circle cx="50" cy="26" r="11" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M44.0 22.1 a6.6 6.6 0 0 1 5.0 -3.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="93" y1="6" x2="70.9" y2="16.3" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-over)"/></svg>` },
+  under: { def: "below", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-under" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-under" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="50.0" cy="89" rx="32.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="70" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="12" y="46" width="76" height="11" rx="5.5" fill="#f2c993"/></g><circle cx="50" cy="77" r="10" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M44.5 73.5 a6.0 6.0 0 0 1 4.5 -3.2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="93" y1="22" x2="63.6" y2="59.7" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-under)"/></svg>` },
+  through: { def: "in one side and out the other side", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-through" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-through" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker><radialGradient id="hole-through" cx="45%" cy="50%" r="60%"><stop offset="0" stop-color="#6e5238"/><stop offset="1" stop-color="#b98d58"/></radialGradient><linearGradient id="body-through" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6d6a6"/><stop offset=".55" stop-color="#f2c993"/><stop offset="1" stop-color="#ddb07a"/></linearGradient></defs><rect x="4" y="88" width="92" height="4" rx="2" fill="#ece3d3"/><ellipse cx="39.0" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path d="M16 62 L62 62 L62 88 L16 88 A6 13 0 0 1 16 62 Z" fill="url(#body-through)" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="62" cy="75" rx="6" ry="13" fill="url(#hole-through)" stroke="#5b4a3a" stroke-width="2.5"/><path d="M2 75 L12 75" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round"/><path d="M12 75 L64 75" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round" opacity=".35"/><path d="M65 75 L78 75" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round" marker-end="url(#mov-through)"/><circle cx="89" cy="79" r="9" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M84.0 75.8 a5.4 5.4 0 0 1 4.0 -2.9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="82" y1="26" x2="86.3" y2="58.2" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-through)"/></svg>` },
+  here: { def: "in this place", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-here" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker></defs><path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="36" cy="77" rx="9" ry="2.4" fill="#e2d6c1"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="29.5" y="38" width="13" height="24" rx="5" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/><path d="M41 42 L47 53 L52 64" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M41 42 L47 53 L52 64" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="52.0" y1="64.0" x2="54.3" y2="69.0" stroke="#5b4a3a" stroke-width="4.4" stroke-linecap="round"/><line x1="52.0" y1="64.0" x2="54.3" y2="69.0" stroke="#cdbba5" stroke-width="1.6" stroke-linecap="round"/><circle cx="52.0" cy="64.0" r="3.4" fill="#cdbba5" stroke="#5b4a3a" stroke-width="1.6"/><circle cx="36" cy="29" r="7" fill="#cdbba5" stroke="#5b4a3a" stroke-width="2.5"/><path d="M47 22 C 47 14, 64 14, 64 20 C 64 26, 54 27, 50 26 L45 29 L47 25 C 46 24, 47 23, 47 22 Z" fill="#fffdf8" stroke="#4a3c2f" stroke-width="1.6" stroke-linejoin="round"/><line x1="86" y1="22" x2="60.2" y2="63.2" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-here)"/></svg>` },
+  there: { def: "in that place", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-there" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker></defs><path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="86" cy="64" rx="9" ry="3.5" fill="#f5b8b2" stroke="#d64541" stroke-width="1.6"/><ellipse cx="36" cy="77" rx="9" ry="2.4" fill="#e2d6c1"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="29.5" y="38" width="13" height="24" rx="5" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/><path d="M41 42 L52 47 L63 52" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M41 42 L52 47 L63 52" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="63.0" y1="52.0" x2="68.0" y2="54.3" stroke="#5b4a3a" stroke-width="4.4" stroke-linecap="round"/><line x1="63.0" y1="52.0" x2="68.0" y2="54.3" stroke="#cdbba5" stroke-width="1.6" stroke-linecap="round"/><circle cx="63.0" cy="52.0" r="3.4" fill="#cdbba5" stroke="#5b4a3a" stroke-width="1.6"/><circle cx="36" cy="29" r="7" fill="#cdbba5" stroke="#5b4a3a" stroke-width="2.5"/><path d="M47 22 C 47 14, 64 14, 64 20 C 64 26, 54 27, 50 26 L45 29 L47 25 C 46 24, 47 23, 47 22 Z" fill="#fffdf8" stroke="#4a3c2f" stroke-width="1.6" stroke-linejoin="round"/><line x1="90" y1="18" x2="86.7" y2="54.0" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-there)"/></svg>` },
+  to: { def: "in the direction of", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-to" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-to" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="4" y="88" width="92" height="4" rx="2" fill="#ece3d3"/><ellipse cx="76.0" cy="89" rx="18.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="62" y="66" width="8" height="22" rx="4" fill="#e9b97e"/><rect x="82" y="66" width="8" height="22" rx="4" fill="#e9b97e"/><rect x="56" y="60" width="40" height="11" rx="5.5" fill="#f2c993"/></g><path d="M4 79 L20 79" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round"/><path d="M44 79 L54 79" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round" marker-end="url(#mov-to)"/><circle cx="32" cy="79" r="9" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M27.1 75.8 a5.4 5.4 0 0 1 4.0 -2.9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="52" y1="18" x2="38.5" y2="59.0" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-to)"/></svg>` },
+  from: { def: "starting at", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-from" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-from" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="4" y="88" width="92" height="4" rx="2" fill="#ece3d3"/><ellipse cx="76.0" cy="89" rx="18.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="62" y="66" width="8" height="22" rx="4" fill="#e9b97e"/><rect x="82" y="66" width="8" height="22" rx="4" fill="#e9b97e"/><rect x="56" y="60" width="40" height="11" rx="5.5" fill="#f2c993"/></g><path d="M56 79 L44 79" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round"/><path d="M20 79 L6 79" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round" marker-end="url(#mov-from)"/><circle cx="32" cy="79" r="9" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M27.1 75.8 a5.4 5.4 0 0 1 4.0 -2.9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="52" y1="18" x2="38.5" y2="59.0" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-from)"/></svg>` }
+};
+
+const TEXT = "The cat jumps onto the table. It sits on the box and then climbs into it. Now the cat is in the box. Sam lifts the lid off. The cat jumps out and hides under the table. Then it runs through the tube and up the steps. It looks down from the top. A bird flies over the house, from the tree to the roof. Sam calls, come here, cat! The cat stays there.";
+const reading = document.getElementById('reading');
+const sweeps = document.getElementById('sweeps');
+const dot = document.createElement('div'); dot.className = 'dot'; dot.hidden = true;
+reading.append(dot);
+const words = [];
+TEXT.split(/\s+/).forEach((chunk, n, all) => {
+  const m = chunk.match(/^([A-Za-z']+)(.*)$/);
+  const s = document.createElement('span');
+  s.className = 'w';
+  s.innerHTML = `<span class="t">${m[1]}</span>${m[2]}`;
+  const key = m[1].toLowerCase();
+  if (CARDS[key]) { s.classList.add('has-card'); s.dataset.card = key; }
+  s.dataset.i = words.length;
+  s.dataset.end = /[.!?]/.test(m[2]) ? '1' : '';
+  words.push(s); reading.append(s);
+  if (n < all.length - 1) reading.append(' ');
+});
+
+const $ = id => document.getElementById(id);
+const speed = $('speed');
+// Sentence sweep: the highlight grows through the sentence word by word (phase 'head'),
+// halts for a moment in the middle of each word space (phase 'halt'), and stops at the end
+// of the sentence. Going on from there, it disappears briefly (phase 'gap') before the next sentence.
+let idx = 0, prog = 0, phase = 'head', stopAt = -1, haltEnd = 0, gapEnd = 0;
+let mode = 'idle', last = 0, raf = 0;
+const haltMs = () => 12000 / +speed.value;
+const gapMs = () => 14000 / +speed.value;
+let openIdx = -1, card = null;
+
+// Room for slow reactions: if ? is pressed within graceMs of the sweep leaving a trigger word,
+// it goes to that word, not the one now under the sweep (the time stands still while paused).
+const graceMs = 0;   // the delay for slow presses has been dropped
+let lastTrig = -1, grace = 0, dismissed = -1;
+function leaving() {
+  if (words[idx].dataset.card && idx !== dismissed) { lastTrig = idx; grace = graceMs; }
+  else { lastTrig = -1; grace = 0; }
+}
+function forget() { lastTrig = -1; grace = 0; dismissed = -1; }
+// The trigger word ? applies to: the open card's word; else the trigger word just left (within
+// the grace time); else the word under the sweep.
+function target() {
+  if (card && openIdx >= 0) return openIdx;
+  if (grace > 0 && lastTrig >= 0) return lastTrig;
+  if (phase !== 'gap' && words[idx].dataset.card) return idx;
+  return -1;
+}
+
+// Each word's stretch of the sweep runs from the middle of the space before it
+// to the middle of the space after it, so every halt falls in the middle of a word space.
+function sameLine(a, b) { return words[a] && words[b] && words[a].offsetTop === words[b].offsetTop; }
+function x0(i) {
+  if (i > 0 && !words[i - 1].dataset.end && sameLine(i - 1, i)) return x1(i - 1);
+  return words[i].offsetLeft;
+}
+function x1(i) {
+  const w = words[i], right = w.offsetLeft + w.offsetWidth;
+  if (!w.dataset.end && sameLine(i, i + 1)) return (right + words[i + 1].offsetLeft) / 2;
+  return right + 4;
+}
+function span(i) { return x1(i) - x0(i); }
+function sentStart(i) { while (i > 0 && !words[i - 1].dataset.end) i--; return i; }
+const done = () => phase === 'head' && prog >= span(idx);
+
+const pool = [];
+function seg(n) {
+  if (!pool[n]) { const d = document.createElement('div'); d.className = 'sweep'; sweeps.append(d); pool[n] = d; }
+  return pool[n];
+}
+function draw() {
+  // One highlight band per line the sentence covers so far.
+  const lines = [];
+  if (phase !== 'gap') {
+    for (let i = sentStart(idx); i <= idx; i++) {
+      const w = words[i], ext = i < idx ? span(i) : prog;
+      let L = lines[lines.length - 1];
+      if (!L || L.top !== w.offsetTop) { L = { top: w.offsetTop, h: w.offsetHeight, left: x0(i), right: x0(i) }; lines.push(L); }
+      L.right = Math.max(L.right, x0(i) + ext);
+    }
+  }
+  words.forEach((w, n) => w.classList.toggle('now', n === idx && phase !== 'gap' && !!w.dataset.card && (prog > 0 || mode !== 'idle')));
+  pool.forEach(d => d.hidden = true);
+  lines.forEach((L, n) => {
+    const d = seg(n);
+    d.hidden = false;
+    d.classList.toggle('lead', n === lines.length - 1);
+    d.style.left = (L.left - 3) + 'px';
+    d.style.top = (L.top + 4) + 'px';
+    d.style.height = (L.h - 8) + 'px';
+    d.style.width = Math.max(3, L.right - L.left + 3) + 'px';
+  });
+  const L = lines[lines.length - 1];
+  const showDot = L && lines.length === 1 && L.right - L.left < 6;
+  dot.hidden = !showDot;
+  if (showDot) { dot.style.left = L.left + 'px'; dot.style.top = (L.top + L.h - 4) + 'px'; }
+}
+function follow() {
+  const r = words[idx].getBoundingClientRect();
+  if (r.top < 60 || r.bottom > innerHeight - 170) words[idx].scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+function frame(t) {
+  const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
+  if (mode === 'idle') { raf = 0; return; }
+  if (phase === 'head') {
+    const target = span(idx);
+    prog = Math.min(target, prog + (+speed.value) * dt);
+    if (prog >= target) {
+      const end = words[idx].dataset.end || idx >= words.length - 1;
+      if ((mode === 'step' && idx >= stopAt) || (mode === 'play' && end) || idx >= words.length - 1) { draw(); pause(); raf = 0; return; }
+      phase = 'halt'; haltEnd = t + haltMs();
+    }
+  } else if (phase === 'halt') {
+    if (t >= haltEnd) {
+      if (words[idx].dataset.end) { leaving(); phase = 'gap'; gapEnd = t + gapMs(); }
+      else { leaving(); idx++; prog = 0; phase = 'head'; follow(); }
+    }
+  } else if (t >= gapEnd) {
+    idx++; prog = 0; phase = 'head'; dismissed = -1; follow();
+  }
+  grace = Math.max(0, grace - dt * 1000);
+  draw();
+  raf = requestAnimationFrame(frame);
+}
+function run(m) {
+  closeCard(); mode = m; last = 0;
+  if (m === 'play' || m === 'hold') { $('playIcon').setAttribute('d', 'M8 5v14M16 5v14'); $('play').setAttribute('aria-label', 'Pause'); }
+  if (!raf) raf = requestAnimationFrame(frame);
+}
+function pause() {
+  mode = 'idle'; $('play').classList.remove('holding');
+  $('playIcon').setAttribute('d', 'M5 5l7 7-7 7M12 5l7 7-7 7'); $('play').setAttribute('aria-label', 'Read to the end of the sentence');
+}
+// Stopping from the button or Space: finish the word under the sweep (up to the middle of the
+// next word space), then stop. Anything else that pauses (opening a pop-up, tapping text) stops at once.
+function softStop() {
+  $('play').classList.remove('holding');
+  $('playIcon').setAttribute('d', 'M5 5l7 7-7 7M12 5l7 7-7 7'); $('play').setAttribute('aria-label', 'Read to the end of the sentence');
+  if (mode !== 'idle' && phase === 'head' && prog < span(idx)) { stopAt = idx; mode = 'step'; }
+  else pause();
+}
+// >> : sweep to the end of the sentence (press again to pause).
+function playSentence() {
+  closeCard();
+  if (mode === 'play') { softStop(); return; }
+  if (done()) {
+    if (idx >= words.length - 1) { idx = 0; prog = 0; draw(); }
+    else { phase = 'halt'; haltEnd = 0; }
+  }
+  follow(); run('play');
+}
+// > : finish the current word if needed, otherwise sweep on through the next word, then stop.
+function stepNext() {
+  closeCard(); pause();
+  if (phase === 'head' && prog < span(idx)) stopAt = idx;
+  else if (idx < words.length - 1) { stopAt = idx + 1; if (phase === 'head') { phase = 'halt'; haltEnd = 0; } }
+  else return;
+  run('step');
+}
+// << : back to the start of this sentence; if already there, the start of the one before.
+function backToStart() {
+  closeCard(); pause(); forget();
+  let s = sentStart(idx);
+  if (idx === s && prog === 0 && phase === 'head' && s > 0) s = sentStart(s - 1);
+  idx = s; prog = 0; phase = 'head';
+  draw(); follow();
+}
+
+// How a word should be spoken, where the device's voice gets it wrong.
+// Spelled the way it should sound; add more as we find them.
+const SAY = { onto: 'ontoo' };
+function sayWord(w) { return SAY[w.toLowerCase()] || w; }
+function speak(text) {
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-GB'; u.rate = 0.85;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+const SPEAKER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>';
+
+// ? : 1st press picture, 2nd says the word, 3rd shows the definition, 4th says the definition,
+// 5th closes the pop-up and moves on to the next word.
+function ask(ti = target()) {
+  if (ti < 0 || !words[ti].dataset.card) return;
+  const key = words[ti].dataset.card;
+  const stage = card && openIdx === ti ? +card.dataset.stage : 0;
+  if (stage === 0) openCard(ti, 'sweep');
+  else if (stage === 1) { setStage(2); speak(sayWord(words[ti].querySelector('.t').textContent)); }
+  else if (stage === 2) setStage(3);
+  else if (stage === 3) { setStage(4); speak(CARDS[key].def); }
+  else if (card.dataset.src === 'sweep') moveOn();
+  else { closeCard(); playSentence(); }   // 5th tap: close and carry on sweeping
+}
+// After the 5th press: finish this word if it isn't swept yet, then sweep the next one.
+function moveOn() {
+  const was = openIdx;
+  closeCard(); pause(); forget();
+  dismissed = was;
+  if (idx >= words.length - 1) return;
+  stopAt = idx + 1;
+  if (done()) { phase = 'halt'; haltEnd = 0; }
+  run('step');
+}
+function openCard(ti, src = 'sweep') {
+  pause(); closeCard();
+  const c = CARDS[words[ti].dataset.card];
+  card = document.createElement('div');
+  card.className = 'card'; card.setAttribute('role', 'dialog'); card.setAttribute('aria-label', 'Meaning');
+  card.innerHTML = `<div class="inner"><div class="pic">${c.svg}</div><div class="def">${c.def}</div></div><span class="voice" aria-hidden="true">${SPEAKER}</span>`;
+  card.onclick = e => { e.stopPropagation(); ask(openIdx); };
+  reading.append(card);
+  card.dataset.src = src;
+  openIdx = ti; setStage(1);
+}
+function setStage(n) { card.dataset.stage = n; place(); draw(); }
+// Above the word like a speech bubble; below only if there is no room above.
+function place() {
+  const w = words[openIdx].querySelector('.t');
+  const box = reading.getBoundingClientRect(), r = w.getBoundingClientRect();
+  const cw = card.offsetWidth, ch = card.offsetHeight, gap = 16;
+  const mid = r.left - box.left + r.width / 2;
+  let left = Math.max(8, Math.min(box.width - cw - 8, mid - cw / 2));
+  const above = r.top - ch - gap > 8;
+  card.dataset.side = above ? 'above' : 'below';
+  const top = above ? r.top - box.top - ch - gap : r.bottom - box.top + gap;
+  card.style.left = left + 'px'; card.style.top = top + 'px';
+  card.style.setProperty('--tail-x', Math.max(22, Math.min(cw - 22, mid - left)) + 'px');
+}
+function closeCard() {
+  if (card) card.remove();
+  card = null; openIdx = -1;
+  try { speechSynthesis.cancel(); } catch (e) {}
+}
+
+// Tapping the text:
+// - on an underlined (trigger) word: its pop-up opens; the sweep stays where it is.
+//   Tap the word or the pop-up again to step through it.
+// - in front of a word (its first half, or the space before it): read that sentence from the start.
+// - after a word (its second half, or the space after it), in the sentence already being swept:
+//   carry on reading from the next word. In a sentence not yet started, any tap starts it from the beginning.
+// If a pop-up is open, tapping elsewhere first closes it.
+function nearestWord(x, y) {
+  let best = -1, bd = Infinity;
+  words.forEach((w, n) => {
+    const r = w.getBoundingClientRect();
+    const dx = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
+    const dy = y < r.top ? r.top - y : y > r.bottom ? y - r.bottom : 0;
+    const d = dy * 4 + dx;                       // prefer the same line
+    if (d < bd) { bd = d; best = n; }
+  });
+  return best;
+}
+reading.addEventListener('click', e => {
+  if (e.target.closest('.card')) return;
+  e.stopPropagation();
+  const hit = e.target.closest('.w');
+  const i = hit ? +hit.dataset.i : nearestWord(e.clientX, e.clientY);
+  if (i < 0) return;
+  const w = words[i];
+  if (card && openIdx === i && hit) { ask(i); return; }
+  if (card) { closeCard(); return; }
+  if (hit && w.dataset.card) { pause(); openCard(i, 'tap'); return; }
+  const r = w.querySelector('.t').getBoundingClientRect();
+  // "Carry on" only makes sense in the sentence the sweep has already started.
+  // In any other sentence (or one not yet begun), every tap starts it from the beginning.
+  const started = sentStart(i) === sentStart(idx) && phase !== 'gap' && !(idx === sentStart(idx) && prog === 0);
+  const before = !started || e.clientX < r.left + r.width / 2;
+  pause(); forget();
+  if (before) { idx = sentStart(i); prog = 0; phase = 'head'; }
+  else { idx = i; prog = span(i); phase = 'head'; }
+  draw(); follow();
+  playSentence();
+});
+document.addEventListener('click', e => { if (card && !e.target.closest('.strip')) closeCard(); });
+addEventListener('resize', () => { draw(); if (card) place(); });
+document.fonts && document.fonts.ready.then(draw);
+
+// The one button: tap to sweep to the end of the sentence (tap again to pause);
+// press and hold to sweep only while held.
+const playBtn = $('play');
+let holdTimer = 0, holding = false, pressed = false;
+function startHold() {
+  closeCard();
+  if (done()) { if (idx >= words.length - 1) return; phase = 'halt'; haltEnd = 0; }
+  holding = true; playBtn.classList.add('holding'); follow(); run('hold');
+}
+playBtn.addEventListener('pointerdown', e => {
+  e.preventDefault(); pressed = true; holding = false;
+  try { playBtn.setPointerCapture(e.pointerId); } catch (_) {}
+  holdTimer = setTimeout(startHold, 300);
+});
+playBtn.addEventListener('pointerup', () => {
+  if (!pressed) return; pressed = false; clearTimeout(holdTimer);
+  if (holding) { holding = false; softStop(); } else playSentence();
+});
+playBtn.addEventListener('pointercancel', () => { pressed = false; clearTimeout(holdTimer); if (holding) { holding = false; softStop(); } });
+playBtn.addEventListener('contextmenu', e => e.preventDefault());
+playBtn.addEventListener('click', e => { if (e.detail === 0) playSentence(); });   // keyboard Enter / Space on the button
+
+// Settings (☰): speed and text size, highlighter colour, paper colour.
+// Kept on this device for the demo; the full app would keep them per learner.
+const HL = [
+  { name: 'Teal',   wash: '#dcefee', deep: '#5fb3b3', ul: '#bfe0df' },
+  { name: 'Yellow', wash: '#fbefb4', deep: '#d9ad2b', ul: '#f3df96' },
+  { name: 'Pink',   wash: '#f8dde3', deep: '#d98a9c', ul: '#f0c8d1' },
+  { name: 'Blue',   wash: '#dbe6f7', deep: '#7d9fd6', ul: '#c5d5ef' },
+  { name: 'Green',  wash: '#e0efd6', deep: '#86b56b', ul: '#cae1bb' },
+  { name: 'Lilac',  wash: '#e8e0f3', deep: '#a48ccc', ul: '#d7cbea' }
+];
+const PAPER = [
+  { name: 'Cream', c: '#fdf8ef' }, { name: 'White', c: '#ffffff' }, { name: 'Soft yellow', c: '#fdf5cf' },
+  { name: 'Soft blue', c: '#e9f1f8' }, { name: 'Soft green', c: '#ebf4e4' }, { name: 'Soft pink', c: '#fbebee' },
+  { name: 'Soft grey', c: '#ecebe8' }
+];
+const prefs = { hl: 0, paper: 0 };
+try { Object.assign(prefs, JSON.parse(localStorage.getItem('flooent-demo-settings') || '{}')); } catch (e) {}
+function savePrefs() { try { localStorage.setItem('flooent-demo-settings', JSON.stringify(prefs)); } catch (e) {} }
+function applyPrefs() {
+  const h = HL[prefs.hl] || HL[0], pp = PAPER[prefs.paper] || PAPER[0];
+  document.documentElement.style.setProperty('--hl', h.wash);
+  document.documentElement.style.setProperty('--hl-deep', h.deep);
+  document.documentElement.style.setProperty('--ul', h.ul);
+  document.documentElement.style.setProperty('--sheet', pp.c);
+  document.querySelectorAll('#hlSw .sw').forEach((b, n) => b.setAttribute('aria-pressed', n === +prefs.hl));
+  document.querySelectorAll('#paperSw .sw').forEach((b, n) => b.setAttribute('aria-pressed', n === +prefs.paper));
+}
+function swatches(el, list, key, colour) {
+  list.forEach((x, n) => {
+    const b = document.createElement('button');
+    b.className = 'sw'; b.style.background = colour(x); b.setAttribute('aria-label', x.name); b.title = x.name;
+    b.onclick = () => { prefs[key] = n; applyPrefs(); savePrefs(); };
+    el.append(b);
+  });
+}
+swatches($('hlSw'), HL, 'hl', x => x.wash);
+swatches($('paperSw'), PAPER, 'paper', x => x.c);
+$('menu').onclick = e => { e.stopPropagation(); pause(); closeCard(); $('settings').hidden = false; $('closeSet').focus(); };
+$('closeSet').onclick = () => { $('settings').hidden = true; };
+$('settings').addEventListener('click', e => { if (e.target.id === 'settings') $('settings').hidden = true; });
+applyPrefs();
+
+// Text size: start from the size the page chose for this screen, then follow the slider.
+const size = $('size');
+size.value = Math.round(parseFloat(getComputedStyle(reading).fontSize));
+size.addEventListener('input', () => {
+  reading.style.fontSize = size.value + 'px';
+  draw(); if (card) place();
+});
+
+// Keyboard (laptop/desktop): ↑ ?, ↓ next word, ← back to sentence start, → or Space read to end of sentence.
+// Space works like the button: tap to sweep to the end of the sentence, hold to sweep only while held.
+let spaceDown = false;
+document.addEventListener('keyup', e => {
+  if (e.key !== ' ' || !spaceDown) return;
+  e.preventDefault(); spaceDown = false; clearTimeout(holdTimer);
+  if (holding) { holding = false; softStop(); } else playSentence();
+});
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, textarea') || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (!$('settings').hidden) { if (e.key === 'Escape') $('settings').hidden = true; return; }
+  const k = e.key;
+  if (k === 'ArrowUp' || k === '?') ask();
+  else if (k === 'ArrowDown') stepNext();
+  else if (k === 'ArrowLeft') backToStart();
+  else if (k === 'ArrowRight') playSentence();
+  else if (k === ' ') { if (!e.repeat && !spaceDown) { spaceDown = true; holdTimer = setTimeout(startHold, 300); } }
+  else if (k === 'Escape') closeCard();
+  else return;
+  e.preventDefault();
+});
+
+draw();
+</script>
+
+</body></html>
