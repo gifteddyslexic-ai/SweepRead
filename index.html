@@ -1,50 +1,103 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>SweepReader Card Test</title>
+<title>SweepReader Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap">
 <style>
-/* Layout: same warm reading sheet as the SweepReader demo; a voice switch on top, the demo passage to tap, the card as a speech bubble above the word. Single warm light look by choice, matching the demo. */
+/* Layout: one calm reading column; a sweep highlight grows through each sentence; card pops up beside the word; control strip pinned to the bottom. Single warm light look by choice. */
 :root {
   color-scheme: light;
+  --paper: #fdf8ef;
   --page: #f6efe2;
-  --sheet: #fdf8ef;
+  --ink: #4a3c2f;
+  --ink-soft: #8a7a68;
+  --teal: #5fb3b3;
+  --teal-deep: #2f7d7d;
+  --teal-wash: #dcefee;
+  --line: #e6dccb;
   --card: #fffdf8;
   --card-back: #f6eedf;
   --back-line: #b9a891;
-  --ink: #4a3c2f;
-  --ink-soft: #7d6d5b;
-  --line: #e6dccb;
-  --ul: #bfe0df;
   --deck: #1d2b4a;
+  --deck-btn: #2c3d63;
+  --deck-line: #41557f;
   --deck-ink: #f3f5fa;
+  --deck-soft: #cbbcaa;
+  --sheet: #fdf8ef;
+  --hl: #dcefee;
+  --hl-deep: #5fb3b3;
+  --ul: #bfe0df;
   --read: "Lexend", "Atkinson Hyperlegible", Verdana, sans-serif;
 }
 html, body { height: 100%; }
-body { background: var(--page); color: var(--ink); font-family: var(--read); padding-inline: 16px; padding-block: 0; }
-.wrap { max-width: 640px; margin: 0 auto; padding-block: 24px 48px; display: grid; gap: 18px; }
-h1 { margin: 0; font-size: 20px; font-weight: 600; text-wrap: balance; }
-.note { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink-soft); }
+[hidden] { display: none !important; }
+body {
+  background: var(--page); color: var(--ink);
+  font-family: var(--read);
+  padding-inline: 16px; padding-block: 0;
+}
+.wrap { max-width: 640px; margin: 0 auto; padding-block: 62px 140px; }
+.note {
+  font-size: 13px; line-height: 1.5; color: var(--ink-soft);
+  background: var(--paper); border: 1px dashed var(--line); border-radius: 12px;
+  padding: 10px 14px; margin: 0 0 20px;
+}
 .note b { color: var(--ink); font-weight: 600; }
-.opts { display: grid; gap: 8px; }
-.opts .lbl { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
-.seg { display: flex; flex-wrap: wrap; gap: 8px; }
-.seg button {
-  flex: 1 1 140px; min-height: 48px; padding: 8px 14px; border-radius: 14px; cursor: pointer;
-  border: 2px solid var(--line); background: var(--sheet); color: var(--ink);
-  font: 600 15px/1.3 var(--read); text-align: left;
-}
-.seg button span { display: block; font-weight: 400; font-size: 13px; color: var(--ink-soft); }
-.seg button[aria-pressed="true"] { border-color: var(--deck); background: var(--deck); color: var(--deck-ink); }
-.seg button[aria-pressed="true"] span { color: #cfd6e6; }
-.seg button:focus-visible, .w:focus-visible { outline: 3px solid var(--deck); outline-offset: 2px; }
-.voice { display: flex; align-items: center; gap: 10px; font-size: 15px; }
-.voice input { width: 22px; height: 22px; accent-color: var(--deck); }
 .reading {
-  position: relative; background: var(--sheet); border-radius: 22px;
-  padding: 26px 22px; font-size: clamp(24px, 6.4vw, 30px); line-height: 2.1;
+  position: relative;
+  background: var(--sheet); border-radius: 22px;
+  padding: 26px 22px;
+  font-size: clamp(24px, 6.4vw, 30px); line-height: 2.1;
 }
-.w { position: relative; z-index: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: 4px; }
-.w.has-card { border-bottom: 2px solid var(--ul); }
+.sweep {
+  position: absolute; z-index: 0; pointer-events: none; box-sizing: border-box;
+  background: var(--hl);
+  border-radius: 8px;
+}
+.sweep.lead { border-radius: 8px; }
+/* Dot marking where the sweep will start, shown until the band begins to grow. */
+.dot {
+  position: absolute; z-index: 2; pointer-events: none;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--hl-deep);
+  transform: translate(-50%, -50%);
+}
+
+/* settings sheet, opened from ☰ */
+.settings {
+  position: fixed; inset: 0; z-index: 20;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.panel {
+  width: min(640px, 100vw); box-sizing: border-box; background: var(--card);
+  border-radius: 20px 20px 0 0; border-top: 2px solid var(--line);
+  box-shadow: 0 -8px 24px color-mix(in srgb, var(--ink) 18%, transparent);
+  padding: 18px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  display: grid; gap: 16px; max-height: 75vh; overflow: auto;
+}
+.panel .head { display: flex; justify-content: space-between; align-items: center; }
+.panel h2 { margin: 0; font-size: 20px; font-weight: 600; }
+.field { display: grid; gap: 8px; font-size: 15px; }
+.field .top { display: flex; justify-content: space-between; align-items: baseline; }
+.field output { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 12px; }
+.field input { accent-color: var(--teal); width: 100%; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.sw {
+  width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  border: 2px solid var(--line); padding: 0;
+}
+.sw[aria-pressed="true"] { border: 3px solid var(--ink); }
+.sw:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.panel .done { background: var(--teal); border-color: var(--teal); color: #fff; width: auto; height: 44px; padding: 0 20px; font-size: 16px; }
+.w {
+  position: relative; z-index: 1;
+  display: inline-block;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.w.has-card .t { border-bottom: 2px solid var(--ul); padding-bottom: 1px; }
+/* The underline of the trigger word under the sweep brightens a little: a quiet cue that it can be tapped. */
+.w.has-card.now .t { border-bottom-color: var(--hl-deep); }
+@media (prefers-reduced-motion: no-preference) { .w.has-card .t { transition: border-color .25s; } }
 
 /* Card stack: .back is the second card peeking from behind; .card is the one in front. */
 .stack { position: absolute; z-index: 5; width: min(300px, calc(100vw - 72px)); aspect-ratio: 2 / 1; --tail-x: 50%; }
@@ -83,18 +136,103 @@ h1 { margin: 0; font-size: 20px; font-weight: 600; text-wrap: balance; }
 .def { display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px; font: 600 clamp(17px, 4.6vw, 22px)/1.2 var(--read); min-width: 0; }
 .def[hidden] { display: none !important; }
 .tag { position: absolute; right: 10px; bottom: 6px; font-size: 11px; color: var(--ink-soft); }
-.steps { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; color: var(--ink-soft); display: grid; gap: 2px; }
+
+/* settings toggles */
+.tog { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; }
+.tog span { min-width: 0; }
+.tog small { display: block; color: var(--ink-soft); font-size: 13px; }
+.tog input { width: 24px; height: 24px; flex: none; accent-color: var(--teal); }
+body.no-strip .strip { display: none; }
+body.no-strip .wrap { padding-block-end: 48px; }
+
+/* control strip */
+.strip {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  background: var(--deck);
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+}
+.strip-in { max-width: 640px; margin: 0 auto; display: grid; gap: 12px; }
+.row { display: flex; gap: 10px; align-items: center; justify-content: center; }
+.btn {
+  width: 64px; height: 56px; padding: 0;
+  border-radius: 16px; border: 2px solid var(--deck-line); background: var(--deck-btn); color: var(--deck-ink);
+  font: 600 26px var(--read); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.btn svg { width: 26px; height: 26px; }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn.ask { font-size: 36px; font-weight: 700; }
+.btn.ask:disabled { opacity: 1; }
+/* Soft glow round ? while a trigger word is available */
+.btn.ask:not(:disabled) {
+  border-color: #8fd3d3;
+  box-shadow: 0 0 0 3px rgba(143, 211, 211, .35), 0 0 16px 4px rgba(143, 211, 211, .55);
+}
+@media (prefers-reduced-motion: no-preference) { .btn.ask { transition: box-shadow .25s, border-color .25s; } }
+.qbadge {
+  display: inline-grid; place-items: center; width: 28px; height: 28px; margin: 0 2px;
+  border-radius: 9px; background: var(--deck); color: var(--deck-ink);
+  font-weight: 700; font-size: 18px; line-height: 1; vertical-align: middle;
+}
+.btn:focus-visible { outline: 3px solid var(--deck-ink); outline-offset: 2px; }
+.btn.big {
+  width: 132px; height: 64px; border-radius: 22px;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+.btn.big svg { width: 34px; height: 34px; }
+.btn.big.holding { background: var(--deck-line); }
+.menu-btn {
+  position: fixed; z-index: 15; right: 12px; top: calc(10px + env(safe-area-inset-top, 0px));
+  width: 42px; height: 42px; border-radius: 12px; border: 0;
+  background: var(--deck); color: var(--deck-ink); opacity: .85;
+  display: grid; place-items: center; cursor: pointer;
+}
+.menu-btn svg { width: 22px; height: 22px; }
+.menu-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.slide { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--ink-soft); }
+.slide input { flex: 1; min-width: 0; accent-color: var(--teal); height: 28px; }
+.lab { width: 44px; flex: none; text-align: center; }
+.a-sm { font-size: 14px; font-weight: 600; color: var(--ink); }
+.a-lg { font-size: 24px; font-weight: 600; color: var(--ink); line-height: 1; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (max-width: 420px) {
+  .row { gap: 10px; }
+  .strip .btn { width: 58px; }
+  .strip .btn.big { width: 132px; }
+}
 </style>
 
 <div class="wrap">
-  <h1>All finished cards</h1>
-  <p class="note"><b>Tap an underlined word</b> to test its card. The card opens with the word and picture, the voice says the word, any movement plays, and the definition sweeps in with the voice. Tap again to close. Movement cards follow the new picture rules; "on", "over", "under", "here" and "there" are still pictures with the red arrow, and "in" now uses the 3D box.</p>
+  <p class="note"><b>Demo for Axel.</b> <b>Tap the text</b> to sweep: in a sentence that hasn't started, any tap starts it from the beginning; in the sentence being read, tap in front of a word to read the sentence again from the start, or after a word to carry on from the next word. <b>Tap an underlined word</b> for its card: the word and picture, any movement, then the definition with the voice. Tap again for the next card (where there is one) or to close it and carry on reading. <b>☰</b> (top right) holds the settings, including Voice, trigger-word support and the on-screen button. On a keyboard: Space sweeps (tap, or hold to sweep while held), ← start of sentence, ↓ next word, ↑ card for the word under the sweep.</p>
+  <div class="reading" id="reading"><div id="sweeps" aria-hidden="true"></div></div>
+</div>
 
-  <label class="voice" for="voiceOn"><input type="checkbox" id="voiceOn" checked> Voice</label>
+<div class="settings" id="settings" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="head"><h2 id="setTitle">Settings</h2><button class="btn done" id="closeSet">Done</button></div>
+    <label class="field" for="speed">
+      <span>Speed</span>
+      <span class="slide"><span class="lab">slower</span><input type="range" id="speed" min="30" max="260" value="80"><span class="lab">faster</span></span>
+    </label>
+    <label class="field" for="size">
+      <span>Text size</span>
+      <span class="slide"><span class="lab"><span class="a-sm" aria-hidden="true">A</span><span class="sr">smaller</span></span><input type="range" id="size" min="20" max="48" value="28"><span class="lab"><span class="a-lg" aria-hidden="true">A</span><span class="sr">larger</span></span></span>
+    </label>
+    <div class="field"><span>Highlighter colour</span><div class="swatches" id="hlSw"></div></div>
+    <div class="field"><span>Paper colour</span><div class="swatches" id="paperSw"></div></div>
+    <label class="tog" for="voiceOn"><span>Voice<small>Say the word and its definition</small></span><input type="checkbox" id="voiceOn"></label>
+    <label class="tog" for="trigOn"><span>Trigger-word support<small>Underline trigger words and open their cards</small></span><input type="checkbox" id="trigOn"></label>
+    <label class="tog" for="btnOn"><span>On-screen button<small>Mainly for laptops and desktops</small></span><input type="checkbox" id="btnOn"></label>
+  </div>
+</div>
 
-  <div class="reading" id="reading"></div>
+<button class="menu-btn" id="menu" aria-label="Settings" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
 
-  <p class="note"><b>Words:</b> on, off, in, out, up, down, into, onto, over, under, through, here, there, to, from, and new: back (three cards) and front (two cards).</p>
+<div class="strip" role="toolbar" aria-label="Reading control">
+  <div class="strip-in">
+    <div class="row">
+      <button class="btn big" id="play" aria-label="Read to the end of the sentence. Hold to sweep while held."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path id="playIcon" d="M5 5l7 7-7 7M12 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -214,16 +352,170 @@ const SAY = { onto: 'ontoo' };
 
 const TEXT = 'The cat jumps onto the table. It sits on the box and then climbs into it. Now the cat is in the box. Sam lifts the lid off. The cat jumps out and hides under the table. Then it runs through the tube and up the steps. It looks down from the top. A bird flies over the house, from the tree to the roof. Sam calls, come here, cat! The cat stays there. The ball rolls back to Sam. He steps back and stands in front of the door.';
 const reading = document.getElementById('reading');
+const sweeps = document.getElementById('sweeps');
+const dot = document.createElement('div'); dot.className = 'dot'; dot.hidden = true;
+reading.append(dot);
 const words = [];
-TEXT.split(' ').forEach((chunk, n, all) => {
-  const m = chunk.match(/^([A-Za-z']+)(.*)$/) || [chunk, '', chunk];
+TEXT.split(/\s+/).forEach((chunk, n, all) => {
+  const m = chunk.match(/^([A-Za-z']+)(.*)$/);
   const s = document.createElement('span');
-  s.className = 'w'; s.textContent = m[1];
+  s.className = 'w';
+  s.innerHTML = `<span class="t">${m[1]}</span>${m[2]}`;
   const key = m[1].toLowerCase();
-  if (CARDS[key]) { s.classList.add('has-card'); s.dataset.card = key; s.tabIndex = 0; s.setAttribute('role', 'button'); }
-  words.push(s); reading.append(s, m[2]);
+  if (CARDS[key]) s.dataset.key = key;
+  s.dataset.i = words.length;
+  s.dataset.end = /[.!?]/.test(m[2]) ? '1' : '';
+  words.push(s); reading.append(s);
   if (n < all.length - 1) reading.append(' ');
 });
+
+const $ = id => document.getElementById(id);
+const speed = $('speed');
+// Sentence sweep: the highlight grows through the sentence word by word (phase 'head'),
+// halts for a moment in the middle of each word space (phase 'halt'), and stops at the end
+// of the sentence. Going on from there, it disappears briefly (phase 'gap') before the next sentence.
+let idx = 0, prog = 0, phase = 'head', stopAt = -1, haltEnd = 0, gapEnd = 0;
+let mode = 'idle', last = 0, raf = 0;
+const haltMs = () => 12000 / +speed.value;
+const gapMs = () => 14000 / +speed.value;
+
+// Room for slow reactions: if ? is pressed within graceMs of the sweep leaving a trigger word,
+// it goes to that word, not the one now under the sweep (the time stands still while paused).
+const graceMs = 0;   // the delay for slow presses has been dropped
+let lastTrig = -1, grace = 0, dismissed = -1;
+function leaving() {
+  if (words[idx].dataset.card && idx !== dismissed) { lastTrig = idx; grace = graceMs; }
+  else { lastTrig = -1; grace = 0; }
+}
+function forget() { lastTrig = -1; grace = 0; dismissed = -1; }
+// The trigger word ? applies to: the open card's word; else the trigger word just left (within
+// the grace time); else the word under the sweep.
+function target() {
+  if (open) return words.indexOf(open.word);
+  if (grace > 0 && lastTrig >= 0) return lastTrig;
+  if (phase !== 'gap' && words[idx].dataset.card) return idx;
+  return -1;
+}
+
+// Each word's stretch of the sweep runs from the middle of the space before it
+// to the middle of the space after it, so every halt falls in the middle of a word space.
+function sameLine(a, b) { return words[a] && words[b] && words[a].offsetTop === words[b].offsetTop; }
+function x0(i) {
+  if (i > 0 && !words[i - 1].dataset.end && sameLine(i - 1, i)) return x1(i - 1);
+  return words[i].offsetLeft;
+}
+function x1(i) {
+  const w = words[i], right = w.offsetLeft + w.offsetWidth;
+  if (!w.dataset.end && sameLine(i, i + 1)) return (right + words[i + 1].offsetLeft) / 2;
+  return right + 4;
+}
+function span(i) { return x1(i) - x0(i); }
+function sentStart(i) { while (i > 0 && !words[i - 1].dataset.end) i--; return i; }
+const done = () => phase === 'head' && prog >= span(idx);
+
+const pool = [];
+function seg(n) {
+  if (!pool[n]) { const d = document.createElement('div'); d.className = 'sweep'; sweeps.append(d); pool[n] = d; }
+  return pool[n];
+}
+function draw() {
+  // One highlight band per line the sentence covers so far.
+  const lines = [];
+  if (phase !== 'gap') {
+    for (let i = sentStart(idx); i <= idx; i++) {
+      const w = words[i], ext = i < idx ? span(i) : prog;
+      let L = lines[lines.length - 1];
+      if (!L || L.top !== w.offsetTop) { L = { top: w.offsetTop, h: w.offsetHeight, left: x0(i), right: x0(i) }; lines.push(L); }
+      L.right = Math.max(L.right, x0(i) + ext);
+    }
+  }
+  words.forEach((w, n) => w.classList.toggle('now', n === idx && phase !== 'gap' && !!w.dataset.card && (prog > 0 || mode !== 'idle')));
+  pool.forEach(d => d.hidden = true);
+  lines.forEach((L, n) => {
+    const d = seg(n);
+    d.hidden = false;
+    d.classList.toggle('lead', n === lines.length - 1);
+    d.style.left = (L.left - 3) + 'px';
+    d.style.top = (L.top + 4) + 'px';
+    d.style.height = (L.h - 8) + 'px';
+    d.style.width = Math.max(3, L.right - L.left + 3) + 'px';
+  });
+  const L = lines[lines.length - 1];
+  const showDot = L && lines.length === 1 && L.right - L.left < 6;
+  dot.hidden = !showDot;
+  if (showDot) { dot.style.left = L.left + 'px'; dot.style.top = (L.top + L.h - 4) + 'px'; }
+}
+function follow() {
+  const r = words[idx].getBoundingClientRect();
+  if (r.top < 60 || r.bottom > innerHeight - 170) words[idx].scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+function frame(t) {
+  const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
+  if (mode === 'idle') { raf = 0; return; }
+  if (phase === 'head') {
+    const target = span(idx);
+    prog = Math.min(target, prog + (+speed.value) * dt);
+    if (prog >= target) {
+      const end = words[idx].dataset.end || idx >= words.length - 1;
+      if ((mode === 'step' && idx >= stopAt) || (mode === 'play' && end) || idx >= words.length - 1) { draw(); pause(); raf = 0; return; }
+      phase = 'halt'; haltEnd = t + haltMs();
+    }
+  } else if (phase === 'halt') {
+    if (t >= haltEnd) {
+      if (words[idx].dataset.end) { leaving(); phase = 'gap'; gapEnd = t + gapMs(); }
+      else { leaving(); idx++; prog = 0; phase = 'head'; follow(); }
+    }
+  } else if (t >= gapEnd) {
+    idx++; prog = 0; phase = 'head'; dismissed = -1; follow();
+  }
+  grace = Math.max(0, grace - dt * 1000);
+  draw();
+  raf = requestAnimationFrame(frame);
+}
+function run(m) {
+  closeCard(); mode = m; last = 0;
+  if (m === 'play' || m === 'hold') { $('playIcon').setAttribute('d', 'M8 5v14M16 5v14'); $('play').setAttribute('aria-label', 'Pause'); }
+  if (!raf) raf = requestAnimationFrame(frame);
+}
+function pause() {
+  mode = 'idle'; $('play').classList.remove('holding');
+  $('playIcon').setAttribute('d', 'M5 5l7 7-7 7M12 5l7 7-7 7'); $('play').setAttribute('aria-label', 'Read to the end of the sentence');
+}
+// Stopping from the button or Space: finish the word under the sweep (up to the middle of the
+// next word space), then stop. Anything else that pauses (opening a pop-up, tapping text) stops at once.
+function softStop() {
+  $('play').classList.remove('holding');
+  $('playIcon').setAttribute('d', 'M5 5l7 7-7 7M12 5l7 7-7 7'); $('play').setAttribute('aria-label', 'Read to the end of the sentence');
+  if (mode !== 'idle' && phase === 'head' && prog < span(idx)) { stopAt = idx; mode = 'step'; }
+  else pause();
+}
+// >> : sweep to the end of the sentence (press again to pause).
+function playSentence() {
+  closeCard();
+  if (mode === 'play') { softStop(); return; }
+  if (done()) {
+    if (idx >= words.length - 1) { idx = 0; prog = 0; draw(); }
+    else { phase = 'halt'; haltEnd = 0; }
+  }
+  follow(); run('play');
+}
+// > : finish the current word if needed, otherwise sweep on through the next word, then stop.
+function stepNext() {
+  closeCard(); pause();
+  if (phase === 'head' && prog < span(idx)) stopAt = idx;
+  else if (idx < words.length - 1) { stopAt = idx + 1; if (phase === 'head') { phase = 'halt'; haltEnd = 0; } }
+  else return;
+  run('step');
+}
+// << : back to the start of this sentence; if already there, the start of the one before.
+function backToStart() {
+  closeCard(); pause(); forget();
+  let s = sentStart(idx);
+  if (idx === s && prog === 0 && phase === 'head' && s > 0) s = sentStart(s - 1);
+  idx = s; prog = 0; phase = 'head';
+  draw(); follow();
+}
 
 let open = null;   // { word, key, which (0|1), defShown, el }
 let timers = [];
@@ -446,7 +738,7 @@ function step() {
   const set = CARDS[open.key];
   if (!open.defShown) { showDef(); return; }
   if (open.which < set.length - 1) { clearTimers(); open.which++; render(true); }
-  else close();
+  else { const src = open.src, wi = words.indexOf(open.word); close(); cardDone(src, wi); }
 }
 function close() {
   clearTimers();
@@ -454,21 +746,181 @@ function close() {
   open = null;
 }
 
-reading.addEventListener('click', e => {
-  const w = e.target.closest('.w');
-  if (w && w.dataset.card) { e.stopPropagation(); if (open && open.word === w) step(); else openCard(w); return; }
-  close();
-});
-reading.addEventListener('keydown', e => {
-  const w = e.target.closest('.w');
-  if (!w || !w.dataset.card || (e.key !== 'Enter' && e.key !== ' ')) return;
-  e.preventDefault();
-  if (open && open.word === w) step(); else openCard(w);
-});
-document.addEventListener('click', e => { if (open && !e.target.closest('.reading') && !e.target.closest('.voice')) close(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
-addEventListener('resize', () => { if (open) place(); });
 
+// Opening a card from the sweep (↑) or from a tap pauses the sweep; the last tap on the card closes it and
+// carries on: from a tap, the sweep reads on to the end of the sentence; from ↑, it moves on to the next word.
+function ask(ti = target()) {
+  if (ti < 0 || !words[ti].dataset.card) return;
+  const w = words[ti];
+  if (open && open.word === w) { step(); return; }
+  pause(); openCard(w); open.src = 'sweep';
+}
+function cardDone(src, wi) {
+  if (src === 'sweep') moveOn(wi); else playSentence();
+}
+function moveOn(was) {
+  pause(); forget();
+  dismissed = was;
+  if (idx >= words.length - 1) return;
+  stopAt = idx + 1;
+  if (done()) { phase = 'halt'; haltEnd = 0; }
+  run('step');
+}
+function closeCard() { if (open) close(); }
+
+// Tapping the text:
+// - on an underlined (trigger) word: its pop-up opens; the sweep stays where it is.
+//   Tap the word or the pop-up again to step through it.
+// - in front of a word (its first half, or the space before it): read that sentence from the start.
+// - after a word (its second half, or the space after it), in the sentence already being swept:
+//   carry on reading from the next word. In a sentence not yet started, any tap starts it from the beginning.
+// If a pop-up is open, tapping elsewhere first closes it.
+function nearestWord(x, y) {
+  let best = -1, bd = Infinity;
+  words.forEach((w, n) => {
+    const r = w.getBoundingClientRect();
+    const dx = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
+    const dy = y < r.top ? r.top - y : y > r.bottom ? y - r.bottom : 0;
+    const d = dy * 4 + dx;                       // prefer the same line
+    if (d < bd) { bd = d; best = n; }
+  });
+  return best;
+}
+reading.addEventListener('click', e => {
+  if (e.target.closest('.stack')) return;
+  e.stopPropagation();
+  const hit = e.target.closest('.w');
+  const i = hit ? +hit.dataset.i : nearestWord(e.clientX, e.clientY);
+  if (i < 0) return;
+  const w = words[i];
+  if (open && open.word === w && hit) { step(); return; }
+  if (open) { closeCard(); return; }
+  if (hit && w.dataset.card) { pause(); openCard(w); open.src = 'tap'; return; }
+  const r = w.querySelector('.t').getBoundingClientRect();
+  // "Carry on" only makes sense in the sentence the sweep has already started.
+  // In any other sentence (or one not yet begun), every tap starts it from the beginning.
+  const started = sentStart(i) === sentStart(idx) && phase !== 'gap' && !(idx === sentStart(idx) && prog === 0);
+  const before = !started || e.clientX < r.left + r.width / 2;
+  pause(); forget();
+  if (before) { idx = sentStart(i); prog = 0; phase = 'head'; }
+  else { idx = i; prog = span(i); phase = 'head'; }
+  draw(); follow();
+  playSentence();
+});
+document.addEventListener('click', e => { if (open && !e.target.closest('.strip') && !e.target.closest('.stack')) closeCard(); });
+addEventListener('resize', () => { draw(); if (open) place(); });
+document.fonts && document.fonts.ready.then(draw);
+
+// The one button: tap to sweep to the end of the sentence (tap again to pause);
+// press and hold to sweep only while held.
+const playBtn = $('play');
+let holdTimer = 0, holding = false, pressed = false;
+function startHold() {
+  closeCard();
+  if (done()) { if (idx >= words.length - 1) return; phase = 'halt'; haltEnd = 0; }
+  holding = true; playBtn.classList.add('holding'); follow(); run('hold');
+}
+playBtn.addEventListener('pointerdown', e => {
+  e.preventDefault(); pressed = true; holding = false;
+  try { playBtn.setPointerCapture(e.pointerId); } catch (_) {}
+  holdTimer = setTimeout(startHold, 300);
+});
+playBtn.addEventListener('pointerup', () => {
+  if (!pressed) return; pressed = false; clearTimeout(holdTimer);
+  if (holding) { holding = false; softStop(); } else playSentence();
+});
+playBtn.addEventListener('pointercancel', () => { pressed = false; clearTimeout(holdTimer); if (holding) { holding = false; softStop(); } });
+playBtn.addEventListener('contextmenu', e => e.preventDefault());
+playBtn.addEventListener('click', e => { if (e.detail === 0) playSentence(); });   // keyboard Enter / Space on the button
+
+// Settings (☰): speed and text size, highlighter colour, paper colour.
+// Kept on this device for the demo; the full app would keep them per learner.
+const HL = [
+  { name: 'Teal',   wash: '#dcefee', deep: '#5fb3b3', ul: '#bfe0df' },
+  { name: 'Yellow', wash: '#fbefb4', deep: '#d9ad2b', ul: '#f3df96' },
+  { name: 'Pink',   wash: '#f8dde3', deep: '#d98a9c', ul: '#f0c8d1' },
+  { name: 'Blue',   wash: '#dbe6f7', deep: '#7d9fd6', ul: '#c5d5ef' },
+  { name: 'Green',  wash: '#e0efd6', deep: '#86b56b', ul: '#cae1bb' },
+  { name: 'Lilac',  wash: '#e8e0f3', deep: '#a48ccc', ul: '#d7cbea' }
+];
+const PAPER = [
+  { name: 'Cream', c: '#fdf8ef' }, { name: 'White', c: '#ffffff' }, { name: 'Soft yellow', c: '#fdf5cf' },
+  { name: 'Soft blue', c: '#e9f1f8' }, { name: 'Soft green', c: '#ebf4e4' }, { name: 'Soft pink', c: '#fbebee' },
+  { name: 'Soft grey', c: '#ecebe8' }
+];
+const prefs = { hl: 0, paper: 0, voice: true, trig: true, btn: false };
+try { Object.assign(prefs, JSON.parse(localStorage.getItem('flooent-demo-settings') || '{}')); } catch (e) {}
+function savePrefs() { try { localStorage.setItem('flooent-demo-settings', JSON.stringify(prefs)); } catch (e) {} }
+function applyToggles() {
+  $('voiceOn').checked = !!prefs.voice; $('trigOn').checked = !!prefs.trig; $('btnOn').checked = !!prefs.btn;
+  document.body.classList.toggle('no-strip', !prefs.btn);
+  words.forEach(w => {
+    const on = prefs.trig && !!w.dataset.key;
+    w.classList.toggle('has-card', on);
+    if (on) w.dataset.card = w.dataset.key; else delete w.dataset.card;
+  });
+  if (!prefs.trig) closeCard();
+  if (!prefs.voice) { try { speechSynthesis.cancel(); } catch (e) {} }
+}
+[['voiceOn', 'voice'], ['trigOn', 'trig'], ['btnOn', 'btn']].forEach(([id, key]) => {
+  $(id).addEventListener('change', () => { prefs[key] = $(id).checked; applyToggles(); savePrefs(); draw(); });
+});
+function applyPrefs() {
+  const h = HL[prefs.hl] || HL[0], pp = PAPER[prefs.paper] || PAPER[0];
+  document.documentElement.style.setProperty('--hl', h.wash);
+  document.documentElement.style.setProperty('--hl-deep', h.deep);
+  document.documentElement.style.setProperty('--ul', h.ul);
+  document.documentElement.style.setProperty('--sheet', pp.c);
+  document.querySelectorAll('#hlSw .sw').forEach((b, n) => b.setAttribute('aria-pressed', n === +prefs.hl));
+  document.querySelectorAll('#paperSw .sw').forEach((b, n) => b.setAttribute('aria-pressed', n === +prefs.paper));
+}
+function swatches(el, list, key, colour) {
+  list.forEach((x, n) => {
+    const b = document.createElement('button');
+    b.className = 'sw'; b.style.background = colour(x); b.setAttribute('aria-label', x.name); b.title = x.name;
+    b.onclick = () => { prefs[key] = n; applyPrefs(); savePrefs(); };
+    el.append(b);
+  });
+}
+swatches($('hlSw'), HL, 'hl', x => x.wash);
+swatches($('paperSw'), PAPER, 'paper', x => x.c);
+$('menu').onclick = e => { e.stopPropagation(); pause(); closeCard(); $('settings').hidden = false; $('closeSet').focus(); };
+$('closeSet').onclick = () => { $('settings').hidden = true; };
+$('settings').addEventListener('click', e => { if (e.target.id === 'settings') $('settings').hidden = true; });
+applyPrefs();
+applyToggles();
+
+// Text size: start from the size the page chose for this screen, then follow the slider.
+const size = $('size');
+size.value = Math.round(parseFloat(getComputedStyle(reading).fontSize));
+size.addEventListener('input', () => {
+  reading.style.fontSize = size.value + 'px';
+  draw(); if (open) place();
+});
+
+// Keyboard (laptop/desktop): ↑ ?, ↓ next word, ← back to sentence start, → or Space read to end of sentence.
+// Space works like the button: tap to sweep to the end of the sentence, hold to sweep only while held.
+let spaceDown = false;
+document.addEventListener('keyup', e => {
+  if (e.key !== ' ' || !spaceDown) return;
+  e.preventDefault(); spaceDown = false; clearTimeout(holdTimer);
+  if (holding) { holding = false; softStop(); } else playSentence();
+});
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, textarea') || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (!$('settings').hidden) { if (e.key === 'Escape') $('settings').hidden = true; return; }
+  const k = e.key;
+  if (k === 'ArrowUp' || k === '?') ask();
+  else if (k === 'ArrowDown') stepNext();
+  else if (k === 'ArrowLeft') backToStart();
+  else if (k === 'ArrowRight') playSentence();
+  else if (k === ' ') { if (!e.repeat && !spaceDown) { spaceDown = true; holdTimer = setTimeout(startHold, 300); } }
+  else if (k === 'Escape') closeCard();
+  else return;
+  e.preventDefault();
+});
+
+draw();
 </script>
 
 </body></html>
