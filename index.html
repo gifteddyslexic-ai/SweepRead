@@ -334,6 +334,11 @@ const BY_MEANS = svg(DOM('bym') + FLOOR +
   DOMLINE('bym', 94, 20, 60, 52)
 );
 
+P.away = 'M30 80 L 84 80';
+const AWAY = svg(FLOOR +
+  `<ellipse cx="30" cy="80" rx="22" ry="9" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/>` +
+  TRAIL(P.away) + MBALL(8));
+
 const OVER_ACROSS = svg(FLOOR + TABLE(22, 78, 58) + TRAIL(P.overAcross = 'M8 78 C 18 6, 82 6, 92 78') + MBALL(9));
 
 const CARDS = {
@@ -349,6 +354,7 @@ const CARDS = {
             { def: 'near or by', svg: AT_PLACE }],
   by:      [{ def: 'close to', svg: BY_CLOSE },
             { def: 'through', svg: BY_MEANS }],
+  away:    [{ def: 'to another place', svg: AWAY, move: { path: P.away, r: 8 } }],
   on:      [{ def: 'in contact with', svg: ON }],
   off:     [{ def: 'no longer on', svg: OFF, move: { path: P.off, r: 11 } }],
   in:      [{ def: 'contained by', svg: IN }],
@@ -368,7 +374,7 @@ const CARDS = {
 };
 const SAY = { onto: 'ontoo', 'on/to the opposite of right': 'on or to the opposite of right' };
 
-const TEXT = 'The cat jumps onto the table. It sits on the box and then climbs into it. Now the cat is in the box. Sam lifts the lid off. The cat jumps out and hides under the table. Then it runs through the tube and up the steps. It looks down from the top. A bird flies over the house, from the tree to the roof. Sam calls, come here, cat! The cat stays there. The ball rolls back to Sam. He steps back and stands in front of the door. Sam left the house and turned left at the gate. The ball sits between the boxes. The boy threw the ball at the tree. The cat waits at the door. The cat sat by the fire. She popped the balloon by pricking it.';
+const TEXT = 'The cat jumps onto the table. It sits on the box and then climbs into it. Now the cat is in the box. Sam lifts the lid off. The cat jumps out and hides under the table. Then it runs through the tube and up the steps. It looks down from the top. A bird flies over the house, from the tree to the roof. Sam calls, come here, cat! The cat stays there. The ball rolls back to Sam. He steps back and stands in front of the door. Sam left the house and turned left at the gate. The ball sits between the boxes. The boy threw the ball at the tree. The cat waits at the door. The cat sat by the fire. She popped the balloon by pricking it. The dog ran away.';
 const reading = document.getElementById('reading');
 const sweeps = document.getElementById('sweeps');
 const dot = document.createElement('div'); dot.className = 'dot'; dot.hidden = true;
