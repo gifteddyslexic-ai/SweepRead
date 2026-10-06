@@ -3,7 +3,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap">
 <style>
-/* Layout: one calm reading column; a sweep highlight grows through each sentence; card pops up beside the word; control strip pinned to the bottom. Single warm light look by choice. */
 :root {
   color-scheme: light;
   --paper: #fdf8ef;
@@ -54,15 +53,12 @@ body {
   border-radius: 8px;
 }
 .sweep.lead { border-radius: 8px; }
-/* Dot marking where the sweep will start, shown until the band begins to grow. */
 .dot {
   position: absolute; z-index: 2; pointer-events: none;
   width: 10px; height: 10px; border-radius: 50%;
   background: var(--hl-deep);
   transform: translate(-50%, -50%);
 }
-
-/* settings sheet, opened from ☰ */
 .settings {
   position: fixed; inset: 0; z-index: 20;
   display: flex; align-items: flex-end; justify-content: center;
@@ -95,11 +91,8 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .w.has-card .t { border-bottom: 2px solid var(--ul); padding-bottom: 1px; }
-/* The underline of the trigger word under the sweep brightens a little: a quiet cue that it can be tapped. */
 .w.has-card.now .t { border-bottom-color: var(--hl-deep); }
 @media (prefers-reduced-motion: no-preference) { .w.has-card .t { transition: border-color .25s; } }
-
-/* Card stack: .back is the second card peeking from behind; .card is the one in front. */
 .stack { position: absolute; z-index: 5; width: min(300px, calc(100vw - 72px)); aspect-ratio: 2 / 1; --tail-x: 50%; }
 .card, .back {
   position: absolute; inset: 0; border: 3px solid var(--ink); border-radius: 18px;
@@ -136,16 +129,12 @@ body {
 .def { display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px; font: 600 clamp(17px, 4.6vw, 22px)/1.2 var(--read); min-width: 0; }
 .def[hidden] { display: none !important; }
 .tag { position: absolute; right: 10px; bottom: 6px; font-size: 11px; color: var(--ink-soft); }
-
-/* settings toggles */
 .tog { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; }
 .tog span { min-width: 0; }
 .tog small { display: block; color: var(--ink-soft); font-size: 13px; }
 .tog input { width: 24px; height: 24px; flex: none; accent-color: var(--teal); }
 body.no-strip .strip { display: none; }
 body.no-strip .wrap { padding-block-end: 48px; }
-
-/* control strip */
 .strip {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
   background: var(--deck);
@@ -162,7 +151,6 @@ body.no-strip .wrap { padding-block-end: 48px; }
 .btn:disabled { opacity: .35; cursor: default; }
 .btn.ask { font-size: 36px; font-weight: 700; }
 .btn.ask:disabled { opacity: 1; }
-/* Soft glow round ? while a trigger word is available */
 .btn.ask:not(:disabled) {
   border-color: #8fd3d3;
   box-shadow: 0 0 0 3px rgba(143, 211, 211, .35), 0 0 16px 4px rgba(143, 211, 211, .55);
@@ -242,20 +230,15 @@ const DOMLINE = (id, x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" 
 const FLOOR = `<rect x="4" y="88" width="92" height="4" rx="2" fill="#ece3d3"/>`;
 const svg = inner => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true">${inner}</svg>`;
 const TRAIL = (d, extra = '') => `<path class="mtrail" d="${d}" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round"${extra}/>`;
-// The moving ball, with the arrowhead that trails it (tip touching the back of the ball).
 const MBALL = r => `<g class="mhead"><path d="M-3.5 -5 L3.5 0 L-3.5 5" fill="none" stroke="#8a7a68" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g><g class="mball">${BALL(0, 0, r)}</g>`;
 
-// Props. A table: legs and top between x1 and x2, top at topY.
 const TABLE = (x1, x2, topY, shadow = true) => `${shadow ? `<ellipse cx="${(x1 + x2) / 2}" cy="89" rx="${(x2 - x1) / 2 - 6}" ry="2.5" fill="#e2d6c1"/>` : ''}<g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="${x1 + 10}" y="${topY + 6}" width="8" height="${88 - topY - 6}" rx="4" fill="#e9b97e"/><rect x="${x2 - 18}" y="${topY + 6}" width="8" height="${88 - topY - 6}" rx="4" fill="#e9b97e"/><rect x="${x1}" y="${topY}" width="${x2 - x1}" height="11" rx="5.5" fill="#f2c993"/></g>`;
-// Open box in 3D, shifted by dx: the side and the dark opening first, then whatever goes inside, then the front wall.
 const BOX_BACK = dx => `<defs><linearGradient id="hole-box3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6e5238"/><stop offset="1" stop-color="#a47b4c"/></linearGradient></defs><g transform="translate(${dx} 0)"><ellipse cx="70" cy="89" rx="26" ry="2.5" fill="#e2d6c1"/><path d="M86 66 L93 58 L93 80 L86 88 Z" fill="#e2b57c" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M46 66 L53 58 L93 58 L86 66 Z" fill="url(#hole-box3)" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/></g>`;
 const BOX_FRONT = dx => `<g transform="translate(${dx} 0)"><path d="M46 66 L86 66 L86 88 L46 88 Z" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/></g>`;
 const STEPS = `<ellipse cx="62" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path d="M34 88 L34 74 L50 74 L50 60 L66 60 L66 46 L90 46 L90 88 Z" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>`;
 const TUBE_DEFS = `<defs><radialGradient id="hole-thr3" cx="45%" cy="50%" r="60%"><stop offset="0" stop-color="#6e5238"/><stop offset="1" stop-color="#b98d58"/></radialGradient><linearGradient id="body-thr3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6d6a6"/><stop offset=".55" stop-color="#f2c993"/><stop offset="1" stop-color="#ddb07a"/></linearGradient></defs>`;
 const TUBE_BODY = `<ellipse cx="39" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path d="M16 62 L62 62 L62 88 L16 88 A6 13 0 0 1 16 62 Z" fill="url(#body-thr3)" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="62" cy="75" rx="6" ry="13" fill="url(#hole-thr3)" stroke="#5b4a3a" stroke-width="2.5"/>`;
 
-// The standard person in profile, facing right (feet and arm point forward), at x.
-// red: 'front' or 'back' draws a red outline down that side of the head, body and leg.
 const PERSON = (x, red) => {
   const limb = (d, fill) => `<path d="${d}" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${fill}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
   const legs = limb(`M${x - 3} 62 L${x - 4} 82 L${x + 2} 83`, '#6f7f8f') + limb(`M${x + 3} 62 L${x + 3} 82 L${x + 9} 83`, '#6f7f8f');
@@ -273,16 +256,13 @@ const PERSON = (x, red) => {
   return shadow + legs + body + head + arm + outline;
 };
 
-// ---- Still pictures (dominant arrow), unchanged from the SweepReader Demo
 const ON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-on" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-on" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="50.0" cy="89" rx="32.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g><circle cx="50" cy="46" r="11" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M44.0 42.1 a6.6 6.6 0 0 1 5.0 -3.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="93" y1="7" x2="67.0" y2="30.5" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-on)"/></svg>`;
 const OVER = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-over" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-over" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="50.0" cy="89" rx="32.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g><circle cx="50" cy="26" r="11" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M44.0 22.1 a6.6 6.6 0 0 1 5.0 -3.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="93" y1="6" x2="70.9" y2="16.3" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-over)"/></svg>`;
 const UNDER = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-under" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-under" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="50.0" cy="89" rx="32.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="70" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="12" y="46" width="76" height="11" rx="5.5" fill="#f2c993"/></g><circle cx="50" cy="77" r="10" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M44.5 73.5 a6.0 6.0 0 0 1 4.5 -3.2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="93" y1="22" x2="63.6" y2="59.7" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-under)"/></svg>`;
 const HERE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-here" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker></defs><path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="36" cy="77" rx="9" ry="2.4" fill="#e2d6c1"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="29.5" y="38" width="13" height="24" rx="5" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/><path d="M41 42 L47 53 L52 64" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M41 42 L47 53 L52 64" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="52.0" y1="64.0" x2="54.3" y2="69.0" stroke="#5b4a3a" stroke-width="4.4" stroke-linecap="round"/><line x1="52.0" y1="64.0" x2="54.3" y2="69.0" stroke="#cdbba5" stroke-width="1.6" stroke-linecap="round"/><circle cx="52.0" cy="64.0" r="3.4" fill="#cdbba5" stroke="#5b4a3a" stroke-width="1.6"/><circle cx="36" cy="29" r="7" fill="#cdbba5" stroke="#5b4a3a" stroke-width="2.5"/><path d="M47 22 C 47 14, 64 14, 64 20 C 64 26, 54 27, 50 26 L45 29 L47 25 C 46 24, 47 23, 47 22 Z" fill="#fffdf8" stroke="#4a3c2f" stroke-width="1.6" stroke-linejoin="round"/><line x1="86" y1="22" x2="60.2" y2="63.2" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-here)"/></svg>`;
 const THERE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-there" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker></defs><path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="86" cy="64" rx="9" ry="3.5" fill="#f5b8b2" stroke="#d64541" stroke-width="1.6"/><ellipse cx="36" cy="77" rx="9" ry="2.4" fill="#e2d6c1"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="29.5" y="38" width="13" height="24" rx="5" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/><path d="M41 42 L52 47 L63 52" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M41 42 L52 47 L63 52" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="63.0" y1="52.0" x2="68.0" y2="54.3" stroke="#5b4a3a" stroke-width="4.4" stroke-linecap="round"/><line x1="63.0" y1="52.0" x2="68.0" y2="54.3" stroke="#cdbba5" stroke-width="1.6" stroke-linecap="round"/><circle cx="63.0" cy="52.0" r="3.4" fill="#cdbba5" stroke="#5b4a3a" stroke-width="1.6"/><circle cx="36" cy="29" r="7" fill="#cdbba5" stroke="#5b4a3a" stroke-width="2.5"/><path d="M47 22 C 47 14, 64 14, 64 20 C 64 26, 54 27, 50 26 L45 29 L47 25 C 46 24, 47 23, 47 22 Z" fill="#fffdf8" stroke="#4a3c2f" stroke-width="1.6" stroke-linejoin="round"/><line x1="90" y1="18" x2="86.7" y2="54.0" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-there)"/></svg>`;
-// "in" redrawn with the 3D box, so it pairs with "into" and "out": the ball sits inside, its top showing above the rim.
 const IN = svg(DOM('in3') + FLOOR + BOX_BACK(0) + BALL(69, 67, 10) + BOX_FRONT(0) + DOMLINE('in3', 22, 16, 51, 44));
 
-// ---- Moving pictures: the ball travels its path (starting at the place being left), the trail draws in behind it.
 const P = {
   into:    'M12 78 C 12 30, 60 20, 69 48 L 69 67',
   out:     'M35 71 L 35 52 C 38 16, 78 22, 82 78',
@@ -300,7 +280,6 @@ const ONTO = svg(FLOOR + TABLE(24, 94, 58) + TRAIL(P.onto) + MBALL(11));
 const OFF = svg(FLOOR + TABLE(4, 64, 58) + TRAIL(P.off) + MBALL(11));
 const UP = svg(FLOOR + STEPS + TRAIL(P.up) + MBALL(9));
 const DOWN = svg(FLOOR + STEPS + TRAIL(P.down) + MBALL(9));
-// "to" and "from" share one scene, a house on the right: "to" arrives at its door, "from" starts at its door.
 const HOUSE_R = `<ellipse cx="72" cy="89" rx="20" ry="2.5" fill="#e2d6c1"/><path d="M56 88 L56 62 L88 62 L88 88" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M52 62 L72 46 L92 62 Z" fill="#e9b97e" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><rect x="65" y="68" width="12" height="20" rx="2" fill="#a47b4c" stroke="#5b4a3a" stroke-width="2"/>`;
 const TO = svg(FLOOR + HOUSE_R + TRAIL(P.to) + MBALL(9));
 const FROM = svg(FLOOR + HOUSE_R + TRAIL(P.from) + MBALL(9));
@@ -308,22 +287,53 @@ const THROUGH = svg(TUBE_DEFS + FLOOR + TRAIL(P.through) + MBALL(9) + TUBE_BODY 
   TRAIL('M12 75 L 62 75', ' data-from="9" opacity=".35"') +
   TRAIL('M62 75 L 86 75', ' data-from="59"'));
 
-// back 1, returning: the ball rolls away from the person and comes back to where it started.
 P.backReturn = 'M42 79 L 74 79 C 90 79, 90 55, 74 55 L 56 55 C 44 55, 42 66, 42 79';
 const BACK_RETURN = svg(FLOOR + PERSON(22) + TRAIL(P.backReturn) + MBALL(8));
-// back 2, the part: the person with a red outline down their back, and the red arrow pointing to it.
 const BACK_PART = svg(DOM('bp') + FLOOR + PERSON(50, 'back') + DOMLINE('bp', 10, 22, 34, 44));
-// back 3, direction: the person faces right; the ball rolls backwards, behind them.
 P.backDir = 'M50 79 L 16 79';
 const BACK_DIR = svg(FLOOR + PERSON(62) + TRAIL(P.backDir) + MBALL(8));
-// front 1, the part: the same person with a red outline down their front, and the red arrow pointing to it.
 const FRONT_PART = svg(DOM('fp') + FLOOR + PERSON(50, 'front') + DOMLINE('fp', 92, 16, 68, 34));
-// front 2, ahead of: the red ball on the floor in front of the person.
 const FRONT_AHEAD = svg(DOM('fa') + FLOOR + PERSON(34) + BALL(74, 79, 9) + DOMLINE('fa', 92, 30, 79, 62));
 
-// over 2, movement: the ball starts on the floor on one side, goes above the table without touching it, and lands on the other side.
-P.overAcross = 'M8 78 C 18 6, 82 6, 92 78';
-const OVER_ACROSS = svg(FLOOR + TABLE(22, 78, 58) + TRAIL(P.overAcross) + MBALL(9));
+P.leftAway = 'M71 79 L 14 79';
+const HOUSE_OPEN = `<ellipse cx="72" cy="89" rx="20" ry="2.5" fill="#e2d6c1"/><path d="M56 88 L56 62 L88 62 L88 88" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M52 62 L72 46 L92 62 Z" fill="#e9b97e" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><rect x="65" y="68" width="12" height="20" rx="2" fill="#6e5238" stroke="#5b4a3a" stroke-width="2"/>`;
+const LEFT_AWAY = svg(FLOOR + HOUSE_OPEN + TRAIL(P.leftAway) + MBALL(9));
+const LEFT_DIR = svg(FLOOR + `<line x1="86" y1="50" x2="28" y2="50" stroke="#d64541" stroke-width="10" stroke-linecap="round"/><path d="M8 50 L32 32 L32 68 Z" fill="#d64541"/>`);
+
+const BETWEEN = svg(DOM('btw') + FLOOR +
+  `<ellipse cx="22" cy="89" rx="12" ry="2" fill="#e2d6c1"/>` +
+  `<ellipse cx="78" cy="89" rx="12" ry="2" fill="#e2d6c1"/>` +
+  `<rect x="14" y="66" width="16" height="22" rx="2" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5"/>` +
+  `<rect x="70" y="66" width="16" height="22" rx="2" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5"/>` +
+  BALL(50, 79, 10) +
+  DOMLINE('btw', 94, 16, 67, 55));
+
+P.atToward = 'M12 76 C 30 74, 50 68, 68 62';
+const AT_TOWARD = svg(FLOOR + TRAIL(P.atToward) + MBALL(9) +
+  `<circle cx="82" cy="56" r="8" fill="#fffdf8" stroke="#d64541" stroke-width="2.5"/><circle cx="82" cy="56" r="3" fill="#d64541"/>`);
+const AT_PLACE = svg(
+  FLOOR +
+  BALL(30, 83.5, 4.5) +
+  BALL(47, 83.5, 4.5) +
+  `<ellipse cx="70" cy="89" rx="20" ry="2.5" fill="#e2d6c1"/>` +
+  `<rect x="52" y="54" width="36" height="34" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>` +
+  `<path d="M48 55 L70 38 L92 55 Z" fill="#e9b97e" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>` +
+  `<rect x="65" y="72" width="12" height="16" rx="1.5" fill="#a47b4c" stroke="#5b4a3a" stroke-width="2"/>`
+);
+
+const BY_CLOSE = svg(DOM('byc') + FLOOR + PERSON(40) + BALL(60, 79, 9) + DOMLINE('byc', 94, 18, 68, 62));
+const BY_MEANS = svg(DOM('bym') + FLOOR +
+  `<ellipse cx="64" cy="52" rx="16" ry="20" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5"/>` +
+  `<path d="M60 72 L68 72 L64 77 Z" fill="#f2c993" stroke="#5b4a3a" stroke-width="2" stroke-linejoin="round"/>` +
+  `<path d="M64 77 Q66 82 70 88" fill="none" stroke="#8a7a68" stroke-width="1.8" stroke-linecap="round"/>` +
+  `<line x1="12" y1="22" x2="48" y2="44" stroke="#d64541" stroke-width="3" stroke-linecap="round"/>` +
+  `<circle cx="12" cy="22" r="4" fill="#d64541"/>` +
+  `<line x1="48" y1="44" x2="44" y2="36" stroke="#d64541" stroke-width="2" stroke-linecap="round"/>` +
+  `<line x1="48" y1="44" x2="42" y2="48" stroke="#d64541" stroke-width="2" stroke-linecap="round"/>` +
+  `<line x1="48" y1="44" x2="52" y2="52" stroke="#d64541" stroke-width="2" stroke-linecap="round"/>` +
+  DOMLINE('bym', 96, 8, 40, 30));
+
+const OVER_ACROSS = svg(FLOOR + TABLE(22, 78, 58) + TRAIL(P.overAcross = 'M8 78 C 18 6, 82 6, 92 78') + MBALL(9));
 
 const CARDS = {
   back:    [{ def: 'to where it was before', svg: BACK_RETURN, move: { path: P.backReturn, r: 8 } },
@@ -331,6 +341,13 @@ const CARDS = {
             { def: 'toward the side facing away', svg: BACK_DIR, move: { path: P.backDir, r: 8 } }],
   front:   [{ def: 'the side facing forward', svg: FRONT_PART },
             { def: 'ahead of', svg: FRONT_AHEAD }],
+  left:    [{ def: 'went away from', svg: LEFT_AWAY, move: { path: P.leftAway, r: 9 } },
+            { def: 'on/to the opposite of right', svg: LEFT_DIR }],
+  between: [{ def: 'in the space that separates', svg: BETWEEN }],
+  at:      [{ def: 'towards', svg: AT_TOWARD, move: { path: P.atToward, r: 9 } },
+            { def: 'near or by', svg: AT_PLACE }],
+  by:      [{ def: 'close to', svg: BY_CLOSE },
+            { def: 'by means of', svg: BY_MEANS }],
   on:      [{ def: 'in contact with', svg: ON }],
   off:     [{ def: 'no longer on', svg: OFF, move: { path: P.off, r: 11 } }],
   in:      [{ def: 'contained by', svg: IN }],
@@ -348,9 +365,9 @@ const CARDS = {
   to:      [{ def: 'in the direction of', svg: TO, move: { path: P.to, r: 9 } }],
   from:    [{ def: 'starting at', svg: FROM, move: { path: P.from, r: 9 } }]
 };
-const SAY = { onto: 'ontoo' };
+const SAY = { onto: 'ontoo', 'on/to the opposite of right': 'on or to the opposite of right' };
 
-const TEXT = 'The cat jumps onto the table. It sits on the box and then climbs into it. Now the cat is in the box. Sam lifts the lid off. The cat jumps out and hides under the table. Then it runs through the tube and up the steps. It looks down from the top. A bird flies over the house, from the tree to the roof. Sam calls, come here, cat! The cat stays there. The ball rolls back to Sam. He steps back and stands in front of the door.';
+const TEXT = 'The cat jumps onto the table. It sits on the box and then climbs into it. Now the cat is in the box. Sam lifts the lid off. The cat jumps out and hides under the table. Then it runs through the tube and up the steps. It looks down from the top. A bird flies over the house, from the tree to the roof. Sam calls, come here, cat! The cat stays there. The ball rolls back to Sam. He steps back and stands in front of the door. Sam left the house and turned left at the gate. The ball sits between the boxes. The boy threw the ball at the tree. The cat waits at the door. The cat sat by the fire. She popped the balloon by pricking it.';
 const reading = document.getElementById('reading');
 const sweeps = document.getElementById('sweeps');
 const dot = document.createElement('div'); dot.className = 'dot'; dot.hidden = true;
@@ -371,25 +388,18 @@ TEXT.split(/\s+/).forEach((chunk, n, all) => {
 
 const $ = id => document.getElementById(id);
 const speed = $('speed');
-// Sentence sweep: the highlight grows through the sentence word by word (phase 'head'),
-// halts for a moment in the middle of each word space (phase 'halt'), and stops at the end
-// of the sentence. Going on from there, it disappears briefly (phase 'gap') before the next sentence.
 let idx = 0, prog = 0, phase = 'head', stopAt = -1, haltEnd = 0, gapEnd = 0;
 let mode = 'idle', last = 0, raf = 0;
 const haltMs = () => 12000 / +speed.value;
 const gapMs = () => 14000 / +speed.value;
 
-// Room for slow reactions: if ? is pressed within graceMs of the sweep leaving a trigger word,
-// it goes to that word, not the one now under the sweep (the time stands still while paused).
-const graceMs = 0;   // the delay for slow presses has been dropped
+const graceMs = 0;
 let lastTrig = -1, grace = 0, dismissed = -1;
 function leaving() {
   if (words[idx].dataset.card && idx !== dismissed) { lastTrig = idx; grace = graceMs; }
   else { lastTrig = -1; grace = 0; }
 }
 function forget() { lastTrig = -1; grace = 0; dismissed = -1; }
-// The trigger word ? applies to: the open card's word; else the trigger word just left (within
-// the grace time); else the word under the sweep.
 function target() {
   if (open) return words.indexOf(open.word);
   if (grace > 0 && lastTrig >= 0) return lastTrig;
@@ -397,8 +407,6 @@ function target() {
   return -1;
 }
 
-// Each word's stretch of the sweep runs from the middle of the space before it
-// to the middle of the space after it, so every halt falls in the middle of a word space.
 function sameLine(a, b) { return words[a] && words[b] && words[a].offsetTop === words[b].offsetTop; }
 function x0(i) {
   if (i > 0 && !words[i - 1].dataset.end && sameLine(i - 1, i)) return x1(i - 1);
@@ -419,7 +427,6 @@ function seg(n) {
   return pool[n];
 }
 function draw() {
-  // One highlight band per line the sentence covers so far.
   const lines = [];
   if (phase !== 'gap') {
     for (let i = sentStart(idx); i <= idx; i++) {
@@ -482,15 +489,12 @@ function pause() {
   mode = 'idle'; $('play').classList.remove('holding');
   $('playIcon').setAttribute('d', 'M5 5l7 7-7 7M12 5l7 7-7 7'); $('play').setAttribute('aria-label', 'Read to the end of the sentence');
 }
-// Stopping from the button or Space: finish the word under the sweep (up to the middle of the
-// next word space), then stop. Anything else that pauses (opening a pop-up, tapping text) stops at once.
 function softStop() {
   $('play').classList.remove('holding');
   $('playIcon').setAttribute('d', 'M5 5l7 7-7 7M12 5l7 7-7 7'); $('play').setAttribute('aria-label', 'Read to the end of the sentence');
   if (mode !== 'idle' && phase === 'head' && prog < span(idx)) { stopAt = idx; mode = 'step'; }
   else pause();
 }
-// >> : sweep to the end of the sentence (press again to pause).
 function playSentence() {
   closeCard();
   if (mode === 'play') { softStop(); return; }
@@ -500,7 +504,6 @@ function playSentence() {
   }
   follow(); run('play');
 }
-// > : finish the current word if needed, otherwise sweep on through the next word, then stop.
 function stepNext() {
   closeCard(); pause();
   if (phase === 'head' && prog < span(idx)) stopAt = idx;
@@ -508,7 +511,6 @@ function stepNext() {
   else return;
   run('step');
 }
-// << : back to the start of this sentence; if already there, the start of the one before.
 function backToStart() {
   closeCard(); pause(); forget();
   let s = sentStart(idx);
@@ -517,18 +519,13 @@ function backToStart() {
   draw(); follow();
 }
 
-let open = null;   // { word, key, which (0|1), defShown, el }
+let open = null;
 let timers = [];
 
 function clearTimers() { timers.forEach(clearTimeout); timers = []; try { speechSynthesis.cancel(); } catch (e) {} }
 function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
 const voiceOn = () => document.getElementById('voiceOn').checked;
 
-// Say the text after `delay` ms; call `then` when it has been read (or, with Voice off, after a similar pause).
-// Say the text after `delay` ms. `started` runs when the voice begins (or straight away with Voice off);
-// `then` runs when it has been read (with Voice off, after a short beat).
-// `onWord(charIndex)` runs each time the device reports the next spoken word (not every device does).
-// Each finished utterance updates msPerLetter, the measured speaking pace of this device's voice.
 let msPerLetter = 85;
 function speak(text, delay, then, started, onWord) {
   later(() => {
@@ -552,14 +549,12 @@ function speak(text, delay, then, started, onWord) {
       u.onstart = begin; u.onend = finish; u.onerror = () => { begin(); finish(); };
       u.onboundary = e => { if (onWord && (!e.name || e.name === 'word')) onWord(e.charIndex); };
       speechSynthesis.speak(u);
-      later(begin, 400);     // in case the device never reports the start
-      later(finish, 4000);   // in case the device never reports the end
+      later(begin, 400);
+      later(finish, 4000);
     } catch (e) { begin(); finish(); }
   }, delay);
 }
 
-// Movement arrows (the dashed paths) are drawn in as a line, one after another, then get their arrowhead.
-// A solid copy of each path, used as a mask, grows along it, so the dashes keep their pattern.
 const NS = 'http://www.w3.org/2000/svg';
 const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 function drawMoves(svg) {
@@ -592,7 +587,6 @@ function moveBall(svg, move, done) {
   path.setAttribute('d', move.path); path.setAttribute('fill', 'none'); path.setAttribute('stroke', 'none');
   svg.append(path);
   const L = path.getTotalLength();
-  // Each trail's dashes stay put; a mask grows along it to show it, keeping pace with the ball.
   const defs = svg.querySelector('defs') || svg.insertBefore(document.createElementNS(NS, 'defs'), svg.firstChild);
   const trails = [...svg.querySelectorAll('.mtrail')].map(trail => {
     const id = 'mt' + Math.random().toString(36).slice(2, 9);
@@ -610,7 +604,6 @@ function moveBall(svg, move, done) {
     if (move.frontAt != null && !inFront && d >= move.frontAt) { inFront = true; svg.append(head, ball); }
     const pt = path.getPointAtLength(d);
     ball.setAttribute('transform', `translate(${pt.x} ${pt.y})`);
-    // The arrowhead trails the ball: it points the way the ball is going, with its tip touching the back of the ball.
     const a = path.getPointAtLength(Math.max(0, d - 1)), b = path.getPointAtLength(Math.min(L, d + 1));
     const ang = Math.atan2(b.y - a.y, b.x - a.x);
     const back = move.r + 3.5;
@@ -631,7 +624,6 @@ function moveBall(svg, move, done) {
   requestAnimationFrame(tick);
 }
 
-// The definition sweeps in word by word, left to right, at about the voice's pace.
 const MS_PER_LETTER = 85;
 function wipeDef(def) {
   const text = def.textContent;
@@ -639,7 +631,6 @@ function wipeDef(def) {
   const spans = [...def.querySelectorAll('.dw')];
   const starts = []; let c = 0;
   spans.forEach(sp => { starts.push(c); c += sp.textContent.length + 1; });
-  // Strictly one word after another: a word only starts when the one before has finished its sweep.
   let next = 0, timer = 0, scale = 1, lastBoundary = 0, unreliable = false, began = 0;
   const dur = j => Math.max(150, spans[j].textContent.length * msPerLetter * scale);
   const gap = () => 70 * scale;
@@ -655,8 +646,6 @@ function wipeDef(def) {
   };
   return {
     start: () => { began = performance.now(); startWord(0); },
-    // The device reports that word j is being spoken now. Bursts of reports (some voices send them all at once)
-    // are ignored for the rest of the definition; otherwise the sweep is nudged to keep in step, never doubling up.
     word: ci => {
       if (unreliable) return;
       const now = performance.now();
@@ -665,13 +654,11 @@ function wipeDef(def) {
       let j = 0; while (j + 1 < starts.length && starts[j + 1] <= ci) j++;
       if (j === 0) return;
       if (j === next) {
-        // The voice is ahead: finish the word under way quickly, then start this one.
         const prev = spans[j - 1]; prev.style.transition = 'clip-path 90ms linear';
         clearTimeout(timer);
         timer = setTimeout(() => startWord(j), 90); timers.push(timer);
         scale = Math.max(.6, scale * .9);
       } else if (j < next - 1) {
-        // The sweep is ahead: slow the remaining words a little.
         scale = Math.min(1.6, scale * 1.15);
       }
     }
@@ -682,7 +669,7 @@ function render(swap) {
   if (open && open.el) open.el.remove();
   if (!open) return;
   const set = CARDS[open.key], c = set[open.which];
-  const ahead = set.length - 1 - open.which;   // cards still to come, shown fanned out behind
+  const ahead = set.length - 1 - open.which;
   const el = document.createElement('div');
   el.className = 'stack' + (swap ? ' swap' : '');
   el.innerHTML = `${ahead >= 2 ? '<div class="back b2"></div>' : ''}<div class="back"${ahead >= 1 ? '' : ' hidden'}></div>
@@ -697,7 +684,6 @@ function render(swap) {
   drawMoves(pic);
   open.el = el; open.defShown = false;
   place();
-  // Word after 0.3 s, while the ball moves; the definition once the word has been read and the ball has arrived.
   const me = open;
   let waiting = c.move ? 2 : 1;
   const ready = () => { if (--waiting === 0 && open === me) showDef(); };
@@ -721,7 +707,6 @@ function place() {
   const mid = r.left - box.left + r.width / 2;
   const left = Math.max(8, Math.min(box.width - cw - 18, mid - cw / 2));
   el.style.left = left + 'px';
-  // Above the word like a speech bubble; below it only when there is no room above.
   const above = r.top - box.top - ch - 18 >= 4;
   el.dataset.side = above ? 'above' : 'below';
   el.style.top = (above ? r.top - box.top - ch - 18 : r.bottom - box.top + 18) + 'px';
@@ -746,9 +731,6 @@ function close() {
   open = null;
 }
 
-
-// Opening a card from the sweep (↑) or from a tap pauses the sweep; the last tap on the card closes it and
-// carries on: from a tap, the sweep reads on to the end of the sentence; from ↑, it moves on to the next word.
 function ask(ti = target()) {
   if (ti < 0 || !words[ti].dataset.card) return;
   const w = words[ti];
@@ -768,20 +750,13 @@ function moveOn(was) {
 }
 function closeCard() { if (open) close(); }
 
-// Tapping the text:
-// - on an underlined (trigger) word: its pop-up opens; the sweep stays where it is.
-//   Tap the word or the pop-up again to step through it.
-// - in front of a word (its first half, or the space before it): read that sentence from the start.
-// - after a word (its second half, or the space after it), in the sentence already being swept:
-//   carry on reading from the next word. In a sentence not yet started, any tap starts it from the beginning.
-// If a pop-up is open, tapping elsewhere first closes it.
 function nearestWord(x, y) {
   let best = -1, bd = Infinity;
   words.forEach((w, n) => {
     const r = w.getBoundingClientRect();
     const dx = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
     const dy = y < r.top ? r.top - y : y > r.bottom ? y - r.bottom : 0;
-    const d = dy * 4 + dx;                       // prefer the same line
+    const d = dy * 4 + dx;
     if (d < bd) { bd = d; best = n; }
   });
   return best;
@@ -797,8 +772,6 @@ reading.addEventListener('click', e => {
   if (open) { closeCard(); return; }
   if (hit && w.dataset.card) { pause(); openCard(w); open.src = 'tap'; return; }
   const r = w.querySelector('.t').getBoundingClientRect();
-  // "Carry on" only makes sense in the sentence the sweep has already started.
-  // In any other sentence (or one not yet begun), every tap starts it from the beginning.
   const started = sentStart(i) === sentStart(idx) && phase !== 'gap' && !(idx === sentStart(idx) && prog === 0);
   const before = !started || e.clientX < r.left + r.width / 2;
   pause(); forget();
@@ -811,8 +784,6 @@ document.addEventListener('click', e => { if (open && !e.target.closest('.strip'
 addEventListener('resize', () => { draw(); if (open) place(); });
 document.fonts && document.fonts.ready.then(draw);
 
-// The one button: tap to sweep to the end of the sentence (tap again to pause);
-// press and hold to sweep only while held.
 const playBtn = $('play');
 let holdTimer = 0, holding = false, pressed = false;
 function startHold() {
@@ -831,10 +802,8 @@ playBtn.addEventListener('pointerup', () => {
 });
 playBtn.addEventListener('pointercancel', () => { pressed = false; clearTimeout(holdTimer); if (holding) { holding = false; softStop(); } });
 playBtn.addEventListener('contextmenu', e => e.preventDefault());
-playBtn.addEventListener('click', e => { if (e.detail === 0) playSentence(); });   // keyboard Enter / Space on the button
+playBtn.addEventListener('click', e => { if (e.detail === 0) playSentence(); });
 
-// Settings (☰): speed and text size, highlighter colour, paper colour.
-// Kept on this device for the demo; the full app would keep them per learner.
 const HL = [
   { name: 'Teal',   wash: '#dcefee', deep: '#5fb3b3', ul: '#bfe0df' },
   { name: 'Yellow', wash: '#fbefb4', deep: '#d9ad2b', ul: '#f3df96' },
@@ -890,7 +859,6 @@ $('settings').addEventListener('click', e => { if (e.target.id === 'settings') $
 applyPrefs();
 applyToggles();
 
-// Text size: start from the size the page chose for this screen, then follow the slider.
 const size = $('size');
 size.value = Math.round(parseFloat(getComputedStyle(reading).fontSize));
 size.addEventListener('input', () => {
@@ -898,8 +866,6 @@ size.addEventListener('input', () => {
   draw(); if (open) place();
 });
 
-// Keyboard (laptop/desktop): ↑ ?, ↓ next word, ← back to sentence start, → or Space read to end of sentence.
-// Space works like the button: tap to sweep to the end of the sentence, hold to sweep only while held.
 let spaceDown = false;
 document.addEventListener('keyup', e => {
   if (e.key !== ' ' || !spaceDown) return;
