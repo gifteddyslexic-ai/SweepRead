@@ -1,932 +1,1151 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>SweepReader Demo</title>
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Three-Step Reading Trainer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&display=swap">
 <style>
-:root {
-  color-scheme: light;
-  --paper: #fdf8ef;
-  --page: #f6efe2;
-  --ink: #4a3c2f;
-  --ink-soft: #8a7a68;
-  --teal: #5fb3b3;
-  --teal-deep: #2f7d7d;
-  --teal-wash: #dcefee;
-  --line: #e6dccb;
-  --card: #fffdf8;
-  --card-back: #f6eedf;
-  --back-line: #b9a891;
-  --deck: #1d2b4a;
-  --deck-btn: #2c3d63;
-  --deck-line: #41557f;
-  --deck-ink: #f3f5fa;
-  --deck-soft: #cbbcaa;
-  --sheet: #fdf8ef;
-  --hl: #dcefee;
-  --hl-deep: #5fb3b3;
-  --ul: #bfe0df;
-  --read: "Lexend", "Atkinson Hyperlegible", Verdana, sans-serif;
+:root{
+  --bg:#FBF5E4; --paper:#FFFFFF; --fg:#000000; --muted:#6E6A60; --faint:color-mix(in srgb,var(--bg) 70%,#000); --line:color-mix(in srgb,var(--bg) 85%,#000);
+  --accent:#3F6E8C; --bar:#8FB3C9; --barEnd:#D9A45B; --card:color-mix(in srgb,var(--bg) 78%,#7A6A48); color-scheme:light; --flag:#A04A6E;
+  --sheet:#fdf8ef; --ul:#bfe0df; --hl-deep:#2f7d7d;
+  --f:"Lexend",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
-html, body { height: 100%; }
-[hidden] { display: none !important; }
-body {
-  background: var(--page); color: var(--ink);
-  font-family: var(--read);
-  padding-inline: 16px; padding-block: 0;
-}
-.wrap { max-width: 640px; margin: 0 auto; padding-block: 62px 140px; }
-.note {
-  font-size: 13px; line-height: 1.5; color: var(--ink-soft);
-  background: var(--paper); border: 1px dashed var(--line); border-radius: 12px;
-  padding: 10px 14px; margin: 0 0 20px;
-}
-.note b { color: var(--ink); font-weight: 600; }
-.reading {
-  position: relative;
-  background: var(--sheet); border-radius: 22px;
-  padding: 26px 22px;
-  font-size: clamp(24px, 6.4vw, 30px); line-height: 2.1;
-}
-.sweep {
-  position: absolute; z-index: 0; pointer-events: none; box-sizing: border-box;
-  background: var(--hl);
-  border-radius: 8px;
-}
-.sweep.lead { border-radius: 8px; }
-.dot {
-  position: absolute; z-index: 2; pointer-events: none;
-  width: 10px; height: 10px; border-radius: 50%;
-  background: var(--hl-deep);
-  transform: translate(-50%, -50%);
-}
-.settings {
-  position: fixed; inset: 0; z-index: 20;
-  display: flex; align-items: flex-end; justify-content: center;
-}
-.panel {
-  width: min(640px, 100vw); box-sizing: border-box; background: var(--card);
-  border-radius: 20px 20px 0 0; border-top: 2px solid var(--line);
-  box-shadow: 0 -8px 24px color-mix(in srgb, var(--ink) 18%, transparent);
-  padding: 18px 20px calc(20px + env(safe-area-inset-bottom, 0px));
-  display: grid; gap: 16px; max-height: 75vh; overflow: auto;
-}
-.panel .head { display: flex; justify-content: space-between; align-items: center; }
-.panel h2 { margin: 0; font-size: 20px; font-weight: 600; }
-.field { display: grid; gap: 8px; font-size: 15px; }
-.field .top { display: flex; justify-content: space-between; align-items: baseline; }
-.field output { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 12px; }
-.field input { accent-color: var(--teal); width: 100%; }
-.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
-.sw {
-  width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
-  border: 2px solid var(--line); padding: 0;
-}
-.sw[aria-pressed="true"] { border: 3px solid var(--ink); }
-.sw:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
-.panel .done { background: var(--teal); border-color: var(--teal); color: #fff; width: auto; height: 44px; padding: 0 20px; font-size: 16px; }
-.w {
-  position: relative; z-index: 1;
-  display: inline-block;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.w.has-card .t { border-bottom: 2px solid var(--ul); padding-bottom: 1px; }
-.w.has-card.now .t { border-bottom-color: var(--hl-deep); }
-@media (prefers-reduced-motion: no-preference) { .w.has-card .t { transition: border-color .25s; } }
-.stack { position: absolute; z-index: 5; width: min(300px, calc(100vw - 72px)); aspect-ratio: 2 / 1; --tail-x: 50%; }
-.card, .back {
-  position: absolute; inset: 0; border: 3px solid var(--ink); border-radius: 18px;
-}
-.card { background: var(--card); box-shadow: 0 6px 0 var(--line); cursor: pointer; display: grid; grid-template-columns: 1fr 1fr; overflow: visible; }
-.back { background: var(--card-back); border-color: var(--back-line); border-width: 2px; transform: translate(-3px, -2px) rotate(3.5deg); transform-origin: 100% 100%; }
-.back[hidden] { display: none !important; }
-@media (prefers-reduced-motion: no-preference) {
-  .back { animation: peek .45s ease-out .15s both; }
-  .stack.swap .card { animation: forward .28s ease-out; }
-}
-@keyframes peek { from { transform: none; } to { transform: translate(-3px, -2px) rotate(3.5deg); } }
-.back.b2 { transform: translate(-6px, -4px) rotate(7deg); }
-@media (prefers-reduced-motion: no-preference) { .back.b2 { animation: peek2 .5s ease-out .3s both; } }
-@keyframes peek2 { from { transform: none; } to { transform: translate(-6px, -4px) rotate(7deg); } }
-@keyframes forward { from { transform: translate(-3px, -2px) rotate(3.5deg); opacity: .6; } to { transform: none; opacity: 1; } }
-.stack.swap .card { transform-origin: 100% 100%; }
-.card::before, .card::after {
-  content: ""; position: absolute; left: var(--tail-x); width: 0; height: 0; border-style: solid; transform: translateX(-50%);
-}
-.card::before { top: 100%; border-width: 14px 12px 0; border-color: var(--ink) transparent transparent; }
-.card::after { top: calc(100% - 1px); border-width: 10px 8.5px 0; border-color: var(--card) transparent transparent; }
-.stack[data-side="below"] .card::before { top: auto; bottom: 100%; border-width: 0 12px 14px; border-color: transparent transparent var(--ink); }
-.stack[data-side="below"] .card::after { top: auto; bottom: calc(100% - 1px); border-width: 0 8.5px 10px; border-color: transparent transparent var(--card); }
-.left { display: grid; grid-template-rows: auto 1fr; border-right: 2px solid var(--line); min-width: 0; border-radius: 15px 0 0 15px; overflow: hidden; background: var(--sheet); }
-.word { font: 600 clamp(18px, 5vw, 22px)/1 var(--read); text-align: center; padding: 8px 4px 2px; }
-.pic { min-height: 0; padding: 0 6px 6px; }
-.pic svg { width: 100%; height: 100%; display: block; }
-.def[hidden] { display: none !important; }
-.def .dt { display: block; max-width: 100%; text-align: center; overflow-wrap: break-word; }
-.def .dw { display: inline-block; clip-path: inset(0 100% 0 0); }
-.def .dw.on { clip-path: inset(0 0 0 0); }
-@media (prefers-reduced-motion: reduce) { .def .dw { clip-path: none; } }
-.def { display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px; font: 600 clamp(17px, 4.6vw, 22px)/1.2 var(--read); min-width: 0; }
-.def[hidden] { display: none !important; }
-.tag { position: absolute; right: 10px; bottom: 6px; font-size: 11px; color: var(--ink-soft); }
-.tog { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; }
-.tog span { min-width: 0; }
-.tog small { display: block; color: var(--ink-soft); font-size: 13px; }
-.tog input { width: 24px; height: 24px; flex: none; accent-color: var(--teal); }
-body.no-strip .strip { display: none; }
-body.no-strip .wrap { padding-block-end: 48px; }
-.strip {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
-  background: var(--deck);
-  padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
-}
-.strip-in { max-width: 640px; margin: 0 auto; display: grid; gap: 12px; }
-.row { display: flex; gap: 10px; align-items: center; justify-content: center; }
-.btn {
-  width: 64px; height: 56px; padding: 0;
-  border-radius: 16px; border: 2px solid var(--deck-line); background: var(--deck-btn); color: var(--deck-ink);
-  font: 600 26px var(--read); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
-}
-.btn svg { width: 26px; height: 26px; }
-.btn:disabled { opacity: .35; cursor: default; }
-.btn.ask { font-size: 36px; font-weight: 700; }
-.btn.ask:disabled { opacity: 1; }
-.btn.ask:not(:disabled) {
-  border-color: #8fd3d3;
-  box-shadow: 0 0 0 3px rgba(143, 211, 211, .35), 0 0 16px 4px rgba(143, 211, 211, .55);
-}
-@media (prefers-reduced-motion: no-preference) { .btn.ask { transition: box-shadow .25s, border-color .25s; } }
-.qbadge {
-  display: inline-grid; place-items: center; width: 28px; height: 28px; margin: 0 2px;
-  border-radius: 9px; background: var(--deck); color: var(--deck-ink);
-  font-weight: 700; font-size: 18px; line-height: 1; vertical-align: middle;
-}
-.btn:focus-visible { outline: 3px solid var(--deck-ink); outline-offset: 2px; }
-.btn.big {
-  width: 132px; height: 64px; border-radius: 22px;
-  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
-}
-.btn.big svg { width: 34px; height: 34px; }
-.btn.big.holding { background: var(--deck-line); }
-.menu-btn {
-  position: fixed; z-index: 15; right: 12px; top: calc(10px + env(safe-area-inset-top, 0px));
-  width: 42px; height: 42px; border-radius: 12px; border: 0;
-  background: var(--deck); color: var(--deck-ink); opacity: .85;
-  display: grid; place-items: center; cursor: pointer;
-}
-.menu-btn svg { width: 22px; height: 22px; }
-.menu-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
-.slide { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--ink-soft); }
-.slide input { flex: 1; min-width: 0; accent-color: var(--teal); height: 28px; }
-.lab { width: 44px; flex: none; text-align: center; }
-.a-sm { font-size: 14px; font-weight: 600; color: var(--ink); }
-.a-lg { font-size: 24px; font-weight: 600; color: var(--ink); line-height: 1; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-@media (max-width: 420px) {
-  .row { gap: 10px; }
-  .strip .btn { width: 58px; }
-  .strip .btn.big { width: 132px; }
-}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f);font-size:16px;line-height:1.5;margin:0}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.app{height:100%;display:flex;flex-direction:column}
+.bar{height:5px;background:var(--line);flex:none}
+.bar i{display:block;height:100%;width:0;background:var(--bar);transition:width 1s linear,background .6s}
+.bar.done i{background:var(--barEnd)}
+.top{display:flex;justify-content:space-between;align-items:center;padding-inline:16px;padding-block:10px;color:var(--muted);font-size:.85rem;flex:none}
+.ghost{background:none;border:0;color:var(--muted);padding:6px 8px;border-radius:8px;position:relative}
+.ghost:hover{color:var(--fg)}
+.stepsel{appearance:none;-webkit-appearance:none;border:1px solid var(--line);background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236E6A60' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 12px center;border-radius:999px;padding:5px 32px 5px 14px;font-size:.88rem;color:var(--fg);cursor:pointer;max-width:62vw}
+.pills{display:flex;gap:6px;align-items:center}
+.pill{border:1px solid var(--line);background:none;color:var(--muted);border-radius:999px;padding:4px 12px;font-size:.82rem;min-width:30px}
+.pill:hover{color:var(--fg)}
+.pill[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
+.pill.cog{position:relative;display:inline-flex;align-items:center;justify-content:center;padding:5px 8px}
+.pill.info{font-style:italic;font-weight:500;padding:4px 11px;font-family:Georgia,serif}
+.lightbox{position:fixed;inset:0;background:color-mix(in srgb,var(--fg) 30%,transparent);z-index:12;display:flex;align-items:center;justify-content:center;padding:16px}
+.lb{background:var(--paper);border-radius:16px;max-width:620px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:18px;font-size:.95rem}
+.lb h2{font-size:1.2rem;font-weight:500;margin:0}
+.lb h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:500;margin:0 0 6px}
+.lb ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.lb .say{border-left:2px solid var(--accent);padding-left:12px;font-style:italic}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:none;border-radius:999px;padding:5px 12px;font-size:.85rem;color:var(--muted)}
+.tabs button[aria-pressed="true"]{color:var(--fg);border-color:var(--faint);background:var(--bg)}
+.dot{position:absolute;top:6px;right:0;width:7px;height:7px;border-radius:50%;background:var(--flag)}
+
+.reader{flex:1;overflow-y:auto;padding-inline:24px;padding-block:6vh 45vh;position:relative;min-height:0}
+.page{position:relative;max-width:32em;margin:0 auto;overflow:hidden;font-size:var(--ts,2.2rem)}
+.passage{line-height:1.9;letter-spacing:.04em;word-spacing:.25em;overflow-wrap:anywhere;position:relative;z-index:1}
+.passage p{margin:0 0 .8em}
+.passage p:last-child{margin-bottom:0}
+.passage .w{white-space:nowrap;cursor:default}
+.passage .w.has-card{cursor:pointer;border-bottom:2px solid var(--ul);padding-bottom:1px}
+.passage .w.has-card.trigger-active{border-bottom-color:var(--hl-deep)}
+.lower{position:absolute;left:0;right:0;bottom:0;top:100%;background:var(--card);z-index:1;transition:top .35s ease}
+.spacer{height:10.5rem}
+.stopchart{position:absolute;left:0;right:0;top:0;display:grid;grid-template-columns:4fr 3fr 1.3fr;gap:0;padding-top:.9rem;font-size:1rem;color:#2A2233;text-align:center}
+.sc-col{display:flex;flex-direction:column;gap:6px;padding-inline:8px;border-left:1px solid color-mix(in srgb,var(--card) 75%,#000);min-width:0}
+.sc-col:first-child{border-left:0}
+.sc-h{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;font-weight:500;color:#4B2E73}
+.sc-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px}
+.sc-i{display:flex;flex-direction:column;align-items:center;min-width:3.2em;max-width:7em}
+.sc-s{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:2.4rem;line-height:1.1;color:#4B2E73}
+.sc-s.sc-sm{font-size:1.5rem;line-height:1.75;white-space:nowrap}
+.sc-n{font-size:.7rem;line-height:1.25;color:#3d3547}
+@media (max-width:560px){.stopchart{grid-template-columns:1fr 1fr 1fr}.sc-n{display:none}.sc-i{min-width:1.4em}.sc-row{gap:2px 10px}.spacer{height:8rem}}
+.peek{position:absolute;z-index:4;background:var(--bg);border-radius:6px;box-shadow:0 0 0 2px #4B2E73;padding:0 .12em;margin-left:-.12em;line-height:inherit;letter-spacing:.04em;white-space:nowrap;display:flex;align-items:center}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:44rem}
+.chips .lbl{width:100%;text-align:center;color:var(--muted);font-size:.82rem}
+.chips button{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:4px 10px;font-size:.9rem;color:var(--fg)}
+.chips button.sugg{border-color:#4B2E73;border-style:dashed}
+.chips button[aria-pressed="true"]{background:#4B2E73;color:#fff;border-color:#4B2E73}
+.slider{position:absolute;left:100%;top:0;width:100%;height:0;background:var(--card);z-index:2;border-radius:3px;box-shadow:-3px 0 0 color-mix(in srgb,var(--card) 70%,#000),0 3px 8px rgba(0,0,0,.12)}
+.sweep{position:absolute;z-index:0;pointer-events:none;background:rgba(95,179,179,.28);border-radius:8px;transition:left .35s ease,width .35s ease,top .35s ease,height .35s ease}
+.sweep.instant{transition:none}
+.hand{position:absolute;background:var(--card);z-index:3;border-radius:5px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.line{width:100%;font-size:clamp(2rem,5.5vw,3.6rem);letter-spacing:.04em;word-spacing:.25em;line-height:1.7;max-width:22em;text-align:left;overflow-wrap:anywhere}
+.w{white-space:nowrap}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.swatches button{width:38px;height:38px;border-radius:50%;border:1px solid rgba(0,0,0,.18);padding:0}
+.swatches button[aria-pressed="true"]{outline:2px solid #000;outline-offset:2px}
+.passage .w.told{text-decoration:underline dotted var(--faint);text-underline-offset:.25em}
+.w.flagged{text-decoration:underline wavy var(--flag);text-underline-offset:.25em;text-decoration-thickness:2px}
+.end{color:var(--muted);font-size:1.4rem}
+
+#cards{position:fixed;inset:0;pointer-events:none;z-index:8}
+.stack{position:absolute;pointer-events:auto;width:min(300px,calc(100vw - 72px));aspect-ratio:2/1;--tail-x:50%}
+.stack .card,.stack .back{position:absolute;inset:0;border:3px solid var(--fg);border-radius:18px}
+.stack .card{background:var(--sheet);box-shadow:0 6px 0 color-mix(in srgb,var(--fg) 15%,transparent);cursor:pointer;display:grid;grid-template-columns:1fr 1fr;overflow:visible}
+.stack .back{background:color-mix(in srgb,var(--sheet) 90%,#000);border-color:color-mix(in srgb,var(--fg) 55%,transparent);border-width:2px;transform:translate(-3px,-2px) rotate(3.5deg);transform-origin:100% 100%}
+.stack .card::before,.stack .card::after{content:"";position:absolute;left:var(--tail-x);width:0;height:0;border-style:solid;transform:translateX(-50%)}
+.stack .card::before{top:100%;border-width:14px 12px 0;border-color:var(--fg) transparent transparent}
+.stack .card::after{top:calc(100% - 1px);border-width:10px 8.5px 0;border-color:var(--sheet) transparent transparent}
+.stack[data-side="below"] .card::before{top:auto;bottom:100%;border-width:0 12px 14px;border-color:transparent transparent var(--fg)}
+.stack[data-side="below"] .card::after{top:auto;bottom:calc(100% - 1px);border-width:0 8.5px 10px;border-color:transparent transparent var(--sheet)}
+.stack .left{display:grid;grid-template-rows:auto 1fr;border-right:2px solid color-mix(in srgb,var(--fg) 15%,transparent);min-width:0;border-radius:15px 0 0 15px;overflow:hidden;background:var(--sheet)}
+.stack .word{font:600 clamp(18px,5vw,22px)/1 var(--f);text-align:center;padding:8px 4px 2px}
+.stack .pic{min-height:0;padding:0 6px 6px}
+.stack .pic svg{width:100%;height:100%;display:block}
+.stack .def{display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font:600 clamp(17px,4.6vw,22px)/1.2 var(--f);min-width:0}
+.stack .def[hidden]{display:none!important}
+.stack .def .dt{display:block;max-width:100%;text-align:center;overflow-wrap:break-word}
+.stack .def .dw{display:inline-block;clip-path:inset(0 100% 0 0)}
+.stack .def .dw.on{clip-path:inset(0 0 0 0)}
+.stack .tag{position:absolute;right:10px;bottom:6px;font-size:11px;color:var(--muted)}
+
+.ctl{flex:none;padding-inline:16px;padding-block:10px 18px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.hint{color:var(--muted);font-size:1rem;min-height:1.5em;text-align:center}
+.hint b{color:var(--fg);font-weight:500}
+.btns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.b{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 18px;color:var(--muted);font-size:.92rem}
+.b:hover{color:var(--fg)}
+.b.main{color:var(--fg);border-color:var(--faint)}
+.b.on{color:var(--accent);border-color:var(--accent)}
+.k{font-size:.7rem;opacity:.7;margin-left:8px}
+
+.shade{position:fixed;inset:0;background:color-mix(in srgb,var(--fg) 18%,transparent);z-index:5}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(400px,100%);background:var(--paper);border-left:1px solid var(--line);z-index:6;overflow-y:auto;padding-inline:20px;padding-block:calc(18px + env(safe-area-inset-top,0px)) calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:20px;font-size:.93rem}
+.drawer h2{font-size:1.15rem;font-weight:500;margin:0}
+.drawer h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:500;margin:0 0 6px}
+.drawer ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.drawer .say{border-left:2px solid var(--accent);padding-left:12px;font-style:italic}
+.dhead{display:flex;justify-content:space-between;align-items:center}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{flex:1;border:0;background:none;padding:8px 6px;font-size:.85rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--bg);color:var(--fg);font-weight:500}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{display:flex;justify-content:space-between;font-size:.88rem}
+.field output{color:var(--muted);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.words{display:flex;flex-wrap:wrap;gap:6px}
+.words span{border:1px solid var(--flag);color:var(--flag);border-radius:6px;padding:1px 4px 1px 8px;display:inline-flex;align-items:center;gap:2px}
+.words span button{border:0;background:none;color:inherit;padding:0 4px}
+.muted{color:var(--muted)}
+.linkish{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.tog{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:.9rem}
+.tog small{display:block;color:var(--muted);font-size:.78rem}
+.tog input{width:22px;height:22px;flex:none;accent-color:var(--accent)}
+
+.overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal{max-width:520px;width:100%;display:flex;flex-direction:column;gap:16px;text-align:center;align-items:center}
+.slow{font-size:clamp(1.8rem,5vw,2.6rem);letter-spacing:.08em}
+.modal.left{text-align:left;align-items:stretch}
+textarea{width:100%;min-height:240px;font-size:1rem;line-height:1.6;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--paper);resize:vertical}
+.cover{position:fixed;inset:0;background:var(--card);display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;color:var(--muted);z-index:4}
 </style>
+</head>
+<body>
 
-<div class="wrap">
-  <p class="note"><b>Demo for Axel.</b> <b>Tap the text</b> to sweep: in a sentence that hasn't started, any tap starts it from the beginning; in the sentence being read, tap in front of a word to read the sentence again from the start, or after a word to carry on from the next word. <b>Tap an underlined word</b> for its card: the word and picture, any movement, then the definition with the voice. Tap again for the next card (where there is one) or to close it and carry on reading. <b>☰</b> (top right) holds the settings, including Voice, trigger-word support and the on-screen button. On a keyboard: Space sweeps (tap, or hold to sweep while held), ← start of sentence, ↓ next word, ↑ card for the word under the sweep.</p>
-  <div class="reading" id="reading"><div id="sweeps" aria-hidden="true"></div></div>
-</div>
 
-<div class="settings" id="settings" hidden>
-  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="setTitle">
-    <div class="head"><h2 id="setTitle">Settings</h2><button class="btn done" id="closeSet">Done</button></div>
-    <label class="field" for="speed">
-      <span>Speed</span>
-      <span class="slide"><span class="lab">slower</span><input type="range" id="speed" min="30" max="260" value="80"><span class="lab">faster</span></span>
-    </label>
-    <label class="field" for="size">
-      <span>Text size</span>
-      <span class="slide"><span class="lab"><span class="a-sm" aria-hidden="true">A</span><span class="sr">smaller</span></span><input type="range" id="size" min="20" max="48" value="28"><span class="lab"><span class="a-lg" aria-hidden="true">A</span><span class="sr">larger</span></span></span>
-    </label>
-    <div class="field"><span>Highlighter colour</span><div class="swatches" id="hlSw"></div></div>
-    <div class="field"><span>Paper colour</span><div class="swatches" id="paperSw"></div></div>
-    <label class="tog" for="voiceOn"><span>Voice<small>Say the word and its definition</small></span><input type="checkbox" id="voiceOn"></label>
-    <label class="tog" for="trigOn"><span>Trigger-word support<small>Underline trigger words and open their cards</small></span><input type="checkbox" id="trigOn"></label>
-    <label class="tog" for="btnOn"><span>On-screen button<small>Mainly for laptops and desktops</small></span><input type="checkbox" id="btnOn"></label>
+<div class="app">
+  <div class="bar" id="bar" role="progressbar" aria-label="Session time" aria-valuemin="0" aria-valuemax="100"><i id="fill"></i></div>
+  <div class="top">
+    <select id="stepSel" class="stepsel" aria-label="Reading exercise">
+      <option value="1">1 · Spell-Reading</option>
+      <option value="2">2 · Sweep-Sweep-Spell</option>
+      <option value="3">3 · Picture-at-Punctuation</option>
+    </select>
+    <span class="pills">
+      <button class="pill cog" id="voiceBtn" aria-pressed="false" aria-label="Voice off" title="Voice off (V)"></button>
+      <button class="pill cog" id="micBtn" aria-pressed="false" aria-label="Listening off" title="Listen for the reader (L)"></button>
+      <button class="pill info" id="infoBtn" aria-label="Instructions" title="Instructions">i</button>
+      <button class="pill cog" id="helperBtn" aria-expanded="false" aria-label="Settings" title="Settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="dot" id="dot" hidden></span></button>
+    </span>
+  </div>
+  <main class="reader" id="reader">
+    <div class="page" id="page">
+      <div class="passage" id="passage"></div>
+      <div class="spacer" aria-hidden="true"></div>
+      <div class="lower" id="lower" aria-hidden="true">
+        <div class="stopchart" id="stopChart" hidden>
+          <div class="sc-col"><div class="sc-h">Complete stop</div><div class="sc-row">
+            <div class="sc-i"><span class="sc-s">.</span><span class="sc-n">full stop</span></div>
+            <div class="sc-i"><span class="sc-s">!</span><span class="sc-n">exclamation mark</span></div>
+            <div class="sc-i"><span class="sc-s">?</span><span class="sc-n">question mark</span></div>
+            <div class="sc-i"><span class="sc-s">:</span><span class="sc-n">colon</span></div>
+          </div></div>
+          <div class="sc-col"><div class="sc-h">Short stop</div><div class="sc-row">
+            <div class="sc-i"><span class="sc-s">;</span><span class="sc-n">semicolon</span></div>
+            <div class="sc-i"><span class="sc-s">—</span><span class="sc-n">dash</span></div>
+            <div class="sc-i"><span class="sc-s sc-sm">( ) [ ]</span><span class="sc-n">brackets, used instead of dashes</span></div>
+          </div></div>
+          <div class="sc-col"><div class="sc-h">Pause</div><div class="sc-row">
+            <div class="sc-i"><span class="sc-s">,</span><span class="sc-n">comma</span></div>
+          </div></div>
+        </div>
+      </div>
+      <div class="sweep" id="sweep" aria-hidden="true" hidden></div>
+      <div class="slider" id="slider" aria-hidden="true"></div>
+      <div id="hands" aria-hidden="true"></div>
+    </div>
+  </main>
+  <div class="cover" id="cover" hidden><span>Covered</span><button class="b main" id="uncover">Carry on<span class="k">C</span></button></div>
+  <div class="ctl">
+    <div class="hint" id="hint"></div>
+    <div class="btns" id="btns"></div>
+    <div class="chips" id="chips" hidden></div>
   </div>
 </div>
 
-<button class="menu-btn" id="menu" aria-label="Settings" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
+<div id="cards" aria-hidden="true"></div>
 
-<div class="strip" role="toolbar" aria-label="Reading control">
-  <div class="strip-in">
-    <div class="row">
-      <button class="btn big" id="play" aria-label="Read to the end of the sentence. Hold to sweep while held."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path id="playIcon" d="M5 5l7 7-7 7M12 5l7 7-7 7"/></svg></button>
+<div class="shade" id="shade" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Settings">
+  <div class="dhead"><h2>Settings</h2><button class="ghost" id="closeDrawer">Close</button></div>
+  <div>
+    <h3>Reading view</h3>
+    <div class="seg" id="viewSeg"><button data-view="cards">Two cards</button><button data-view="hl">Highlighter</button></div>
+  </div>
+  <label class="tog" for="trigOn"><span>Trigger-word support<small>Underline trigger words; tap one for its meaning card</small></span><input type="checkbox" id="trigOn" checked></label>
+  <div>
+    <h3>Page colour</h3>
+    <div class="swatches" id="swatches" role="group" aria-label="Page colour"></div>
+  </div>
+  <div class="field">
+    <label for="mins">Session length <output id="minsOut"></output></label>
+    <input type="range" id="mins" min="5" max="10" step="1">
+  </div>
+  <div class="field">
+    <label for="tsize">Text size <output id="tsizeOut"></output></label>
+    <input type="range" id="tsize" min="1.4" max="3.4" step="0.1">
+  </div>
+  <div class="field" id="swaitField">
+    <label for="swait">Wait before spelling <output id="swaitOut"></output></label>
+    <input type="range" id="swait" min="1" max="4" step="0.5">
+  </div>
+  <div class="field" id="paceField">
+    <label for="pace">Spelling pace <output id="paceOut"></output></label>
+    <input type="range" id="pace" min="0.5" max="2" step="0.1">
+  </div>
+  <div class="field" id="speedField">
+    <label for="speed">Sweep speed <output id="speedOut"></output></label>
+    <input type="range" id="speed" min="0.3" max="1.2" step="0.05">
+  </div>
+  <div id="revealField">
+    <h3>Reveal</h3>
+    <div class="seg" id="modeSeg"><button data-mode="word">One word</button><button data-mode="line">One line</button></div>
+  </div>
+  <div id="coverField">
+    <h3>At a STOP sign</h3>
+    <div class="seg" id="coverSeg"><button data-cov="1">Cover the words</button><button data-cov="0">Leave them showing</button></div>
+  </div>
+  <div class="row"><button class="linkish" id="changeText">Change the reading text</button></div>
+  <div>
+    <h3>Words for Symbol Mastery</h3>
+    <div id="wordList"></div>
+  </div>
+  <div class="field">
+    <label for="voiceSel">Voice</label>
+    <div class="btns" style="justify-content:flex-start;flex-wrap:nowrap">
+      <select id="voiceSel" class="stepsel" style="flex:1;min-width:0;max-width:none"></select>
+      <button class="b" id="voiceTest">Test</button>
+    </div>
+  </div>
+  <div class="field">
+    <label for="lwin">Wait for the reader <output id="lwinOut"></output></label>
+    <input type="range" id="lwin" min="0.2" max="1" step="0.1">
+    <div class="muted" style="font-size:.82rem">With listening on, the app says the word only if it hasn't heard the reader say it within this time after the word is revealed.</div>
+  </div>
+  <div class="field">
+    <label for="vdelay">Voice delay (listening off) <output id="vdelayOut"></output></label>
+    <input type="range" id="vdelay" min="0.1" max="1" step="0.1">
+  </div>
+</aside>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-labelledby="lbTitle">
+  <div class="lb">
+    <div class="dhead"><h2 id="lbTitle">Instructions</h2><button class="ghost" id="lbClose">Close</button></div>
+    <div class="tabs" id="lbTabs"><button data-t="0">Overview</button><button data-t="1">1 · Spell-Reading</button><button data-t="2">2 · Sweep-Sweep-Spell</button><button data-t="3">3 · Picture</button></div>
+    <div id="lbBody" style="display:flex;flex-direction:column;gap:18px"></div>
+  </div>
+</div>
+
+<div class="overlay" id="startOverlay" hidden>
+  <div class="modal">
+    <div class="slow">Go s-l-o-w and easy.</div>
+    <div class="muted">Check orientation. No sounding out.</div>
+    <button class="b main" id="startGo">Start<span class="k">Enter</span></button>
+  </div>
+</div>
+
+<div class="overlay" id="textOverlay" hidden>
+  <div class="modal left">
+    <label for="textInput" style="font-weight:500">Reading text</label>
+    <textarea id="textInput"></textarea>
+    <div class="btns" style="justify-content:flex-start">
+      <button class="b main" id="textUse">Use this text</button>
+      <button class="b" id="textCancel">Cancel</button>
+      <button class="b" id="textSample">Load sample</button>
     </div>
   </div>
 </div>
 
 <script>
-const BALL = (cx, cy, r, fill = '#e8655f') => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="#5b4a3a" stroke-width="2.5"/><path d="M${cx - r * .55} ${cy - r * .4} a${r * .6} ${r * .6} 0 0 1 ${r * .45} -${r * .32}" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/>`;
-const DOM = id => `<defs><marker id="dom-${id}" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker></defs>`;
-const DOMLINE = (id, x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-${id})"/>`;
-const FLOOR = `<rect x="4" y="88" width="92" height="4" rx="2" fill="#ece3d3"/>`;
-const svg = inner => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true">${inner}</svg>`;
-const TRAIL = (d, extra = '') => `<path class="mtrail" d="${d}" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round"${extra}/>`;
-const MBALL = r => `<g class="mhead"><path d="M-3.5 -5 L3.5 0 L-3.5 5" fill="none" stroke="#8a7a68" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g><g class="mball">${BALL(0, 0, r)}</g>`;
+/* ============================================================
+   TRIGGER-WORD CARDS
+   ============================================================ */
+const BALL=(cx,cy,r,fill='#e8655f')=>`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="#5b4a3a" stroke-width="2.5"/><path d="M${cx-r*.55} ${cy-r*.4} a${r*.6} ${r*.6} 0 0 1 ${r*.45} -${r*.32}" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/>`;
+const DOMARK=id=>`<defs><marker id="dom-${id}" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker></defs>`;
+const DOMLINE=(id,x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-${id})"/>`;
+const FLOOR=`<rect x="4" y="88" width="92" height="4" rx="2" fill="#ece3d3"/>`;
+const svg=inner=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true">${inner}</svg>`;
+const TRAIL=(d,extra='')=>`<path class="mtrail" d="${d}" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round"${extra}/>`;
+const MBALL=r=>`<g class="mhead"><path d="M-3.5 -5 L3.5 0 L-3.5 5" fill="none" stroke="#8a7a68" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g><g class="mball">${BALL(0,0,r)}</g>`;
+const TABLE=(x1,x2,topY,sh=true)=>`${sh?`<ellipse cx="${(x1+x2)/2}" cy="89" rx="${(x2-x1)/2-6}" ry="2.5" fill="#e2d6c1"/>`:''}<g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="${x1+10}" y="${topY+6}" width="8" height="${88-topY-6}" rx="4" fill="#e9b97e"/><rect x="${x2-18}" y="${topY+6}" width="8" height="${88-topY-6}" rx="4" fill="#e9b97e"/><rect x="${x1}" y="${topY}" width="${x2-x1}" height="11" rx="5.5" fill="#f2c993"/></g>`;
+const BOX_BACK=dx=>`<defs><linearGradient id="hole-box3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6e5238"/><stop offset="1" stop-color="#a47b4c"/></linearGradient></defs><g transform="translate(${dx} 0)"><ellipse cx="70" cy="89" rx="26" ry="2.5" fill="#e2d6c1"/><path d="M86 66 L93 58 L93 80 L86 88 Z" fill="#e2b57c" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M46 66 L53 58 L93 58 L86 66 Z" fill="url(#hole-box3)" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/></g>`;
+const BOX_FRONT=dx=>`<g transform="translate(${dx} 0)"><path d="M46 66 L86 66 L86 88 L46 88 Z" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/></g>`;
+const STEPS=`<ellipse cx="62" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path d="M34 88 L34 74 L50 74 L50 60 L66 60 L66 46 L90 46 L90 88 Z" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>`;
+const TUBE_DEFS=`<defs><radialGradient id="hole-thr3" cx="45%" cy="50%" r="60%"><stop offset="0" stop-color="#6e5238"/><stop offset="1" stop-color="#b98d58"/></radialGradient><linearGradient id="body-thr3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6d6a6"/><stop offset=".55" stop-color="#f2c993"/><stop offset="1" stop-color="#ddb07a"/></linearGradient></defs>`;
+const TUBE_BODY=`<ellipse cx="39" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path d="M16 62 L62 62 L62 88 L16 88 A6 13 0 0 1 16 62 Z" fill="url(#body-thr3)" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="62" cy="75" rx="6" ry="13" fill="url(#hole-thr3)" stroke="#5b4a3a" stroke-width="2.5"/>`;
+const PERSON=(x,red)=>{const limb=(d,f)=>`<path d="${d}" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${f}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;const legs=limb(`M${x-3} 62 L${x-4} 82 L${x+2} 83`,'#6f7f8f')+limb(`M${x+3} 62 L${x+3} 82 L${x+9} 83`,'#6f7f8f');const body=`<rect x="${x-7}" y="38" width="14" height="26" rx="6" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/>`;const arm=limb(`M${x+2} 43 L${x+6} 53 L${x+13} 58`,'#cdbba5');const head=`<circle cx="${x}" cy="29" r="8" fill="#cdbba5" stroke="#5b4a3a" stroke-width="2.5"/>`;let outline='';if(red){const s=red==='front'?1:-1;outline=`<path d="M${x} ${21-2.2} A10.2 10.2 0 0 ${s>0?1:0} ${x} ${37+2.2}" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/><path d="M${x+s*9.5} 41 L${x+s*9.5} 61" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/><path d="M${x+s*6.5} 64 L${x+s*6.5} 84" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/>`;}const shadow=`<ellipse cx="${x+2}" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`;return shadow+legs+body+head+arm+outline;};
+const ON=svg(DOMARK('on')+FLOOR+`<ellipse cx="50" cy="89" rx="32" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g>`+BALL(50,46,11)+DOMLINE('on',93,7,67,30.5));
+const UNDER=svg(DOMARK('u')+FLOOR+`<ellipse cx="50" cy="89" rx="32" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="70" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="12" y="46" width="76" height="11" rx="5.5" fill="#f2c993"/></g>`+BALL(50,77,10)+DOMLINE('u',93,22,63.6,59.7));
+const OVER=svg(DOMARK('o')+FLOOR+`<ellipse cx="50" cy="89" rx="32" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g>`+BALL(50,26,11)+DOMLINE('o',93,6,70.9,16.3));
+const IN=svg(DOMARK('in')+FLOOR+BOX_BACK(0)+BALL(69,67,10)+BOX_FRONT(0)+DOMLINE('in',22,16,51,44));
+const P={into:'M12 78 C 12 30, 60 20, 69 48 L 69 67',out:'M35 71 L 35 52 C 38 16, 78 22, 82 78',onto:'M12 77 C 10 30, 42 20, 60 47',off:'M34 47 C 56 12, 82 30, 84 77',up:'M12 79 L 44 51 L 60 37 L 78 37',down:'M80 37 L 62 37 L 40 56 L 20 79',to:'M8 79 L 71 79',from:'M71 79 L 14 79',through:'M3 75 L 86 75'};
+const INTO=svg(FLOOR+BOX_BACK(0)+TRAIL(P.into)+MBALL(10)+BOX_FRONT(0));
+const OUT=svg(FLOOR+BOX_BACK(-34)+TRAIL(P.out)+MBALL(10)+BOX_FRONT(-34));
+const ONTO=svg(FLOOR+TABLE(24,94,58)+TRAIL(P.onto)+MBALL(11));
+const OFF=svg(FLOOR+TABLE(4,64,58)+TRAIL(P.off)+MBALL(11));
+const UP=svg(FLOOR+STEPS+TRAIL(P.up)+MBALL(9));
+const DOWN=svg(FLOOR+STEPS+TRAIL(P.down)+MBALL(9));
+const HOUSE_R=`<ellipse cx="72" cy="89" rx="20" ry="2.5" fill="#e2d6c1"/><path d="M56 88 L56 62 L88 62 L88 88" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M52 62 L72 46 L92 62 Z" fill="#e9b97e" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><rect x="65" y="68" width="12" height="20" rx="2" fill="#a47b4c" stroke="#5b4a3a" stroke-width="2"/>`;
+const TO=svg(FLOOR+HOUSE_R+TRAIL(P.to)+MBALL(9));
+const FROM=svg(FLOOR+HOUSE_R+TRAIL(P.from)+MBALL(9));
+const THROUGH=svg(TUBE_DEFS+FLOOR+TRAIL(P.through)+MBALL(9)+TUBE_BODY+TRAIL('M12 75 L 62 75',' data-from="9" opacity=".35"')+TRAIL('M62 75 L 86 75',' data-from="59"'));
+P.backReturn='M42 79 L 74 79 C 90 79, 90 55, 74 55 L 56 55 C 44 55, 42 66, 42 79';
+const BACK_RETURN=svg(FLOOR+PERSON(22)+TRAIL(P.backReturn)+MBALL(8));
+const BACK_PART=svg(DOMARK('bp')+FLOOR+PERSON(50,'back')+DOMLINE('bp',10,22,34,44));
+P.backDir='M50 79 L 16 79';
+const BACK_DIR=svg(FLOOR+PERSON(62)+TRAIL(P.backDir)+MBALL(8));
+const FRONT_PART=svg(DOMARK('fp')+FLOOR+PERSON(50,'front')+DOMLINE('fp',92,16,68,34));
+const FRONT_AHEAD=svg(DOMARK('fa')+FLOOR+PERSON(34)+BALL(74,79,9)+DOMLINE('fa',92,30,79,62));
+P.leftAway='M71 79 L 14 79';
+const HOUSE_OPEN=`<ellipse cx="72" cy="89" rx="20" ry="2.5" fill="#e2d6c1"/><path d="M56 88 L56 62 L88 62 L88 88" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M52 62 L72 46 L92 62 Z" fill="#e9b97e" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><rect x="65" y="68" width="12" height="20" rx="2" fill="#6e5238" stroke="#5b4a3a" stroke-width="2"/>`;
+const LEFT_AWAY=svg(FLOOR+HOUSE_OPEN+TRAIL(P.leftAway)+MBALL(9));
+const LEFT_DIR=svg(FLOOR+`<line x1="86" y1="50" x2="28" y2="50" stroke="#d64541" stroke-width="10" stroke-linecap="round"/><path d="M8 50 L32 32 L32 68 Z" fill="#d64541"/>`);
+const BETWEEN=svg(DOMARK('btw')+FLOOR+`<ellipse cx="22" cy="89" rx="12" ry="2" fill="#e2d6c1"/><ellipse cx="78" cy="89" rx="12" ry="2" fill="#e2d6c1"/><rect x="14" y="66" width="16" height="22" rx="2" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5"/><rect x="70" y="66" width="16" height="22" rx="2" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5"/>`+BALL(50,79,10)+DOMLINE('btw',94,16,67,55));
+P.atToward='M12 76 C 30 74, 50 68, 68 62';
+const AT_TOWARD=svg(FLOOR+TRAIL(P.atToward)+MBALL(9)+`<circle cx="82" cy="56" r="8" fill="#fffdf8" stroke="#d64541" stroke-width="2.5"/><circle cx="82" cy="56" r="3" fill="#d64541"/>`);
+const AT_PLACE=svg(FLOOR+BALL(30,83.5,4.5)+BALL(47,83.5,4.5)+`<ellipse cx="70" cy="89" rx="20" ry="2.5" fill="#e2d6c1"/><rect x="52" y="54" width="36" height="34" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M48 55 L70 38 L92 55 Z" fill="#e9b97e" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><rect x="65" y="72" width="12" height="16" rx="1.5" fill="#a47b4c" stroke="#5b4a3a" stroke-width="2"/>`);
+const BY_CLOSE=svg(DOMARK('byc')+FLOOR+PERSON(40)+BALL(60,79,9)+DOMLINE('byc',94,18,68,62));
+const BY_MEANS=svg(DOMARK('bym')+FLOOR+`<rect x="40" y="28" width="46" height="60" rx="3" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><rect x="46" y="36" width="26" height="46" rx="2" fill="none" stroke="#5b4a3a" stroke-width="1.5" opacity=".45"/><circle cx="74" cy="60" r="3.5" fill="#2a1e12"/><path d="M72.5 62 L75.5 62 L75 68 L73 68 Z" fill="#2a1e12"/><circle cx="26" cy="60" r="6.5" fill="none" stroke="#d64541" stroke-width="3"/><line x1="32" y1="60" x2="73" y2="60" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/><line x1="64" y1="60" x2="64" y2="67" stroke="#d64541" stroke-width="3" stroke-linecap="round"/><line x1="69" y1="60" x2="69" y2="65" stroke="#d64541" stroke-width="3" stroke-linecap="round"/>`+DOMLINE('bym',94,20,60,52));
+P.away='M30 80 L 84 80';
+const AWAY=svg(FLOOR+`<ellipse cx="30" cy="80" rx="22" ry="9" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/>`+TRAIL(P.away)+MBALL(8));
+const WITHIN=svg(DOMARK('win')+FLOOR+`<ellipse cx="50" cy="78" rx="36" ry="12" fill="none" stroke="#8a7a68" stroke-width="2.5" stroke-dasharray="6 4.5"/>`+BALL(50,78,9)+DOMLINE('win',94,16,60,71));
+const ROCK=`<ellipse cx="50" cy="89" rx="24" ry="2.5" fill="#e2d6c1"/><path d="M28 88 Q26 62 50 60 Q74 62 72 88 Z" fill="#c8bfa8" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>`;
+P.upon='M10 78 C 10 8, 44 6, 50 51';
+const UPON=svg(FLOOR+ROCK+TRAIL(P.upon)+MBALL(9));
+const ABOUT_SUBJECT=svg(DOMARK('abt')+FLOOR+`<rect x="28" y="30" width="40" height="58" rx="2" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><rect x="68" y="34" width="5" height="50" rx="1" fill="#fffdf8" stroke="#5b4a3a" stroke-width="1.5"/><rect x="47" y="64" width="4" height="14" fill="#d64541"/><circle cx="49" cy="55" r="11" fill="#d64541"/>`+DOMLINE('abt',4,12,38,46));
+const ABOUT_ROUGHLY=svg(DOMARK('abr')+FLOOR+`<circle cx="50" cy="55" r="30" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5"/><line x1="50" y1="27" x2="50" y2="33" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/><line x1="78" y1="55" x2="72" y2="55" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/><line x1="50" y1="83" x2="50" y2="77" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/><line x1="22" y1="55" x2="28" y2="55" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/><path d="M50 55 L 75.33 60.85 A 26 26 0 0 1 69.02 72.73 Z" fill="#d64541" opacity=".22"/><line x1="50" y1="55" x2="50" y2="35" stroke="#5b4a3a" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="55" x2="65" y2="63" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/>`+DOMLINE('abr',96,16,74,62));
+const OVER_ACROSS=svg(FLOOR+TABLE(22,78,58)+TRAIL(P.overAcross='M8 78 C 18 6, 82 6, 92 78')+MBALL(9));
+const CARDS={
+  back:[{def:'to where it was before',svg:BACK_RETURN,move:{path:P.backReturn,r:8}},{def:'the side facing away',svg:BACK_PART},{def:'toward the side facing away',svg:BACK_DIR,move:{path:P.backDir,r:8}}],
+  front:[{def:'the side facing forward',svg:FRONT_PART},{def:'ahead of',svg:FRONT_AHEAD}],
+  left:[{def:'went away from',svg:LEFT_AWAY,move:{path:P.leftAway,r:9}},{def:'on/to the opposite of right',svg:LEFT_DIR}],
+  between:[{def:'in the space that separates',svg:BETWEEN}],
+  at:[{def:'towards',svg:AT_TOWARD,move:{path:P.atToward,r:9}},{def:'near or by',svg:AT_PLACE}],
+  by:[{def:'close to',svg:BY_CLOSE},{def:'through',svg:BY_MEANS}],
+  away:[{def:'to another place',svg:AWAY,move:{path:P.away,r:8}}],
+  within:[{def:'inside the limits of',svg:WITHIN}],
+  upon:[{def:'to a place on',svg:UPON,move:{path:P.upon,r:9}}],
+  about:[{def:'on the subject of',svg:ABOUT_SUBJECT},{def:'more or less',svg:ABOUT_ROUGHLY}],
+  on:[{def:'in contact with',svg:ON}],
+  off:[{def:'no longer on',svg:OFF,move:{path:P.off,r:11}}],
+  in:[{def:'contained by',svg:IN}],
+  out:[{def:'from the inside',svg:OUT,move:{path:P.out,r:10}}],
+  up:[{def:'toward a higher place',svg:UP,move:{path:P.up,r:9}}],
+  down:[{def:'from a higher place',svg:DOWN,move:{path:P.down,r:9}}],
+  into:[{def:'to the inside of',svg:INTO,move:{path:P.into,r:10}}],
+  onto:[{def:'to a position on',svg:ONTO,move:{path:P.onto,r:11}}],
+  over:[{def:'above',svg:OVER},{def:'above and across',svg:OVER_ACROSS,move:{path:P.overAcross,r:9}}],
+  under:[{def:'below',svg:UNDER}],
+  through:[{def:'in one side and out the other side',svg:THROUGH,move:{path:P.through,r:9,frontAt:57}}],
+  here:[{def:'in this place',svg:svg(DOMARK('here')+`<path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="36" cy="77" rx="9" ry="2.4" fill="#e2d6c1"/>`+PERSON(36).replace(`<ellipse cx="38" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`,'')+`<line x1="86" y1="22" x2="60.2" y2="63.2" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-here)"/>`)}],
+  there:[{def:'in that place',svg:svg(DOMARK('there')+`<path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="86" cy="64" rx="9" ry="3.5" fill="#f5b8b2" stroke="#d64541" stroke-width="1.6"/>`+PERSON(36).replace(`<ellipse cx="38" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`,'')+`<line x1="90" y1="18" x2="86.7" y2="54" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-there)"/>`)}],
+  to:[{def:'in the direction of',svg:TO,move:{path:P.to,r:9}}],
+  from:[{def:'starting at',svg:FROM,move:{path:P.from,r:9}}]
+};
+const SAY={onto:'ontoo','on/to the opposite of right':'on or to the opposite of right'};
 
-const TABLE = (x1, x2, topY, shadow = true) => `${shadow ? `<ellipse cx="${(x1 + x2) / 2}" cy="89" rx="${(x2 - x1) / 2 - 6}" ry="2.5" fill="#e2d6c1"/>` : ''}<g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="${x1 + 10}" y="${topY + 6}" width="8" height="${88 - topY - 6}" rx="4" fill="#e9b97e"/><rect x="${x2 - 18}" y="${topY + 6}" width="8" height="${88 - topY - 6}" rx="4" fill="#e9b97e"/><rect x="${x1}" y="${topY}" width="${x2 - x1}" height="11" rx="5.5" fill="#f2c993"/></g>`;
-const BOX_BACK = dx => `<defs><linearGradient id="hole-box3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6e5238"/><stop offset="1" stop-color="#a47b4c"/></linearGradient></defs><g transform="translate(${dx} 0)"><ellipse cx="70" cy="89" rx="26" ry="2.5" fill="#e2d6c1"/><path d="M86 66 L93 58 L93 80 L86 88 Z" fill="#e2b57c" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M46 66 L53 58 L93 58 L86 66 Z" fill="url(#hole-box3)" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/></g>`;
-const BOX_FRONT = dx => `<g transform="translate(${dx} 0)"><path d="M46 66 L86 66 L86 88 L46 88 Z" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/></g>`;
-const STEPS = `<ellipse cx="62" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path d="M34 88 L34 74 L50 74 L50 60 L66 60 L66 46 L90 46 L90 88 Z" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>`;
-const TUBE_DEFS = `<defs><radialGradient id="hole-thr3" cx="45%" cy="50%" r="60%"><stop offset="0" stop-color="#6e5238"/><stop offset="1" stop-color="#b98d58"/></radialGradient><linearGradient id="body-thr3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6d6a6"/><stop offset=".55" stop-color="#f2c993"/><stop offset="1" stop-color="#ddb07a"/></linearGradient></defs>`;
-const TUBE_BODY = `<ellipse cx="39" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path d="M16 62 L62 62 L62 88 L16 88 A6 13 0 0 1 16 62 Z" fill="url(#body-thr3)" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="62" cy="75" rx="6" ry="13" fill="url(#hole-thr3)" stroke="#5b4a3a" stroke-width="2.5"/>`;
+/* ============================================================
+   STATE, TEXT, MEASURE
+   ============================================================ */
+const SAMPLE = `Mia walked down to the river after lunch. The water was cold, clear and quick. A small brown dog ran along the bank, barking at the ducks!
 
-const PERSON = (x, red) => {
-  const limb = (d, fill) => `<path d="${d}" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${fill}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
-  const legs = limb(`M${x - 3} 62 L${x - 4} 82 L${x + 2} 83`, '#6f7f8f') + limb(`M${x + 3} 62 L${x + 3} 82 L${x + 9} 83`, '#6f7f8f');
-  const body = `<rect x="${x - 7}" y="38" width="14" height="26" rx="6" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/>`;
-  const arm = limb(`M${x + 2} 43 L${x + 6} 53 L${x + 13} 58`, '#cdbba5');
-  const head = `<circle cx="${x}" cy="29" r="8" fill="#cdbba5" stroke="#5b4a3a" stroke-width="2.5"/>`;
-  let outline = '';
-  if (red) {
-    const s = red === 'front' ? 1 : -1;
-    outline = `<path d="M${x} ${21 - 2.2} A10.2 10.2 0 0 ${s > 0 ? 1 : 0} ${x} ${37 + 2.2}" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/>` +
-      `<path d="M${x + s * 9.5} 41 L${x + s * 9.5} 61" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/>` +
-      `<path d="M${x + s * 6.5} 64 L${x + s * 6.5} 84" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/>`;
-  }
-  const shadow = `<ellipse cx="${x + 2}" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`;
-  return shadow + legs + body + head + arm + outline;
+"Come back," Mia called, "the ducks want to swim in peace." The dog stopped, looked at her, and sat down in the long grass.
+
+Long ago, a wooden bridge crossed the river here. Now only three old posts stand in the water; birds like to rest on them.`;
+const TOLD_LIMIT = 4;
+const COLOURS=[["Cream","#FBF5E4"],["Butter","#FBF3C8"],["Peach","#FCE6D6"],["Rose","#F9E1E4"],["Lilac","#ECE4F5"],["Sky","#E1EDF8"],["Aqua","#DDF2EF"],["Mint","#E3F3DF"],["Stone","#EEEDE8"]];
+const GUIDE = {
+ 1:{say:"Spell the word as the letters are revealed. Then I will say the word, and you say it back while looking at it.",keys:["→: reveal the next letter","←: go back a letter","↑: say the word now","Tap any underlined word for its meaning card"],watch:["A letter swapped, missed or changed","Head moving closer to the page","Hesitation, speeding up, slowing down, or a flat voice"],next:"Move on when the student recognises most words on their own."},
+ 2:{say:"Let your eyes sweep over the word. If it doesn't just come out of your mouth, sweep it again. If it still doesn't, spell it.",keys:["→: next word","←: sweep again, then spell it","↑: say the word","Tap any underlined word for its meaning card"],watch:["At the first sign of disorientation, cover the text (C)"],next:`Only words you had to say ${TOLD_LIMIT} times are listed for Symbol Mastery.`},
+ 3:{say:"Now we add meaning. When you reach a STOP sign, stop and make a picture in your mind of what you just read.",keys:["→: next word; at a STOP sign, → covers the words","←: sweep again; press again to spell it","↑: say the word","Tap an underlined word for its meaning card"],watch:["Unknown words: explain them or look them up together."],next:"The job is done when the student starts reading for pleasure."}
+};
+const PURPOSE={1:["Train left-to-right eye movement","Recognise groups of letters as words","Understanding is not the goal yet"],2:["Continue left-to-right eye movement","Continue word recognition","Understanding is still not the goal"],3:["Understanding what is read","Goal: full comprehension"]};
+const VOICE_NOTE={1:"With Voice on, the app says the word about a second after the last letter appears.",2:"With Voice on, ↑ speaks the word after the delay and counts it.",3:"With Voice on, ↑ speaks it after the delay and counts it."};
+const CHECKS = ["The room is well lit and comfortable","Sit across from the student","Keep sessions short and praise every improvement"];
+
+const STORE_KEY="three-step-reading-v2";
+function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY))||{}; }catch(e){ return {}; } }
+function saveStore(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify({counts:S.counts,manual:[...S.manual],hidden:[...S.hiddenWords],mins:S.mins,speed:S.speed,coverPic:S.coverPic,swait:S.swait,pace:S.pace,listen:S.listen,lwin:S.lwin,voiceName:S.voiceName,tsize:S.tsize,colour:S.colour,voice:S.voice,vdelay:S.vdelay,step:S.step,mode:S.mode,view:S.view,trig:S.trig,raw:S.raw})); }catch(e){} }
+
+const st=loadStore();
+const S={
+  step:st.step||1, view:st.view||"cards", mode:st.mode||"word", coverPic:st.coverPic!==false, check:-1, chips:false, desc:[], swait:st.swait||2, pace:st.pace||1, spell:false, backs:0, resweep:0, listen:!!st.listen, lwin:Math.min(1,Math.max(.2,st.lwin||.8)), voiceName:st.voiceName||"", tsize:st.tsize||2.2, colour:st.colour||"#FBF5E4", voice:!!st.voice, vdelay:Math.min(1,Math.max(0.1,st.vdelay||1)), mins:st.mins||8, speed:st.speed||0.6, trig:st.trig!==false, raw:st.raw||SAMPLE, reSweeping:false,
+  counts:st.counts||{}, manual:new Set(st.manual||[]), hiddenWords:new Set(st.hidden||[]),
+  toks:[], lines:[], proper:new Set(), pos:0, k:0, chunkStart:0, phase:"read", ask:"see",
+  toldHere:new Set(), sweepAt:0, covered:false, running:false, elapsed:0, lastTick:0
 };
 
-const ON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-on" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-on" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="50.0" cy="89" rx="32.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g><circle cx="50" cy="46" r="11" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M44.0 42.1 a6.6 6.6 0 0 1 5.0 -3.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="93" y1="7" x2="67.0" y2="30.5" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-on)"/></svg>`;
-const OVER = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-over" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-over" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="50.0" cy="89" rx="32.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g><circle cx="50" cy="26" r="11" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M44.0 22.1 a6.6 6.6 0 0 1 5.0 -3.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="93" y1="6" x2="70.9" y2="16.3" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-over)"/></svg>`;
-const UNDER = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-under" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker><marker id="mov-under" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="6" y="88" width="88" height="4" rx="2" fill="#ece3d3"/><ellipse cx="50.0" cy="89" rx="32.0" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="70" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="12" y="46" width="76" height="11" rx="5.5" fill="#f2c993"/></g><circle cx="50" cy="77" r="10" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/><path d="M44.5 73.5 a6.0 6.0 0 0 1 4.5 -3.2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><line x1="93" y1="22" x2="63.6" y2="59.7" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-under)"/></svg>`;
-const HERE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-here" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker></defs><path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="36" cy="77" rx="9" ry="2.4" fill="#e2d6c1"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="29.5" y="38" width="13" height="24" rx="5" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/><path d="M41 42 L47 53 L52 64" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M41 42 L47 53 L52 64" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="52.0" y1="64.0" x2="54.3" y2="69.0" stroke="#5b4a3a" stroke-width="4.4" stroke-linecap="round"/><line x1="52.0" y1="64.0" x2="54.3" y2="69.0" stroke="#cdbba5" stroke-width="1.6" stroke-linecap="round"/><circle cx="52.0" cy="64.0" r="3.4" fill="#cdbba5" stroke="#5b4a3a" stroke-width="1.6"/><circle cx="36" cy="29" r="7" fill="#cdbba5" stroke="#5b4a3a" stroke-width="2.5"/><path d="M47 22 C 47 14, 64 14, 64 20 C 64 26, 54 27, 50 26 L45 29 L47 25 C 46 24, 47 23, 47 22 Z" fill="#fffdf8" stroke="#4a3c2f" stroke-width="1.6" stroke-linejoin="round"/><line x1="86" y1="22" x2="60.2" y2="63.2" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-here)"/></svg>`;
-const THERE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="dom-there" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker></defs><path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="86" cy="64" rx="9" ry="3.5" fill="#f5b8b2" stroke="#d64541" stroke-width="1.6"/><ellipse cx="36" cy="77" rx="9" ry="2.4" fill="#e2d6c1"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M33.5 60 L32.5 76 L29 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.5 60 L39.5 76 L43 77" fill="none" stroke="#6f7f8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 42 L28 52 L28 59" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="29.5" y="38" width="13" height="24" rx="5" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/><path d="M41 42 L52 47 L63 52" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M41 42 L52 47 L63 52" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="63.0" y1="52.0" x2="68.0" y2="54.3" stroke="#5b4a3a" stroke-width="4.4" stroke-linecap="round"/><line x1="63.0" y1="52.0" x2="68.0" y2="54.3" stroke="#cdbba5" stroke-width="1.6" stroke-linecap="round"/><circle cx="63.0" cy="52.0" r="3.4" fill="#cdbba5" stroke="#5b4a3a" stroke-width="1.6"/><circle cx="36" cy="29" r="7" fill="#cdbba5" stroke="#5b4a3a" stroke-width="2.5"/><path d="M47 22 C 47 14, 64 14, 64 20 C 64 26, 54 27, 50 26 L45 29 L47 25 C 46 24, 47 23, 47 22 Z" fill="#fffdf8" stroke="#4a3c2f" stroke-width="1.6" stroke-linejoin="round"/><line x1="90" y1="18" x2="86.7" y2="54.0" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-there)"/></svg>`;
-const IN = svg(DOM('in3') + FLOOR + BOX_BACK(0) + BALL(69, 67, 10) + BOX_FRONT(0) + DOMLINE('in3', 22, 16, 51, 44));
-
-const P = {
-  into:    'M12 78 C 12 30, 60 20, 69 48 L 69 67',
-  out:     'M35 71 L 35 52 C 38 16, 78 22, 82 78',
-  onto:    'M12 77 C 10 30, 42 20, 60 47',
-  off:     'M34 47 C 56 12, 82 30, 84 77',
-  up:      'M12 79 L 44 51 L 60 37 L 78 37',
-  down:    'M80 37 L 62 37 L 40 56 L 20 79',
-  to:      'M8 79 L 71 79',
-  from:    'M71 79 L 14 79',
-  through: 'M3 75 L 86 75'
-};
-const INTO = svg(FLOOR + BOX_BACK(0) + TRAIL(P.into) + MBALL(10) + BOX_FRONT(0));
-const OUT = svg(FLOOR + BOX_BACK(-34) + TRAIL(P.out) + MBALL(10) + BOX_FRONT(-34));
-const ONTO = svg(FLOOR + TABLE(24, 94, 58) + TRAIL(P.onto) + MBALL(11));
-const OFF = svg(FLOOR + TABLE(4, 64, 58) + TRAIL(P.off) + MBALL(11));
-const UP = svg(FLOOR + STEPS + TRAIL(P.up) + MBALL(9));
-const DOWN = svg(FLOOR + STEPS + TRAIL(P.down) + MBALL(9));
-const HOUSE_R = `<ellipse cx="72" cy="89" rx="20" ry="2.5" fill="#e2d6c1"/><path d="M56 88 L56 62 L88 62 L88 88" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M52 62 L72 46 L92 62 Z" fill="#e9b97e" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><rect x="65" y="68" width="12" height="20" rx="2" fill="#a47b4c" stroke="#5b4a3a" stroke-width="2"/>`;
-const TO = svg(FLOOR + HOUSE_R + TRAIL(P.to) + MBALL(9));
-const FROM = svg(FLOOR + HOUSE_R + TRAIL(P.from) + MBALL(9));
-const THROUGH = svg(TUBE_DEFS + FLOOR + TRAIL(P.through) + MBALL(9) + TUBE_BODY +
-  TRAIL('M12 75 L 62 75', ' data-from="9" opacity=".35"') +
-  TRAIL('M62 75 L 86 75', ' data-from="59"'));
-
-P.backReturn = 'M42 79 L 74 79 C 90 79, 90 55, 74 55 L 56 55 C 44 55, 42 66, 42 79';
-const BACK_RETURN = svg(FLOOR + PERSON(22) + TRAIL(P.backReturn) + MBALL(8));
-const BACK_PART = svg(DOM('bp') + FLOOR + PERSON(50, 'back') + DOMLINE('bp', 10, 22, 34, 44));
-P.backDir = 'M50 79 L 16 79';
-const BACK_DIR = svg(FLOOR + PERSON(62) + TRAIL(P.backDir) + MBALL(8));
-const FRONT_PART = svg(DOM('fp') + FLOOR + PERSON(50, 'front') + DOMLINE('fp', 92, 16, 68, 34));
-const FRONT_AHEAD = svg(DOM('fa') + FLOOR + PERSON(34) + BALL(74, 79, 9) + DOMLINE('fa', 92, 30, 79, 62));
-
-P.leftAway = 'M71 79 L 14 79';
-const HOUSE_OPEN = `<ellipse cx="72" cy="89" rx="20" ry="2.5" fill="#e2d6c1"/><path d="M56 88 L56 62 L88 62 L88 88" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M52 62 L72 46 L92 62 Z" fill="#e9b97e" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><rect x="65" y="68" width="12" height="20" rx="2" fill="#6e5238" stroke="#5b4a3a" stroke-width="2"/>`;
-const LEFT_AWAY = svg(FLOOR + HOUSE_OPEN + TRAIL(P.leftAway) + MBALL(9));
-const LEFT_DIR = svg(FLOOR + `<line x1="86" y1="50" x2="28" y2="50" stroke="#d64541" stroke-width="10" stroke-linecap="round"/><path d="M8 50 L32 32 L32 68 Z" fill="#d64541"/>`);
-
-const BETWEEN = svg(DOM('btw') + FLOOR +
-  `<ellipse cx="22" cy="89" rx="12" ry="2" fill="#e2d6c1"/>` +
-  `<ellipse cx="78" cy="89" rx="12" ry="2" fill="#e2d6c1"/>` +
-  `<rect x="14" y="66" width="16" height="22" rx="2" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5"/>` +
-  `<rect x="70" y="66" width="16" height="22" rx="2" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5"/>` +
-  BALL(50, 79, 10) +
-  DOMLINE('btw', 94, 16, 67, 55));
-
-P.atToward = 'M12 76 C 30 74, 50 68, 68 62';
-const AT_TOWARD = svg(FLOOR + TRAIL(P.atToward) + MBALL(9) +
-  `<circle cx="82" cy="56" r="8" fill="#fffdf8" stroke="#d64541" stroke-width="2.5"/><circle cx="82" cy="56" r="3" fill="#d64541"/>`);
-const AT_PLACE = svg(
-  FLOOR +
-  BALL(30, 83.5, 4.5) +
-  BALL(47, 83.5, 4.5) +
-  `<ellipse cx="70" cy="89" rx="20" ry="2.5" fill="#e2d6c1"/>` +
-  `<rect x="52" y="54" width="36" height="34" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>` +
-  `<path d="M48 55 L70 38 L92 55 Z" fill="#e9b97e" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>` +
-  `<rect x="65" y="72" width="12" height="16" rx="1.5" fill="#a47b4c" stroke="#5b4a3a" stroke-width="2"/>`
-);
-
-const BY_CLOSE = svg(DOM('byc') + FLOOR + PERSON(40) + BALL(60, 79, 9) + DOMLINE('byc', 94, 18, 68, 62));
-const BY_MEANS = svg(DOM('bym') + FLOOR +
-  `<rect x="40" y="28" width="46" height="60" rx="3" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>` +
-  `<rect x="46" y="36" width="26" height="46" rx="2" fill="none" stroke="#5b4a3a" stroke-width="1.5" opacity=".45"/>` +
-  `<circle cx="74" cy="60" r="3.5" fill="#2a1e12"/>` +
-  `<path d="M72.5 62 L75.5 62 L75 68 L73 68 Z" fill="#2a1e12"/>` +
-  `<circle cx="26" cy="60" r="6.5" fill="none" stroke="#d64541" stroke-width="3"/>` +
-  `<line x1="32" y1="60" x2="73" y2="60" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/>` +
-  `<line x1="64" y1="60" x2="64" y2="67" stroke="#d64541" stroke-width="3" stroke-linecap="round"/>` +
-  `<line x1="69" y1="60" x2="69" y2="65" stroke="#d64541" stroke-width="3" stroke-linecap="round"/>` +
-  DOMLINE('bym', 94, 20, 60, 52)
-);
-
-P.away = 'M30 80 L 84 80';
-const AWAY = svg(FLOOR +
-  `<ellipse cx="30" cy="80" rx="22" ry="9" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/>` +
-  TRAIL(P.away) + MBALL(8));
-
-const WITHIN = svg(DOM('win') + FLOOR +
-  `<ellipse cx="50" cy="78" rx="36" ry="12" fill="none" stroke="#8a7a68" stroke-width="2.5" stroke-dasharray="6 4.5"/>` +
-  BALL(50, 78, 9) +
-  DOMLINE('win', 94, 16, 60, 71)
-);
-
-const ROCK = `<ellipse cx="50" cy="89" rx="24" ry="2.5" fill="#e2d6c1"/><path d="M28 88 Q26 62 50 60 Q74 62 72 88 Z" fill="#c8bfa8" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>`;
-P.upon = 'M10 78 C 10 8, 44 6, 50 51';
-const UPON = svg(FLOOR + ROCK + TRAIL(P.upon) + MBALL(9));
-
-const ABOUT_SUBJECT = svg(DOM('abt') + FLOOR +
-  `<rect x="28" y="30" width="40" height="58" rx="2" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>` +
-  `<rect x="68" y="34" width="5" height="50" rx="1" fill="#fffdf8" stroke="#5b4a3a" stroke-width="1.5"/>` +
-  `<rect x="47" y="64" width="4" height="14" fill="#d64541"/>` +
-  `<circle cx="49" cy="55" r="11" fill="#d64541"/>` +
-  DOMLINE('abt', 4, 12, 38, 46)
-);
-const ABOUT_ROUGHLY = svg(DOM('abr') + FLOOR +
-  `<circle cx="50" cy="55" r="30" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5"/>` +
-  `<line x1="50" y1="27" x2="50" y2="33" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/>` +
-  `<line x1="78" y1="55" x2="72" y2="55" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/>` +
-  `<line x1="50" y1="83" x2="50" y2="77" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/>` +
-  `<line x1="22" y1="55" x2="28" y2="55" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/>` +
-  `<path d="M50 55 L 75.33 60.85 A 26 26 0 0 1 69.02 72.73 Z" fill="#d64541" opacity=".22"/>` +
-  `<line x1="50" y1="55" x2="50" y2="35" stroke="#5b4a3a" stroke-width="3" stroke-linecap="round"/>` +
-  `<line x1="50" y1="55" x2="65" y2="63" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/>` +
-  DOMLINE('abr', 96, 16, 74, 62)
-);
-
-const OVER_ACROSS = svg(FLOOR + TABLE(22, 78, 58) + TRAIL(P.overAcross = 'M8 78 C 18 6, 82 6, 92 78') + MBALL(9));
-
-const CARDS = {
-  back:    [{ def: 'to where it was before', svg: BACK_RETURN, move: { path: P.backReturn, r: 8 } },
-            { def: 'the side facing away', svg: BACK_PART },
-            { def: 'toward the side facing away', svg: BACK_DIR, move: { path: P.backDir, r: 8 } }],
-  front:   [{ def: 'the side facing forward', svg: FRONT_PART },
-            { def: 'ahead of', svg: FRONT_AHEAD }],
-  left:    [{ def: 'went away from', svg: LEFT_AWAY, move: { path: P.leftAway, r: 9 } },
-            { def: 'on/to the opposite of right', svg: LEFT_DIR }],
-  between: [{ def: 'in the space that separates', svg: BETWEEN }],
-  at:      [{ def: 'towards', svg: AT_TOWARD, move: { path: P.atToward, r: 9 } },
-            { def: 'near or by', svg: AT_PLACE }],
-  by:      [{ def: 'close to', svg: BY_CLOSE },
-            { def: 'through', svg: BY_MEANS }],
-  away:    [{ def: 'to another place', svg: AWAY, move: { path: P.away, r: 8 } }],
-  within:  [{ def: 'inside the limits of', svg: WITHIN }],
-  upon:    [{ def: 'to a place on', svg: UPON, move: { path: P.upon, r: 9 } }],
-  about:   [{ def: 'on the subject of', svg: ABOUT_SUBJECT },
-            { def: 'more or less', svg: ABOUT_ROUGHLY }],
-  on:      [{ def: 'in contact with', svg: ON }],
-  off:     [{ def: 'no longer on', svg: OFF, move: { path: P.off, r: 11 } }],
-  in:      [{ def: 'contained by', svg: IN }],
-  out:     [{ def: 'from the inside', svg: OUT, move: { path: P.out, r: 10 } }],
-  up:      [{ def: 'toward a higher place', svg: UP, move: { path: P.up, r: 9 } }],
-  down:    [{ def: 'from a higher place', svg: DOWN, move: { path: P.down, r: 9 } }],
-  into:    [{ def: 'to the inside of', svg: INTO, move: { path: P.into, r: 10 } }],
-  onto:    [{ def: 'to a position on', svg: ONTO, move: { path: P.onto, r: 11 } }],
-  over:    [{ def: 'above', svg: OVER },
-            { def: 'above and across', svg: OVER_ACROSS, move: { path: P.overAcross, r: 9 } }],
-  under:   [{ def: 'below', svg: UNDER }],
-  through: [{ def: 'in one side and out the other side', svg: THROUGH, move: { path: P.through, r: 9, frontAt: 57 } }],
-  here:    [{ def: 'in this place', svg: HERE }],
-  there:   [{ def: 'in that place', svg: THERE }],
-  to:      [{ def: 'in the direction of', svg: TO, move: { path: P.to, r: 9 } }],
-  from:    [{ def: 'starting at', svg: FROM, move: { path: P.from, r: 9 } }]
-};
-const SAY = { onto: 'ontoo', 'on/to the opposite of right': 'on or to the opposite of right' };
-
-const TEXT = 'The cat jumps onto the table. It sits on the box and then climbs into it. Now the cat is in the box. Sam lifts the lid off. The cat jumps out and hides under the table. Then it runs through the tube and up the steps. It looks down from the top. A bird flies over the house, from the tree to the roof. Sam calls, come here, cat! The cat stays there. The ball rolls back to Sam. He steps back and stands in front of the door. Sam left the house and turned left at the gate. The ball sits between the boxes. The boy threw the ball at the tree. The cat waits at the door. The cat sat by the fire. She popped the balloon by pricking it. The dog ran away. The ball stayed within the circle. The ball landed upon the rock. She read a book about a tree. The walk takes about ten minutes.';
-const reading = document.getElementById('reading');
-const sweeps = document.getElementById('sweeps');
-const dot = document.createElement('div'); dot.className = 'dot'; dot.hidden = true;
-reading.append(dot);
-const words = [];
-TEXT.split(/\s+/).forEach((chunk, n, all) => {
-  const m = chunk.match(/^([A-Za-z']+)(.*)$/);
-  const s = document.createElement('span');
-  s.className = 'w';
-  s.innerHTML = `<span class="t">${m[1]}</span>${m[2]}`;
-  const key = m[1].toLowerCase();
-  if (CARDS[key]) s.dataset.key = key;
-  s.dataset.i = words.length;
-  s.dataset.end = /[.!?]/.test(m[2]) ? '1' : '';
-  words.push(s); reading.append(s);
-  if (n < all.length - 1) reading.append(' ');
-});
-
-const $ = id => document.getElementById(id);
-const speed = $('speed');
-let idx = 0, prog = 0, phase = 'head', stopAt = -1, haltEnd = 0, gapEnd = 0;
-let mode = 'idle', last = 0, raf = 0;
-const haltMs = () => 12000 / +speed.value;
-const gapMs = () => 14000 / +speed.value;
-
-const graceMs = 0;
-let lastTrig = -1, grace = 0, dismissed = -1;
-function leaving() {
-  if (words[idx].dataset.card && idx !== dismissed) { lastTrig = idx; grace = graceMs; }
-  else { lastTrig = -1; grace = 0; }
-}
-function forget() { lastTrig = -1; grace = 0; dismissed = -1; }
-function target() {
-  if (open) return words.indexOf(open.word);
-  if (grace > 0 && lastTrig >= 0) return lastTrig;
-  if (phase !== 'gap' && words[idx].dataset.card) return idx;
-  return -1;
-}
-
-function sameLine(a, b) { return words[a] && words[b] && words[a].offsetTop === words[b].offsetTop; }
-function x0(i) {
-  if (i > 0 && !words[i - 1].dataset.end && sameLine(i - 1, i)) return x1(i - 1);
-  return words[i].offsetLeft;
-}
-function x1(i) {
-  const w = words[i], right = w.offsetLeft + w.offsetWidth;
-  if (!w.dataset.end && sameLine(i, i + 1)) return (right + words[i + 1].offsetLeft) / 2;
-  return right + 4;
-}
-function span(i) { return x1(i) - x0(i); }
-function sentStart(i) { while (i > 0 && !words[i - 1].dataset.end) i--; return i; }
-const done = () => phase === 'head' && prog >= span(idx);
-
-const pool = [];
-function seg(n) {
-  if (!pool[n]) { const d = document.createElement('div'); d.className = 'sweep'; sweeps.append(d); pool[n] = d; }
-  return pool[n];
-}
-function draw() {
-  const lines = [];
-  if (phase !== 'gap') {
-    for (let i = sentStart(idx); i <= idx; i++) {
-      const w = words[i], ext = i < idx ? span(i) : prog;
-      let L = lines[lines.length - 1];
-      if (!L || L.top !== w.offsetTop) { L = { top: w.offsetTop, h: w.offsetHeight, left: x0(i), right: x0(i) }; lines.push(L); }
-      L.right = Math.max(L.right, x0(i) + ext);
-    }
-  }
-  words.forEach((w, n) => w.classList.toggle('now', n === idx && phase !== 'gap' && !!w.dataset.card && (prog > 0 || mode !== 'idle')));
-  pool.forEach(d => d.hidden = true);
-  lines.forEach((L, n) => {
-    const d = seg(n);
-    d.hidden = false;
-    d.classList.toggle('lead', n === lines.length - 1);
-    d.style.left = (L.left - 3) + 'px';
-    d.style.top = (L.top + 4) + 'px';
-    d.style.height = (L.h - 8) + 'px';
-    d.style.width = Math.max(3, L.right - L.left + 3) + 'px';
+const key=w=>w.toLowerCase().replace(/[^\p{L}\p{N}'’-]/gu,"").replace(/^['’-]+|['’-]+$/g,"");
+function tokenize(txt){
+  const out=[];
+  txt.replace(/\r/g,"").split(/\n+/).map(p=>p.trim()).filter(Boolean).forEach(p=>{
+    const ws=p.split(/\s+/).filter(Boolean);
+    ws.forEach((w,i)=>{
+      const nxt=ws[i+1]||"";
+      const stop=/[.,!?:;)\]—–]["”'’]*$/.test(w)||/^[-—–]$/.test(nxt)||/^[(\[]/.test(nxt);
+      const start = i===0 || /[.!?]["”'’)]*$/.test(ws[i-1]);
+      out.push({w,stop,para:i===ws.length-1,start,key:key(w)});
+    });
   });
-  const L = lines[lines.length - 1];
-  const showDot = L && lines.length === 1 && L.right - L.left < 6;
-  dot.hidden = !showDot;
-  if (showDot) { dot.style.left = L.left + 'px'; dot.style.top = (L.top + L.h - 4) + 'px'; }
+  return out;
 }
-function follow() {
-  const r = words[idx].getBoundingClientRect();
-  if (r.top < 60 || r.bottom > innerHeight - 170) words[idx].scrollIntoView({ block: 'center', behavior: 'smooth' });
-}
-
-function frame(t) {
-  const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
-  if (mode === 'idle') { raf = 0; return; }
-  if (phase === 'head') {
-    const target = span(idx);
-    prog = Math.min(target, prog + (+speed.value) * dt);
-    if (prog >= target) {
-      const end = words[idx].dataset.end || idx >= words.length - 1;
-      if ((mode === 'step' && idx >= stopAt) || (mode === 'play' && end) || idx >= words.length - 1) { draw(); pause(); raf = 0; return; }
-      phase = 'halt'; haltEnd = t + haltMs();
-    }
-  } else if (phase === 'halt') {
-    if (t >= haltEnd) {
-      if (words[idx].dataset.end) { leaving(); phase = 'gap'; gapEnd = t + gapMs(); }
-      else { leaving(); idx++; prog = 0; phase = 'head'; follow(); }
-    }
-  } else if (t >= gapEnd) {
-    idx++; prog = 0; phase = 'head'; dismissed = -1; follow();
-  }
-  grace = Math.max(0, grace - dt * 1000);
-  draw();
-  raf = requestAnimationFrame(frame);
-}
-function run(m) {
-  closeCard(); mode = m; last = 0;
-  if (m === 'play' || m === 'hold') { $('playIcon').setAttribute('d', 'M8 5v14M16 5v14'); $('play').setAttribute('aria-label', 'Pause'); }
-  if (!raf) raf = requestAnimationFrame(frame);
-}
-function pause() {
-  mode = 'idle'; $('play').classList.remove('holding');
-  $('playIcon').setAttribute('d', 'M5 5l7 7-7 7M12 5l7 7-7 7'); $('play').setAttribute('aria-label', 'Read to the end of the sentence');
-}
-function softStop() {
-  $('play').classList.remove('holding');
-  $('playIcon').setAttribute('d', 'M5 5l7 7-7 7M12 5l7 7-7 7'); $('play').setAttribute('aria-label', 'Read to the end of the sentence');
-  if (mode !== 'idle' && phase === 'head' && prog < span(idx)) { stopAt = idx; mode = 'step'; }
-  else pause();
-}
-function playSentence() {
-  closeCard();
-  if (mode === 'play') { softStop(); return; }
-  if (done()) {
-    if (idx >= words.length - 1) { idx = 0; prog = 0; draw(); }
-    else { phase = 'halt'; haltEnd = 0; }
-  }
-  follow(); run('play');
-}
-function stepNext() {
-  closeCard(); pause();
-  if (phase === 'head' && prog < span(idx)) stopAt = idx;
-  else if (idx < words.length - 1) { stopAt = idx + 1; if (phase === 'head') { phase = 'halt'; haltEnd = 0; } }
-  else return;
-  run('step');
-}
-function backToStart() {
-  closeCard(); pause(); forget();
-  let s = sentStart(idx);
-  if (idx === s && prog === 0 && phase === 'head' && s > 0) s = sentStart(s - 1);
-  idx = s; prog = 0; phase = 'head';
-  draw(); follow();
-}
-
-let open = null;
-let timers = [];
-
-function clearTimers() { timers.forEach(clearTimeout); timers = []; try { speechSynthesis.cancel(); } catch (e) {} }
-function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
-const voiceOn = () => document.getElementById('voiceOn').checked;
-
-let msPerLetter = 85;
-function speak(text, delay, then, started, onWord) {
-  later(() => {
-    let done = false, began = false, t0 = 0;
-    const said = SAY[text.toLowerCase()] || text;
-    const finish = () => {
-      if (done) return; done = true;
-      if (t0) {
-        const letters = said.replace(/[^A-Za-z]/g, '').length;
-        const words = said.split(/\s+/).length;
-        const per = (performance.now() - t0 - 120 - (words - 1) * 60) / Math.max(3, letters);
-        if (per > 60 && per < 170) msPerLetter = Math.round(msPerLetter * .4 + per * .6);
-      }
-      if (then) then();
-    };
-    const begin = () => { if (began) return; began = true; t0 = performance.now(); if (started) started(); };
-    if (!voiceOn()) { begin(); t0 = 0; later(finish, 500); return; }
-    try {
-      const u = new SpeechSynthesisUtterance(said);
-      u.lang = 'en-GB'; u.rate = .85;
-      u.onstart = begin; u.onend = finish; u.onerror = () => { begin(); finish(); };
-      u.onboundary = e => { if (onWord && (!e.name || e.name === 'word')) onWord(e.charIndex); };
-      speechSynthesis.speak(u);
-      later(begin, 400);
-      later(finish, 4000);
-    } catch (e) { begin(); finish(); }
-  }, delay);
-}
-
-const NS = 'http://www.w3.org/2000/svg';
-const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-function drawMoves(svg) {
-  if (!svg || calm()) return;
-  const defs = svg.querySelector('defs') || svg.insertBefore(document.createElementNS(NS, 'defs'), svg.firstChild);
-  let at = 150;
-  svg.querySelectorAll('path[stroke-dasharray]:not(.mtrail)').forEach(p => {
-    const id = 'mv' + Math.random().toString(36).slice(2, 9);
-    const mask = document.createElementNS(NS, 'mask');
-    mask.setAttribute('id', id); mask.setAttribute('maskUnits', 'userSpaceOnUse');
-    mask.setAttribute('x', '0'); mask.setAttribute('y', '0'); mask.setAttribute('width', '100'); mask.setAttribute('height', '100');
-    const m = document.createElementNS(NS, 'path');
-    m.setAttribute('d', p.getAttribute('d'));
-    m.setAttribute('fill', 'none'); m.setAttribute('stroke', '#fff'); m.setAttribute('stroke-width', '9');
-    m.setAttribute('pathLength', '100'); m.setAttribute('stroke-dasharray', '100 100'); m.setAttribute('stroke-dashoffset', '100');
-    mask.append(m); defs.append(mask);
-    const head = p.getAttribute('marker-end');
-    p.removeAttribute('marker-end'); p.setAttribute('mask', `url(#${id})`);
-    const dur = Math.max(220, p.getTotalLength() * 14);
-    const a = m.animate([{ strokeDashoffset: '100px' }, { strokeDashoffset: '0px' }], { duration: dur, delay: at, easing: 'linear', fill: 'forwards' });
-    a.onfinish = () => { p.removeAttribute('mask'); mask.remove(); if (head) p.setAttribute('marker-end', head); };
-    at += dur;
+function findProper(toks){
+  const lower=new Set(), capMid=new Set();
+  toks.forEach(t=>{
+    const bare=t.w.replace(/^[^\p{L}]+/u,"");
+    if(!t.key) return;
+    if(/^\p{Ll}/u.test(bare)) lower.add(t.key);
+    else if(/^\p{Lu}/u.test(bare) && !t.start) capMid.add(t.key);
   });
+  const p=new Set([...capMid].filter(k=>!lower.has(k))); p.add("i"); return p;
+}
+function buildLines(){
+  const L=[]; let i=0; const n=S.toks.length;
+  while(i<n){ const s=i; while(i<n){ const t=S.toks[i]; i++; if(t.para||/[.!?]["”'’)]*$/.test(t.w)||i-s>=7) break; } L.push([s,i]); }
+  S.lines=L;
+}
+function load(txt){ S.raw=txt; S.toks=tokenize(txt); S.proper=findProper(S.toks); reset(); saveStore(); buildPassage(); }
+function reset(){ S.check=-1; S.chips=false; S.spell=false; S.backs=0; S.pos=0; S.k=0; S.chunkStart=0; S.phase="read"; S.ask="see"; S.toldHere.clear(); S.sweepAt=performance.now(); S.reSweeping=false; closeCard(); }
+function isProper(k){ return S.proper.has(k); }
+function toggleTold(i){
+  const t=S.toks[i]; if(!t||!t.key) return;
+  if(S.toldHere.has(i)){ S.toldHere.delete(i); S.counts[t.key]=Math.max(0,(S.counts[t.key]||1)-1); }
+  else { S.toldHere.add(i); S.counts[t.key]=(S.counts[t.key]||0)+1; }
+  saveStore();
+}
+function masteryList(){
+  const fromCounts=Object.entries(S.counts).filter(([k,c])=>c>=TOLD_LIMIT&&!isProper(k)).map(([k])=>k);
+  return [...new Set([...fromCounts,...S.manual])].filter(k=>!S.hiddenWords.has(k)).sort();
 }
 
-const MOVE_MS = 1000;
-function moveBall(svg, move, done) {
-  const ball = svg.querySelector('.mball'), head = svg.querySelector('.mhead');
-  const path = document.createElementNS(NS, 'path');
-  path.setAttribute('d', move.path); path.setAttribute('fill', 'none'); path.setAttribute('stroke', 'none');
-  svg.append(path);
-  const L = path.getTotalLength();
-  const defs = svg.querySelector('defs') || svg.insertBefore(document.createElementNS(NS, 'defs'), svg.firstChild);
-  const trails = [...svg.querySelectorAll('.mtrail')].map(trail => {
-    const id = 'mt' + Math.random().toString(36).slice(2, 9);
-    const mask = document.createElementNS(NS, 'mask');
-    mask.setAttribute('id', id); mask.setAttribute('maskUnits', 'userSpaceOnUse');
-    mask.setAttribute('x', '0'); mask.setAttribute('y', '0'); mask.setAttribute('width', '100'); mask.setAttribute('height', '100');
-    const m = document.createElementNS(NS, 'path');
-    m.setAttribute('d', trail.getAttribute('d')); m.setAttribute('fill', 'none'); m.setAttribute('stroke', '#fff'); m.setAttribute('stroke-width', '9');
-    m.setAttribute('pathLength', '100'); m.setAttribute('stroke-dasharray', '100 100');
-    mask.append(m); defs.append(mask); trail.setAttribute('mask', `url(#${id})`);
-    return { m, from: parseFloat(trail.dataset.from || 0), len: trail.getTotalLength() };
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const letters=w=>Math.max(1,(w.match(/[\p{L}\p{N}]/gu)||[]).length);
+
+let WE=[], M=null, lastKey="", lastLine=-1, pend=null;
+function buildPassage(){
+  const T=S.toks; let h="<p>";
+  T.forEach((t,i)=>{
+    const has=S.trig && !!CARDS[t.key];
+    h+=`<span class="w${has?' has-card':''}" data-i="${i}">${[...t.w].map(c=>`<span class="lt">${esc(c)}</span>`).join("")}</span>`+(t.para&&i<T.length-1?"</p><p>":" ");
   });
-  let inFront = false;
-  const put = d => {
-    if (move.frontAt != null && !inFront && d >= move.frontAt) { inFront = true; svg.append(head, ball); }
-    const pt = path.getPointAtLength(d);
-    ball.setAttribute('transform', `translate(${pt.x} ${pt.y})`);
-    const a = path.getPointAtLength(Math.max(0, d - 1)), b = path.getPointAtLength(Math.min(L, d + 1));
-    const ang = Math.atan2(b.y - a.y, b.x - a.x);
-    const back = move.r + 3.5;
-    head.setAttribute('transform', `translate(${pt.x - Math.cos(ang) * back} ${pt.y - Math.sin(ang) * back}) rotate(${ang * 180 / Math.PI})`);
-    trails.forEach(t => t.m.setAttribute('stroke-dashoffset', String(100 - Math.max(0, Math.min(100, (d - t.from) / t.len * 100)))));
+  $("passage").innerHTML = T.length ? h+"</p>" : `<p class="end">Add a reading text in Settings.</p>`;
+  WE=[...$("passage").querySelectorAll(".w")];
+  measure(); lastKey=""; lastLine=-1;
+}
+function measure(){
+  const page=$("page"); page.style.setProperty("--ts",S.tsize+"rem");
+  const lh=parseFloat(getComputedStyle($("passage")).lineHeight);
+  const rPage=page.getBoundingClientRect();
+  const words=WE.map(el=>{
+    const lts=[...el.querySelectorAll(".lt")];
+    const last=lts[lts.length-1];
+    const rEl=el.getBoundingClientRect();
+    const rLast=last?last.getBoundingClientRect():rEl;
+    return { l:rEl.left-rPage.left, t:rEl.top-rPage.top, w:rEl.width, h:rEl.height, lt:lts.map(x=>x.getBoundingClientRect().left-rPage.left), end:(rLast.right-rPage.left) };
+  });
+  const tops=[], idx=[];
+  words.forEach(o=>{ let L=tops.findIndex(t=>Math.abs(t-o.t)<o.h/2); if(L<0){ tops.push(o.t); L=tops.length-1; } idx.push(L); });
+  const bots=tops.map((t,L)=>Math.max(...words.filter((o,i)=>idx[i]===L).map(o=>o.t+o.h)));
+  const h0=words[0]?words[0].h:lh;
+  const gaps=words.slice(1).map((o,i)=>idx[i+1]===idx[i]?o.l-(words[i].l+words[i].w):null).filter(x=>x>0).sort((a,b)=>a-b);
+  const sp=gaps.length?gaps[gaps.length>>1]:lh*.35;
+  M={words,idx,tops,bots,sp,g:Math.max(2,(lh-h0)/2),W:page.clientWidth,H:page.scrollHeight};
+}
+function lineBox(L){ return {top:M.tops[L]-M.g, height:M.bots[L]-M.tops[L]+2*M.g}; }
+function lineStart(p){ const L=M.idx[p]; let i=p; while(i>0&&M.idx[i-1]===L) i--; return i; }
+function nextLineStart(p){ const L=M.idx[p]; let i=p; while(i<S.toks.length&&M.idx[i]===L) i++; return i; }
+
+function place(force){
+  if(!M) return;
+  const sl=$("slider"), lo=$("lower"), n=S.toks.length;
+  const band=$("sweep"), hands=$("hands");
+
+  if(S.view!=="hl"){
+    S.reSweeping=false;
+  }
+
+  if(S.view==="hl"){
+    sl.hidden=true; lo.hidden=true;
+    hands.innerHTML="";
+    if(!n || S.pos>=n){ band.hidden=true; lastLine=-1; return; }
+    const Lh=M.idx[S.pos], boxH=lineBox(Lh), Wh=M.words[S.pos];
+    const prevIdx = S.pos - 1, nextIdx = S.pos + 1;
+    const sameLineAsPrev = prevIdx >= 0 && M.idx[prevIdx] === Lh && !S.toks[prevIdx].stop;
+    const sameLineAsNext = nextIdx < n && M.idx[nextIdx] === Lh && !S.toks[S.pos].stop;
+    const start = sameLineAsPrev ? (M.words[prevIdx].end + Wh.l) / 2 : Wh.l;
+    const endFull = sameLineAsNext ? (Wh.end + M.words[nextIdx].l) / 2 : Wh.end;
+    let end;
+    if(S.step===1){
+      if(S.k<=0) end = start;
+      else if(S.k>=Wh.lt.length) end = endFull;
+      else end = Wh.lt[S.k];
+    } else if(S.step===2 && S.mode==="line"){
+      const ls = lineStart(S.pos), ne = nextLineStart(S.pos);
+      const fw = M.words[ls], lw = M.words[ne-1];
+      const lineStartX = fw.l, lineEndX = lw.l + lw.w;
+      band.hidden=false;
+      band.style.transition="";
+      band.classList.toggle("instant",!!force);
+      band.style.left = (lineStartX - 3) + "px";
+      band.style.top = (boxH.top + 4) + "px";
+      band.style.height = (boxH.height - 8) + "px";
+      band.style.width = Math.max(3, lineEndX - lineStartX + 3) + "px";
+      if(force) requestAnimationFrame(()=>band.classList.remove("instant"));
+      keepInView(boxH.top);
+      lastLine = Lh;
+      return;
+    } else {
+      end = endFull;
+    }
+    band.hidden=false;
+    band.classList.toggle("instant",!!force);
+    band.style.left = (start - 3) + "px";
+    band.style.top = (boxH.top + 4) + "px";
+    band.style.height = (boxH.height - 8) + "px";
+    const fullW = Math.max(3, end - start + 3);
+    if(S.reSweeping && !force){
+      S.reSweeping = false;
+      band.style.transition = "none";
+      band.style.width = "3px";
+      void band.offsetWidth;
+      band.style.transition = `width ${sweepDur()/1000}s linear`;
+      band.style.width = fullW + "px";
+    } else {
+      band.style.transition = "";
+      band.style.width = fullW + "px";
+    }
+    if(force) requestAnimationFrame(()=>band.classList.remove("instant"));
+    keepInView(boxH.top);
+    lastLine = Lh;
+    return;
+  }
+
+  band.hidden=true;
+  sl.hidden=false; lo.hidden=false;
+  const key=[S.step,S.pos,S.k,S.mode,S.phase,S.tsize,S.spell,S.resweep,S.check,S.coverPic].join("|");
+  if(key===lastKey && !force) return;
+  lastKey=key; clearTimeout(pend);
+  renderHands();
+  $("stopChart").hidden=S.step!==3;
+  if(!n||S.pos>=n){
+    sl.style.transition="left .5s ease"; sl.style.left=M.W+"px";
+    lo.style.top=M.H+"px"; lastLine=-1; return;
+  }
+  const L=M.idx[S.pos], box=lineBox(L), W=M.words[S.pos];
+  lo.style.transition=force?"none":"top .35s ease";
+  lo.style.top=(box.top+box.height)+"px";
+  const newLine = L!==lastLine; lastLine=L;
+  const setTop=()=>{ sl.style.top=box.top+"px"; sl.style.height=box.height+"px"; };
+  let from=null, to, dur="left .5s cubic-bezier(.45,0,.35,1)";
+  const nx=M.words[S.pos+1];
+  const onSameLine = nx && M.idx[S.pos+1]===L;
+  const wordEnd=Math.min(M.W, onSameLine ? (W.end + nx.l)/2 : W.end + M.sp);
+  if(S.step===1 || (S.spell && S.phase==="read")){
+    to = S.k<=0 ? W.l : (S.k>=W.lt.length ? wordEnd : W.lt[S.k]);
+    if(S.spell && S.k<=0) dur="left .15s ease";
+  } else if(S.step===2&&S.mode==="line"){
+    to = M.W; dur="left .6s ease";
+  } else {
+    to = wordEnd;
+    const d=sweepDur()/1000, el=(performance.now()-S.sweepAt)/1000;
+    if(S.phase!=="ask" && el<d){ from = W.l + (to-W.l)*Math.max(0,el/d); dur=`left ${Math.max(.05,d-Math.max(0,el))}s linear`; }
+  }
+  if(force){ sl.style.transition="none"; setTop(); sl.style.left=to+"px"; return; }
+  const go=()=>{
+    if(from!==null){ sl.style.transition="none"; sl.style.left=from+"px"; void sl.offsetWidth; }
+    sl.style.transition=dur; sl.style.left=to+"px";
   };
-  if (calm()) { put(L); done && done(); return; }
+  if(newLine){
+    const start=M.words[lineStart(S.pos)].l;
+    sl.style.transition="top .35s ease, height .35s ease, left .35s ease";
+    setTop(); sl.style.left=(S.step===2&&S.mode==="line"?start:Math.min(start,from??to))+"px";
+    if(from!==null){ S.sweepAt=performance.now()+350; from=M.words[S.pos].l; }
+    pend=setTimeout(go,360);
+  } else {
+    setTop();
+    const wait=S.sweepAt-performance.now();
+    if(from!==null && wait>0){ sl.style.transition="left .2s ease"; sl.style.left=W.l+"px"; pend=setTimeout(go,wait); }
+    else go();
+  }
+  keepInView(box.top);
+}
+function keepInView(top){
+  const rd=$("reader"), y=top+$("page").offsetTop;
+  if(y-rd.scrollTop>rd.clientHeight*.55 || y<rd.scrollTop+8) rd.scrollTo({top:Math.max(0,y-rd.clientHeight*.22),behavior:"smooth"});
+}
+function renderHands(){
+  const h=$("hands");
+  if(S.view==="hl"){ h.innerHTML=""; return; }
+  if(S.step!==3||S.phase!=="ask"||!M){ h.innerHTML=""; return; }
+  const rows={};
+  for(let i=S.chunkStart;i<=S.pos&&i<S.toks.length;i++){ const L=M.idx[i], o=M.words[i]; rows[L]=rows[L]?{a:rows[L].a,b:o.l+o.w}:{a:o.l,b:o.l+o.w}; }
+  let out=!S.coverPic?"":Object.entries(rows).map(([L,r])=>{ const b=lineBox(+L); return `<div class="hand" style="left:${r.a-6}px;width:${r.b-r.a+12}px;top:${b.top}px;height:${b.height}px"></div>`; }).join("");
+  if(S.check>=0){ const o=M.words[S.check], b=lineBox(M.idx[S.check]); out+=`<div class="peek" style="left:${o.l}px;top:${b.top+M.g*.5}px;height:${b.height-M.g}px">${esc(S.toks[S.check].w.replace(/[^\p{L}\p{N}'’-]/gu,""))}</div>`; }
+  h.innerHTML=out;
+}
+function updateMarks(){
+  WE.forEach((el,i)=>{
+    el.classList.toggle("told",S.toldHere.has(i));
+    el.classList.toggle("flagged",S.step===3&&S.manual.has(S.toks[i].key));
+    const has=S.trig && !!CARDS[S.toks[i].key];
+    el.classList.toggle("has-card",has);
+    el.classList.toggle("trigger-active",has && i===S.pos);
+  });
+}
+
+const cleanW=w=>w.replace(/[^\p{L}\p{N}'’-]/gu,"").replace(/^['’-]+|['’-]+$/g,"");
+const EASY=new Set("a an the and or but of to in on at by for with from is was are were be been it its he she they we you i me him her them his their our my your this that these those as so if not no do did has had have".split(" "));
+function renderChips(){
+  const c=$("chips");
+  if(!(S.step===3&&S.phase==="ask"&&S.chips)){ c.hidden=true; c.innerHTML=""; return; }
+  let h=`<div class="lbl">Which word is missing from the picture?${S.listen&&rec?" Dashed words weren't heard in the description.":""}</div>`;
+  for(let i=S.chunkStart;i<=S.pos&&i<S.toks.length;i++){
+    const w=cleanW(S.toks[i].w); if(!w) continue;
+    const k=S.toks[i].key, sugg=S.listen&&rec&&!EASY.has(k)&&k.length>1&&!S.desc.some(d=>sameWord(k,d));
+    h+=`<button data-cw="${i}" class="${sugg?"sugg":""}" aria-pressed="${S.check===i}">${esc(w)}</button>`;
+  }
+  c.innerHTML=h; c.hidden=false;
+}
+function sssNext(def){ return S.spell&&S.k<[...S.toks[S.pos].w].length ? "Reveal letter" : def; }
+function sssBack(){ return S.backs===0 ? "Sweep again" : S.backs===1 ? "Spell it" : "Back"; }
+function B(label,act,k,cls=""){ return `<button class="b ${cls}" data-act="${act}">${label}${k?`<span class="k">${k}</span>`:""}</button>`; }
+function renderControls(){
+  const n=S.toks.length, end=S.pos>=n; let h="", hint="";
+  const told=S.toldHere.has(S.pos);
+  if(!n){ h=B("Add text","text",""); }
+  else if(end){ hint="The end."; h=B("Read again","restart","","main"); }
+  else if(S.step===1){
+    h=B("Reveal letter","next","→","main")+B("Back","back","←")+B("Cover","cover","C");
+  } else if(S.step===2 && S.mode==="line"){
+    hint="Tap any word you had to say. Tap an underlined word for its meaning card.";
+    h=B("Next line","next","→","main")+B("Back","back","←")+B("Cover","cover","C");
+  } else if(S.step===2){
+    if(S.spell) hint = "Spell the word, one letter at a time.";
+    else if(S.backs===1) hint = "Second sweep — say the word if it comes to you.";
+    h=B(sssNext("Next word"),"next","→","main")+B(told?"Said it ✓":(S.voice?"Say the word":"I said it"),"told","↑",told?"on":"")+B(sssBack(),"back","←")+B("Cover","cover","C");
+  } else if(S.phase==="ask"){
+    if(S.check>=0) hint=`Ask: <b>How is “${esc(cleanW(S.toks[S.check].w))}” in your picture?</b>`;
+    else hint = S.ask==="see" ? `Ask: <b>What do you see?</b>` : `Ask: <b>What do you feel?</b> or <b>What does that mean to you?</b>`;
+    h=B("Carry on","next","→","main")+B(S.ask==="see"?"Ask 'feel'":"Ask 'see'","ask","F")+B(S.check>=0?"Point out another word":"Point out a missing word","chips","W",S.chips?"on":"")+(S.coverPic?B("Show words","show",""):"");
+  } else {
+    if(S.toks[S.pos].stop) hint=S.coverPic?"STOP sign. When the word is read, → covers the words.":"STOP sign. When the word is read, press → and ask.";
+    h=B(sssNext(S.toks[S.pos].stop?(S.coverPic?"Cover and ask":"Stop and ask"):"Next word"),"next","→","main")+B(told?"Said it ✓":(S.voice?"Say the word":"I said it"),"told","↑",told?"on":"")+B(sssBack(),"back","←")+B("Cover","cover","C");
+  }
+  if(S.elapsed>=S.mins*60 && S.running) hint = hint || "Time is up. Finish at the next full stop.";
+  if(S.note) hint=esc(S.note);
+  $("btns").innerHTML=h; $("hint").innerHTML=hint;
+  renderChips();
+}
+
+function renderDrawer(){
+  $("viewSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.view===S.view)));
+  $("modeSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===S.mode)));
+  $("revealField").hidden=S.step!==2;
+  $("coverField").hidden=S.step!==3;
+  $("coverSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.cov==="1")===S.coverPic)));
+  $("speedField").hidden=S.step===1;
+  $("trigOn").checked=!!S.trig;
+  $("mins").value=S.mins; $("minsOut").textContent=S.mins+" min";
+  $("swait").value=S.swait; $("swaitOut").textContent=S.swait.toFixed(1)+" s"; $("swaitField").hidden=S.step===1;
+  $("pace").value=S.pace; $("paceOut").textContent=S.pace.toFixed(1)+" s per letter"; $("paceField").hidden=S.step===1;
+  $("speed").value=S.speed; $("speedOut").textContent=S.speed.toFixed(2)+" s per letter";
+  const list=masteryList();
+  const names=[...new Set(S.toks.filter(t=>isProper(t.key)&&t.key!=="i").map(t=>t.w.replace(/[^\p{L}'’-]/gu,"")))];
+  $("wordList").innerHTML=(list.length?`<div class="words">${list.map(k=>`<span>${esc(k)}<button data-rm="${esc(k)}" aria-label="Remove ${esc(k)}">×</button></span>`).join("")}</div>`:`<div class="muted">No words yet.</div>`)
+    + (names.length?`<div class="muted" style="margin-top:8px;font-size:.85rem">Names in this text, not counted: ${esc(names.join(", "))}</div>`:"");
+  $("tsize").value=S.tsize; $("tsizeOut").textContent=S.tsize.toFixed(1);
+  $("lwin").value=S.lwin; $("lwinOut").textContent=S.lwin.toFixed(1)+" s";
+  $("vdelay").value=S.vdelay; $("vdelayOut").textContent=S.vdelay.toFixed(1)+" s";
+  $("dot").hidden=!list.length;
+}
+function renderLB(t){
+  $("lbTabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.t===t)));
+  let h;
+  if(t===0){
+    h=`<div>Three Davis exercises in one app. Work through them in order.</div>
+    <div><h3>Before each session</h3><ul>${CHECKS.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+    <div><h3>Trigger-word cards</h3><div>Underlined words open a meaning card when tapped. Turn trigger-word support off in Settings to hide them.</div></div>`;
+  } else {
+    const g=GUIDE[t];
+    h=`<div><h3>Purpose</h3><ul>${PURPOSE[t].map(x=>`<li>${x}</li>`).join("")}</ul></div>
+    <div><h3>Say to the student</h3><div class="say">${g.say}</div></div>
+    <div><h3>Controls</h3><ul>${g.keys.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+    <div><h3>Voice</h3><div>${VOICE_NOTE[t]}</div></div>
+    <div><h3>Watch for</h3><ul>${g.watch.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+    <div><h3>Notes</h3><div>${g.next}</div></div>`;
+  }
+  $("lbBody").innerHTML=h;
+}
+function openLB(){ closeCard(); renderLB(S.step); $("lightbox").hidden=false; $("lbClose").focus(); }
+function closeLB(){ $("lightbox").hidden=true; }
+
+/* ============================================================
+   VOICE
+   ============================================================ */
+let voiceTimer=null, voicePick=null;
+function pickVoice(){
+  let vs=[]; try{ vs=speechSynthesis.getVoices(); }catch(e){}
+  const en=vs.filter(v=>/^en/i.test(v.lang)); const list=en.length?en:vs;
+  list.sort((a,b)=>(/en-GB/i.test(b.lang)-/en-GB/i.test(a.lang))||a.name.localeCompare(b.name));
+  voicePick=list.find(v=>v.name===S.voiceName)||list.find(v=>/en-GB/i.test(v.lang))||list[0]||null;
+  const sel=$("voiceSel"); if(!sel) return;
+  sel.innerHTML = list.length
+    ? list.map(v=>`<option value="${esc(v.name)}"${voicePick&&v.name===voicePick.name?" selected":""}>${esc(v.name.replace(/\s*\(.*\)$/,""))} · ${esc(v.lang)}</option>`).join("")
+    : `<option value="">No voices found on this device</option>`;
+  sel.disabled=!list.length;
+}
+function sayNow(text){ try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); if(voicePick) u.voice=voicePick; u.lang=voicePick?voicePick.lang:"en-GB"; u.rate=0.8; speechSynthesis.speak(u); }catch(e){} }
+try{ speechSynthesis.onvoiceschanged=pickVoice; }catch(e){}
+function cancelVoice(){ clearTimeout(voiceTimer); voiceTimer=null; clearPending(); clearAuto(); try{ speechSynthesis.cancel(); }catch(e){} }
+function speakLater(word,extra=0){
+  cancelVoice();
+  const clean=word.replace(/[^\p{L}\p{N}'’-]/gu,"").replace(/^['’-]+|['’-]+$/g,"");
+  if(!S.voice||!clean) return;
+  voiceTimer=setTimeout(()=>{
+    try{ const u=new SpeechSynthesisUtterance(clean); if(voicePick) u.voice=voicePick; u.lang=voicePick?voicePick.lang:"en-GB"; u.rate=0.8; speechSynthesis.speak(u); }catch(e){}
+  },S.vdelay*1000+extra);
+}
+const SPK='<path d="M11 5 6 9H3v6h3l5 4z"/>';
+const ICON_ON=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SPK}<path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>`;
+const ICON_OFF=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SPK}<path d="M16 9l5 6M21 9l-5 6"/></svg>`;
+function renderVoice(){ const b=$("voiceBtn"); b.setAttribute("aria-pressed",String(S.voice)); b.innerHTML=S.voice?ICON_ON:ICON_OFF; b.setAttribute("aria-label",S.voice?"Voice on":"Voice off"); b.title=(S.voice?"Voice on":"Voice off")+" (V)"; }
+function applyColour(){
+  document.documentElement.style.setProperty("--bg",S.colour);
+  $("swatches").innerHTML=COLOURS.map(([n,c])=>`<button style="background:${c}" data-c="${c}" aria-label="${n}" title="${n}" aria-pressed="${c===S.colour}"></button>`).join("");
+}
+function render(){
+  $("stepSel").value=String(S.step);
+  updateMarks(); place(false); renderControls(); renderDrawer();
+  $("cover").hidden=!S.covered;
+  renderVoice(); renderMic();
+  if(openCard) placeCard();
+}
+
+/* ============================================================
+   TRIGGER-WORD CARD VIEW
+   ============================================================ */
+let openCard=null, cardTimers=[];
+function clearCardTimers(){ cardTimers.forEach(clearTimeout); cardTimers=[]; }
+function laterCard(fn,ms){ cardTimers.push(setTimeout(fn,ms)); }
+const NS='http://www.w3.org/2000/svg';
+const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+function moveBall(svgEl,move,done){
+  const ball=svgEl.querySelector('.mball'), head=svgEl.querySelector('.mhead');
+  if(!ball||!head){done&&done();return;}
+  const path=document.createElementNS(NS,'path');
+  path.setAttribute('d',move.path); path.setAttribute('fill','none'); path.setAttribute('stroke','none');
+  svgEl.append(path);
+  const L=path.getTotalLength();
+  const put=d=>{
+    const pt=path.getPointAtLength(d);
+    ball.setAttribute('transform',`translate(${pt.x} ${pt.y})`);
+    const a=path.getPointAtLength(Math.max(0,d-1)), b=path.getPointAtLength(Math.min(L,d+1));
+    const ang=Math.atan2(b.y-a.y,b.x-a.x);
+    const back=move.r+3.5;
+    head.setAttribute('transform',`translate(${pt.x-Math.cos(ang)*back} ${pt.y-Math.sin(ang)*back}) rotate(${ang*180/Math.PI})`);
+  };
+  if(calm()){put(L);done&&done();return;}
   put(0);
-  const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-  let start = 0;
-  const tick = now => {
-    if (!svg.isConnected) return;
-    if (!start) start = now;
-    const t = Math.min(1, (now - start) / MOVE_MS);
-    put(ease(t) * L);
-    if (t < 1) requestAnimationFrame(tick); else if (done) done();
-  };
+  const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+  let start=0;
+  const tick=now=>{if(!start)start=now;const t=Math.min(1,(now-start)/1000);put(ease(t)*L);if(t<1)requestAnimationFrame(tick);else if(done)done();};
   requestAnimationFrame(tick);
 }
-
-const MS_PER_LETTER = 85;
-function wipeDef(def) {
-  const text = def.textContent;
-  def.innerHTML = '<span class="dt">' + text.split(' ').map(w => `<span class="dw">${w}</span>`).join(' ') + '</span>';
-  const spans = [...def.querySelectorAll('.dw')];
-  const starts = []; let c = 0;
-  spans.forEach(sp => { starts.push(c); c += sp.textContent.length + 1; });
-  let next = 0, timer = 0, scale = 1, lastBoundary = 0, unreliable = false, began = 0;
-  const dur = j => Math.max(150, spans[j].textContent.length * msPerLetter * scale);
-  const gap = () => 70 * scale;
-  const sweep = (j, ms) => { const sp = spans[j]; sp.style.transition = `clip-path ${ms}ms linear`; void sp.offsetWidth; sp.classList.add('on'); };
-  const startWord = j => {
-    clearTimeout(timer);
-    if (j >= spans.length) return;
-    const ms = dur(j);
-    sweep(j, ms);
-    next = j + 1;
-    timer = setTimeout(() => startWord(next), ms + gap());
-    timers.push(timer);
-  };
-  return {
-    start: () => { began = performance.now(); startWord(0); },
-    word: ci => {
-      if (unreliable) return;
-      const now = performance.now();
-      if (lastBoundary && now - lastBoundary < 120) { unreliable = true; return; }
-      lastBoundary = now;
-      let j = 0; while (j + 1 < starts.length && starts[j + 1] <= ci) j++;
-      if (j === 0) return;
-      if (j === next) {
-        const prev = spans[j - 1]; prev.style.transition = 'clip-path 90ms linear';
-        clearTimeout(timer);
-        timer = setTimeout(() => startWord(j), 90); timers.push(timer);
-        scale = Math.max(.6, scale * .9);
-      } else if (j < next - 1) {
-        scale = Math.min(1.6, scale * 1.15);
-      }
-    }
-  };
+function wipeDef(def){
+  const text=def.textContent;
+  def.innerHTML='<span class="dt">'+text.split(' ').map(w=>`<span class="dw">${w}</span>`).join(' ')+'</span>';
+  const spans=[...def.querySelectorAll('.dw')];
+  let i=0;
+  const step=()=>{ if(i>=spans.length) return; spans[i].style.transition='clip-path 200ms linear'; void spans[i].offsetWidth; spans[i].classList.add('on'); i++; laterCard(step,260); };
+  return {start:step,word:()=>{}};
 }
-
-function render(swap) {
-  if (open && open.el) open.el.remove();
-  if (!open) return;
-  const set = CARDS[open.key], c = set[open.which];
-  const ahead = set.length - 1 - open.which;
-  const el = document.createElement('div');
-  el.className = 'stack' + (swap ? ' swap' : '');
-  el.innerHTML = `${ahead >= 2 ? '<div class="back b2"></div>' : ''}<div class="back"${ahead >= 1 ? '' : ' hidden'}></div>
-    <div class="card" role="dialog" aria-label="Meaning of ${open.word.textContent}">
-      <div class="left"><div class="word">${open.word.textContent}</div><div class="pic">${c.svg}</div></div>
+function speakCardWord(text,delay,then,started,onWord){
+  laterCard(()=>{
+    let done=false, began=false;
+    const said=SAY[text.toLowerCase()]||text;
+    const finish=()=>{ if(done)return; done=true; if(then)then(); };
+    const begin=()=>{ if(began)return; began=true; if(started)started(); };
+    if(!S.voice){ begin(); laterCard(finish,500); return; }
+    try{
+      const u=new SpeechSynthesisUtterance(said);
+      if(voicePick) u.voice=voicePick; u.lang=voicePick?voicePick.lang:"en-GB"; u.rate=.85;
+      u.onstart=begin; u.onend=finish; u.onerror=()=>{ begin(); finish(); };
+      u.onboundary=e=>{ if(onWord && (!e.name || e.name==='word')) onWord(e.charIndex); };
+      speechSynthesis.speak(u);
+      laterCard(begin,400); laterCard(finish,4000);
+    }catch(e){ begin(); finish(); }
+  },delay);
+}
+function renderCard(swap){
+  const layer=$("cards");
+  if(openCard&&openCard.el) openCard.el.remove();
+  layer.innerHTML="";
+  if(!openCard) return;
+  const set=CARDS[openCard.key], c=set[openCard.which];
+  const ahead=set.length-1-openCard.which;
+  const el=document.createElement("div");
+  el.className="stack"+(swap?" swap":"");
+  el.innerHTML=`${ahead>=1?'<div class="back"></div>':''}
+    <div class="card" role="dialog" aria-label="Meaning of ${openCard.word.textContent}">
+      <div class="left"><div class="word">${openCard.word.textContent.replace(/[^\p{L}\p{N}'’-]/gu,"")}</div><div class="pic">${c.svg}</div></div>
       <div class="def" hidden aria-live="polite">${c.def}</div>
-      ${set.length > 1 ? `<span class="tag">${open.which + 1} of ${set.length}</span>` : ''}
+      ${set.length>1?`<span class="tag">${openCard.which+1} of ${set.length}</span>`:''}
     </div>`;
-  el.querySelector('.card').addEventListener('click', e => { e.stopPropagation(); step(); });
-  reading.append(el);
-  const pic = el.querySelector('.pic svg');
-  drawMoves(pic);
-  open.el = el; open.defShown = false;
-  place();
-  const me = open;
-  let waiting = c.move ? 2 : 1;
-  const ready = () => { if (--waiting === 0 && open === me) showDef(); };
-  if (c.move) moveBall(pic, c.move, ready);
-  speak(open.word.textContent, 300, ready);
+  el.querySelector(".card").addEventListener("click",e=>{e.stopPropagation(); stepCard();});
+  layer.append(el);
+  const pic=el.querySelector(".pic svg");
+  if(pic && c.move) moveBall(pic, c.move);
+  openCard.el=el; openCard.defShown=false;
+  placeCard();
+  const me=openCard;
+  speakCardWord(openCard.word.textContent,300,()=>{ if(openCard===me) showDef(); });
+  laterCard(()=>{ if(openCard===me) showDef(); },3000);
 }
-function showDef() {
-  if (!open || open.defShown) return;
-  open.defShown = true;
-  clearTimers();
-  const def = open.el.querySelector('.def');
-  const wipe = wipeDef(def);
-  def.hidden = false;
-  speak(CARDS[open.key][open.which].def, 0, null, wipe.start, wipe.word);
+function placeCard(){
+  if(!openCard||!openCard.el) return;
+  const el=openCard.el, i=openCard.idx;
+  if(!WE[i]) return;
+  const rWord=WE[i].getBoundingClientRect();
+  const cw=el.offsetWidth, ch=el.offsetHeight;
+  const vw=window.innerWidth;
+  const cx=rWord.left + rWord.width/2;
+  const left=Math.max(8, Math.min(vw - cw - 8, cx - cw/2));
+  el.style.left=left+"px";
+  const above = (rWord.top - ch - 14) >= 4;
+  el.dataset.side = above ? "above" : "below";
+  el.style.top = (above ? rWord.top - ch - 14 : rWord.bottom + 14) + "px";
+  el.style.setProperty("--tail-x", Math.max(20, Math.min(cw-20, cx-left)) + "px");
 }
-
-function place() {
-  const el = open.el, w = open.word;
-  const box = reading.getBoundingClientRect(), r = w.getBoundingClientRect();
-  const cw = el.offsetWidth, ch = el.offsetHeight;
-  const mid = r.left - box.left + r.width / 2;
-  const left = Math.max(8, Math.min(box.width - cw - 18, mid - cw / 2));
-  el.style.left = left + 'px';
-  const above = r.top - box.top - ch - 18 >= 4;
-  el.dataset.side = above ? 'above' : 'below';
-  el.style.top = (above ? r.top - box.top - ch - 18 : r.bottom - box.top + 18) + 'px';
-  el.style.setProperty('--tail-x', Math.max(22, Math.min(cw - 22, mid - left)) + 'px');
+function stepCard(){
+  if(!openCard) return;
+  const set=CARDS[openCard.key];
+  if(!openCard.defShown){ showDef(); return; }
+  if(openCard.which < set.length-1){ clearCardTimers(); openCard.which++; renderCard(true); }
+  else closeCard();
 }
-
-function openCard(word) {
-  close();
-  open = { word, key: word.dataset.card, which: 0 };
-  render(false);
+function showDef(){
+  if(!openCard || openCard.defShown) return;
+  openCard.defShown=true;
+  const def=openCard.el.querySelector(".def");
+  const wipe=wipeDef(def);
+  def.hidden=false;
+  speakCardWord(CARDS[openCard.key][openCard.which].def,0,null,wipe.start,wipe.word);
 }
-function step() {
-  if (!open) return;
-  const set = CARDS[open.key];
-  if (!open.defShown) { showDef(); return; }
-  if (open.which < set.length - 1) { clearTimers(); open.which++; render(true); }
-  else { const src = open.src, wi = words.indexOf(open.word); close(); cardDone(src, wi); }
-}
-function close() {
-  clearTimers();
-  if (open && open.el) open.el.remove();
-  open = null;
-}
-
-function ask(ti = target()) {
-  if (ti < 0 || !words[ti].dataset.card) return;
-  const w = words[ti];
-  if (open && open.word === w) { step(); return; }
-  pause(); openCard(w); open.src = 'sweep';
-}
-function cardDone(src, wi) {
-  if (src === 'sweep') moveOn(wi); else playSentence();
-}
-function moveOn(was) {
-  pause(); forget();
-  dismissed = was;
-  if (idx >= words.length - 1) return;
-  stopAt = idx + 1;
-  if (done()) { phase = 'halt'; haltEnd = 0; }
-  run('step');
-}
-function closeCard() { if (open) close(); }
-
-function nearestWord(x, y) {
-  let best = -1, bd = Infinity;
-  words.forEach((w, n) => {
-    const r = w.getBoundingClientRect();
-    const dx = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
-    const dy = y < r.top ? r.top - y : y > r.bottom ? y - r.bottom : 0;
-    const d = dy * 4 + dx;
-    if (d < bd) { bd = d; best = n; }
-  });
-  return best;
-}
-reading.addEventListener('click', e => {
-  if (e.target.closest('.stack')) return;
-  e.stopPropagation();
-  const hit = e.target.closest('.w');
-  const i = hit ? +hit.dataset.i : nearestWord(e.clientX, e.clientY);
-  if (i < 0) return;
-  const w = words[i];
-  if (open && open.word === w && hit) { step(); return; }
-  if (open) { closeCard(); return; }
-  if (hit && w.dataset.card) { pause(); openCard(w); open.src = 'tap'; return; }
-  const r = w.querySelector('.t').getBoundingClientRect();
-  const started = sentStart(i) === sentStart(idx) && phase !== 'gap' && !(idx === sentStart(idx) && prog === 0);
-  const before = !started || e.clientX < r.left + r.width / 2;
-  pause(); forget();
-  if (before) { idx = sentStart(i); prog = 0; phase = 'head'; }
-  else { idx = i; prog = span(i); phase = 'head'; }
-  draw(); follow();
-  playSentence();
-});
-document.addEventListener('click', e => { if (open && !e.target.closest('.strip') && !e.target.closest('.stack')) closeCard(); });
-addEventListener('resize', () => { draw(); if (open) place(); });
-document.fonts && document.fonts.ready.then(draw);
-
-const playBtn = $('play');
-let holdTimer = 0, holding = false, pressed = false;
-function startHold() {
+function openCardFor(i){
+  const tok=S.toks[i]; if(!tok||!CARDS[tok.key]) return;
   closeCard();
-  if (done()) { if (idx >= words.length - 1) return; phase = 'halt'; haltEnd = 0; }
-  holding = true; playBtn.classList.add('holding'); follow(); run('hold');
+  openCard={idx:i, key:tok.key, which:0, word:WE[i]};
+  renderCard(false);
 }
-playBtn.addEventListener('pointerdown', e => {
-  e.preventDefault(); pressed = true; holding = false;
-  try { playBtn.setPointerCapture(e.pointerId); } catch (_) {}
-  holdTimer = setTimeout(startHold, 300);
-});
-playBtn.addEventListener('pointerup', () => {
-  if (!pressed) return; pressed = false; clearTimeout(holdTimer);
-  if (holding) { holding = false; softStop(); } else playSentence();
-});
-playBtn.addEventListener('pointercancel', () => { pressed = false; clearTimeout(holdTimer); if (holding) { holding = false; softStop(); } });
-playBtn.addEventListener('contextmenu', e => e.preventDefault());
-playBtn.addEventListener('click', e => { if (e.detail === 0) playSentence(); });
-
-const HL = [
-  { name: 'Teal',   wash: '#dcefee', deep: '#5fb3b3', ul: '#bfe0df' },
-  { name: 'Yellow', wash: '#fbefb4', deep: '#d9ad2b', ul: '#f3df96' },
-  { name: 'Pink',   wash: '#f8dde3', deep: '#d98a9c', ul: '#f0c8d1' },
-  { name: 'Blue',   wash: '#dbe6f7', deep: '#7d9fd6', ul: '#c5d5ef' },
-  { name: 'Green',  wash: '#e0efd6', deep: '#86b56b', ul: '#cae1bb' },
-  { name: 'Lilac',  wash: '#e8e0f3', deep: '#a48ccc', ul: '#d7cbea' }
-];
-const PAPER = [
-  { name: 'Cream', c: '#fdf8ef' }, { name: 'White', c: '#ffffff' }, { name: 'Soft yellow', c: '#fdf5cf' },
-  { name: 'Soft blue', c: '#e9f1f8' }, { name: 'Soft green', c: '#ebf4e4' }, { name: 'Soft pink', c: '#fbebee' },
-  { name: 'Soft grey', c: '#ecebe8' }
-];
-const prefs = { hl: 0, paper: 0, voice: true, trig: true, btn: false };
-try { Object.assign(prefs, JSON.parse(localStorage.getItem('flooent-demo-settings') || '{}')); } catch (e) {}
-function savePrefs() { try { localStorage.setItem('flooent-demo-settings', JSON.stringify(prefs)); } catch (e) {} }
-function applyToggles() {
-  $('voiceOn').checked = !!prefs.voice; $('trigOn').checked = !!prefs.trig; $('btnOn').checked = !!prefs.btn;
-  document.body.classList.toggle('no-strip', !prefs.btn);
-  words.forEach(w => {
-    const on = prefs.trig && !!w.dataset.key;
-    w.classList.toggle('has-card', on);
-    if (on) w.dataset.card = w.dataset.key; else delete w.dataset.card;
-  });
-  if (!prefs.trig) closeCard();
-  if (!prefs.voice) { try { speechSynthesis.cancel(); } catch (e) {} }
+function closeCard(){
+  clearCardTimers();
+  try{ speechSynthesis.cancel(); }catch(e){}
+  if(openCard&&openCard.el) openCard.el.remove();
+  openCard=null;
 }
-[['voiceOn', 'voice'], ['trigOn', 'trig'], ['btnOn', 'btn']].forEach(([id, key]) => {
-  $(id).addEventListener('change', () => { prefs[key] = $(id).checked; applyToggles(); savePrefs(); draw(); });
-});
-function applyPrefs() {
-  const h = HL[prefs.hl] || HL[0], pp = PAPER[prefs.paper] || PAPER[0];
-  document.documentElement.style.setProperty('--hl', h.wash);
-  document.documentElement.style.setProperty('--hl-deep', h.deep);
-  document.documentElement.style.setProperty('--ul', h.ul);
-  document.documentElement.style.setProperty('--sheet', pp.c);
-  document.querySelectorAll('#hlSw .sw').forEach((b, n) => b.setAttribute('aria-pressed', n === +prefs.hl));
-  document.querySelectorAll('#paperSw .sw').forEach((b, n) => b.setAttribute('aria-pressed', n === +prefs.paper));
+
+/* ============================================================
+   LISTENING
+   ============================================================ */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null, recState="off", heard=[], pending=null, pendTimer=null, noteTimer=null;
+const HOMO=[["to","too","two"],["there","their","theyre","they're"],["for","four","fore"],["one","won"],["no","know"],["new","knew"],["right","write"],["hear","here"],["see","sea"],["by","buy","bye"],["be","bee"],["i","eye"],["ate","eight"],["wood","would"],["red","read"],["blue","blew"],["son","sun"],["whole","hole"],["our","hour"],["its","it's"],["your","you're","youre"],["where","wear"],["which","witch"],["weather","whether"],["past","passed"],["a","uh"],["mia","maya","mea"]];
+const norm=t=>t.toLowerCase().replace(/[^\p{L}\p{N}'\s-]/gu," ").split(/[\s-]+/).filter(Boolean);
+function lev(a,b){ const d=[...Array(b.length+1).keys()]; for(let i=1;i<=a.length;i++){ let p=d[0]; d[0]=i; for(let j=1;j<=b.length;j++){ const t=d[j]; d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]===b[j-1]?0:1)); p=t; } } return d[b.length]; }
+function sameWord(target,h){
+  if(!target||!h) return false;
+  const t=target.replace(/['’]/g,""), w=h.replace(/['’]/g,"");
+  if(t===w) return true;
+  if(HOMO.some(g=>g.map(x=>x.replace(/'/g,"")).includes(t)&&g.map(x=>x.replace(/'/g,"")).includes(w))) return true;
+  if(t.length>=5 && lev(t,w)<=1) return true;
+  return false;
 }
-function swatches(el, list, key, colour) {
-  list.forEach((x, n) => {
-    const b = document.createElement('button');
-    b.className = 'sw'; b.style.background = colour(x); b.setAttribute('aria-label', x.name); b.title = x.name;
-    b.onclick = () => { prefs[key] = n; applyPrefs(); savePrefs(); };
-    el.append(b);
-  });
+function note(msg){ clearTimeout(noteTimer); S.note=msg; renderControls(); noteTimer=setTimeout(()=>{ S.note=""; renderControls(); },4000); }
+function startRec(){
+  if(!SR){ recState="unsupported"; return; }
+  if(rec) return;
+  rec=new SR(); rec.lang=(voicePick&&/^en/i.test(voicePick.lang))?voicePick.lang:"en-GB";
+  rec.continuous=true; rec.interimResults=true; rec.maxAlternatives=3;
+  rec.onresult=e=>{
+    const now=performance.now();
+    for(let i=e.resultIndex;i<e.results.length;i++){ const res=e.results[i]; for(let a=0;a<res.length;a++) heard.push({t:now,words:norm(res[a].transcript).slice(-3)}); }
+    heard=heard.filter(h=>now-h.t<6000); checkPending();
+    if(S.phase==="ask"){ for(let i=e.resultIndex;i<e.results.length;i++){ if(e.results[i].isFinal) S.desc.push(...norm(e.results[i][0].transcript)); } if(S.chips) renderChips(); }
+  };
+  rec.onerror=e=>{
+    if(e.error==="not-allowed"||e.error==="service-not-allowed"||e.error==="audio-capture"){ recState="blocked"; S.listen=false; saveStore(); stopRec(); renderMic(); note("The microphone isn't available here."); }
+  };
+  rec.onend=()=>{ if(rec&&S.listen&&recState!=="blocked"){ try{ rec.start(); }catch(err){} } };
+  try{ rec.start(); recState="on"; }catch(err){ recState="blocked"; }
 }
-swatches($('hlSw'), HL, 'hl', x => x.wash);
-swatches($('paperSw'), PAPER, 'paper', x => x.c);
-$('menu').onclick = e => { e.stopPropagation(); pause(); closeCard(); $('settings').hidden = false; $('closeSet').focus(); };
-$('closeSet').onclick = () => { $('settings').hidden = true; };
-$('settings').addEventListener('click', e => { if (e.target.id === 'settings') $('settings').hidden = true; });
-applyPrefs();
-applyToggles();
+function stopRec(){ if(!rec) return; const r=rec; rec=null; try{ r.onend=null; r.abort(); }catch(e){} if(recState==="on") recState="off"; }
+function clearPending(){ clearTimeout(pendTimer); pendTimer=null; pending=null; }
+function expectWord(i,fromMs,endMs,opts={}){
+  clearPending();
+  if(!S.listen||!rec) return false;
+  const target=(norm(S.toks[i].w)[0]||"");
+  if(!target) return false;
+  pending={i,target,from:fromMs-250,onMiss:opts.onMiss};
+  pendTimer=setTimeout(missed,Math.max(0,endMs+(opts.wait??S.lwin*1000)-performance.now()));
+  checkPending(); return true;
+}
+function checkPending(){
+  if(!pending) return;
+  if(heard.some(h=>h.t>=pending.from && h.words.some(w=>sameWord(pending.target,w)))){ clearPending(); }
+}
+let autoTimer=null;
+function clearAuto(){ clearTimeout(autoTimer); autoTimer=null; }
+function startAutoSpell(){
+  if(S.covered||S.phase!=="read"||S.pos>=S.toks.length) return;
+  S.backs=2; S.spell=true; S.k=0; render();
+  autoTimer=setTimeout(autoStep,160);
+}
+function autoStep(){
+  autoTimer=null;
+  if(!S.spell||S.phase!=="read"||S.covered) return;
+  const len=[...S.toks[S.pos].w].length;
+  if(S.k>=len) return;
+  S.k++; render();
+  if(S.k===len) spelled(); else autoTimer=setTimeout(autoStep,S.pace*1000);
+}
+function sweepDur(){ return letters(S.toks[S.pos].w)*S.speed*1000*(S.backs===1?1.2:1); }
+function autoSecondSweep(){
+  if(S.covered||S.backs!==0||S.spell||S.phase!=="read"||S.pos>=S.toks.length) return;
+  S.backs=1; S.resweep++; S.sweepAt=performance.now()+500; render(); scheduleSecondSweep();
+}
+function scheduleSecondSweep(){
+  const d=sweepDur(), end=S.sweepAt+d;
+  const wait = S.swait * 2 * 1000;
+  if(S.listen&&rec&&expectWord(S.pos,S.sweepAt,end,{wait,onMiss:startAutoSpell})) return;
+  autoTimer=setTimeout(startAutoSpell,Math.max(0,end+wait-performance.now()));
+}
+function missed(){
+  if(!pending) return; const i=pending.i, cb=pending.onMiss; clearPending();
+  if(cb){ cb(); return; }
+  if(S.voice) sayNow(S.toks[i].w.replace(/[^\p{L}\p{N}'’-]/gu,""));
+  if(S.step>1 && !S.toldHere.has(i)){ toggleTold(i); updateMarks(); renderControls(); renderDrawer(); }
+}
+function armSweep(){
+  if(!S.listen||S.step===1||(S.step===2&&S.mode==="line")||S.phase!=="read"||S.pos>=S.toks.length) return;
+  expectWord(S.pos,S.sweepAt,S.sweepAt+sweepDur(),{wait:2000,onMiss:autoSecondSweep});
+}
+const MIC_ON=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`;
+const MIC_OFF=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M4 4l16 16"/></svg>`;
+function renderMic(){ const b=$("micBtn"); b.innerHTML=S.listen?MIC_ON:MIC_OFF; b.setAttribute("aria-pressed",String(S.listen)); b.setAttribute("aria-label",S.listen?"Listening on":"Listening off"); b.title=(S.listen?"Listening on":"Listening off")+" (L)"; }
+function toggleListen(){
+  if(!SR){ note("Listening isn't supported in this browser."); return; }
+  S.listen=!S.listen; saveStore();
+  if(S.listen){ recState="off"; startRec(); if(recState==="on") note("Listening. The word is said only if the reader doesn't say it."); }
+  else { stopRec(); clearPending(); }
+  renderMic();
+}
 
-const size = $('size');
-size.value = Math.round(parseFloat(getComputedStyle(reading).fontSize));
-size.addEventListener('input', () => {
-  reading.style.fontSize = size.value + 'px';
-  draw(); if (open) place();
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+function advanceWord(){ cancelVoice(); S.pos++; S.sweepAt=performance.now(); S.spell=false; S.k=0; S.backs=0; }
+function spelled(){
+  const now=performance.now(), i=S.pos;
+  if(expectWord(i,now,now+500)) return;
+  if(S.voice){ speakLater(S.toks[i].w,500); if(!S.toldHere.has(i)) toggleTold(i); }
+}
+function act(a,arg){
+  const n=S.toks.length, end=S.pos>=n;
+  if(S.covered && a!=="cover") return;
+  switch(a){
+    case "next":
+      if(end) return;
+      closeCard();
+      clearPending();
+      if(S.step===1){
+        let len=[...S.toks[S.pos].w].length;
+        if(S.k>=len){ cancelVoice(); S.pos++; S.k=0; if(S.pos>=n) break; len=[...S.toks[S.pos].w].length; }
+        S.k++; if(S.k===len){ const now=performance.now(); if(!expectWord(S.pos,now,now+500)) speakLater(S.toks[S.pos].w,500); }
+      }
+      else if(S.step===2&&S.mode==="line"){ S.pos=nextLineStart(S.pos); }
+      else if(S.spell && S.phase==="read" && S.k<[...S.toks[S.pos].w].length){ const wasAuto=!!autoTimer; clearAuto(); S.k++; if(S.k===[...S.toks[S.pos].w].length) spelled(); else if(wasAuto) autoTimer=setTimeout(autoStep,S.pace*1000); }
+      else if(S.step===2) advanceWord();
+      else if(S.phase==="ask"){ advanceWord(); S.chunkStart=S.pos; S.phase="read"; S.ask="see"; S.check=-1; S.chips=false; }
+      else if(S.toks[S.pos].stop||S.pos+1>=n){ S.phase="ask"; S.spell=false; S.check=-1; S.chips=false; S.desc=[]; }
+      else advanceWord();
+      break;
+    case "back": cancelVoice(); closeCard();
+      if(S.step===1){ if(S.k>1||(S.k===1&&S.pos===0)) S.k--; else if(S.pos>0){ S.pos--; S.k=[...S.toks[S.pos].w].length; } }
+      else if(S.step===2&&S.mode==="line"){ const cur=S.pos>=n?n:lineStart(S.pos); if(cur>0) S.pos=lineStart(cur-1); }
+      else if(S.phase==="read"&&!end){
+        if(S.backs===0){ S.backs=1; S.resweep++; S.sweepAt=performance.now()+500; S.reSweeping=true; }
+        else if(S.backs===1){ S.backs=2; S.spell=true; S.k=0; }
+        else if(S.spell&&S.k>0){ S.k--; }
+        else if(S.pos>(S.step===3?S.chunkStart:0)){ S.pos--; S.sweepAt=0; S.spell=false; S.k=0; S.backs=0; }
+      }
+      break;
+    case "told": if(S.step>1&&!end){ const was=S.toldHere.has(S.pos); toggleTold(S.pos); if(!was) speakLater(S.toks[S.pos].w); else cancelVoice(); } break;
+    case "voice": S.voice=!S.voice; if(!S.voice) cancelVoice(); saveStore(); break;
+    case "tap":
+      /* Non-trigger-word taps: only act in these two modes; never advance the position. */
+      if(S.step===2&&S.mode==="line"){ const was=S.toldHere.has(arg); toggleTold(arg); if(!was) speakLater(S.toks[arg].w); }
+      else if(S.step===3&&S.phase!=="ask"){ const k=S.toks[arg].key; if(!k) return; S.manual.has(k)?S.manual.delete(k):S.manual.add(k); S.hiddenWords.delete(k); saveStore(); }
+      else return;
+      break;
+    case "ask": if(S.phase==="ask") S.ask=S.ask==="see"?"feel":"see"; break;
+    case "show": if(S.phase==="ask"){ S.phase="read"; S.sweepAt=0; S.check=-1; S.chips=false; } break;
+    case "chips": if(S.phase==="ask") S.chips=!S.chips; break;
+    case "checkw":
+      if(S.phase!=="ask") return;
+      if(S.check===arg){ S.check=-1; }
+      else { S.check=arg; S.chips=false; if(S.voice) sayNow(`How is ${cleanW(S.toks[arg].w)} in your picture?`); }
+      break;
+    case "cover": S.covered=!S.covered; if(S.covered){ cancelVoice(); closeCard(); } break;
+    case "restart": reset(); openStart(); break;
+    case "text": openText(); return;
+    default: return;
+  }
+  render();
+  if(a==="next"&&!S.spell) armSweep();
+  if(a==="back"&&S.backs===1&&!S.spell) scheduleSecondSweep();
+}
+
+/* ============================================================
+   SESSION, WIRING, KEYBOARD
+   ============================================================ */
+function frame(now){
+  if(S.running && !S.covered && document.visibilityState==="visible") S.elapsed+=Math.min(1,(now-S.lastTick)/1000);
+  S.lastTick=now;
+  const pct=Math.min(100,S.elapsed/(S.mins*60)*100);
+  $("fill").style.width=pct+"%"; $("bar").setAttribute("aria-valuenow",Math.round(pct));
+  const done=pct>=100; if($("bar").classList.contains("done")!==done){ $("bar").classList.toggle("done",done); renderControls(); }
+  requestAnimationFrame(frame);
+}
+function startSession(){ $("startOverlay").hidden=true; S.running=true; S.elapsed=0; S.sweepAt=performance.now(); lastKey=""; render(); if(S.listen){ startRec(); armSweep(); } }
+function openStart(){ S.running=false; $("startOverlay").hidden=false; $("startGo").focus(); }
+function openText(){ closeDrawer(); closeCard(); $("textInput").value=S.raw; $("textOverlay").hidden=false; $("textInput").focus(); }
+function openDrawer(){ closeCard(); renderDrawer(); $("drawer").hidden=false; $("shade").hidden=false; $("helperBtn").setAttribute("aria-expanded","true"); $("closeDrawer").focus(); }
+function closeDrawer(){ $("drawer").hidden=true; $("shade").hidden=true; $("helperBtn").setAttribute("aria-expanded","false"); }
+
+$("chips").addEventListener("click",e=>{ const b=e.target.closest("[data-cw]"); if(b) act("checkw",+b.dataset.cw); });
+$("btns").addEventListener("click",e=>{ const b=e.target.closest("[data-act]"); if(b) act(b.dataset.act); });
+
+/* Passage click: opens a card for a trigger word, steps or closes an open card,
+   falls through for plain taps. Never advances the reading position. */
+$("passage").addEventListener("click", e => {
+  const w = e.target.closest(".w[data-i]");
+  if(!w) return;
+  e.stopPropagation();
+  const i = +w.dataset.i;
+  if(openCard){
+    if(openCard.idx === i) stepCard();
+    else closeCard();
+    return;
+  }
+  if(S.trig && CARDS[S.toks[i].key]){ openCardFor(i); return; }
+  if(S.step===2 && S.mode==="line"){ act("tap", i); return; }
+  if(S.step===3 && S.phase!=="ask"){ act("tap", i); return; }
+  /* Otherwise ignore: no advance from taps. */
 });
 
-let spaceDown = false;
-document.addEventListener('keyup', e => {
-  if (e.key !== ' ' || !spaceDown) return;
-  e.preventDefault(); spaceDown = false; clearTimeout(holdTimer);
-  if (holding) { holding = false; softStop(); } else playSentence();
-});
-document.addEventListener('keydown', e => {
-  if (e.target.matches('input, textarea') || e.altKey || e.ctrlKey || e.metaKey) return;
-  if (!$('settings').hidden) { if (e.key === 'Escape') $('settings').hidden = true; return; }
-  const k = e.key;
-  if (k === 'ArrowUp' || k === '?') ask();
-  else if (k === 'ArrowDown') stepNext();
-  else if (k === 'ArrowLeft') backToStart();
-  else if (k === 'ArrowRight') playSentence();
-  else if (k === ' ') { if (!e.repeat && !spaceDown) { spaceDown = true; holdTimer = setTimeout(startHold, 300); } }
-  else if (k === 'Escape') closeCard();
-  else return;
-  e.preventDefault();
+document.addEventListener("click", e => {
+  if(!openCard) return;
+  if(e.target.closest(".stack")) return;
+  closeCard();
 });
 
-draw();
+$("reader").addEventListener("scroll", ()=>{ if(openCard) placeCard(); }, {passive:true});
+
+$("helperBtn").onclick=openDrawer; $("closeDrawer").onclick=closeDrawer; $("shade").onclick=closeDrawer;
+$("stepSel").addEventListener("change",e=>{ S.step=+e.target.value; e.target.blur(); cancelVoice(); reset(); saveStore(); closeDrawer(); render(); openStart(); });
+$("viewSeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; S.view=b.dataset.view; saveStore(); lastKey=""; render(); });
+$("modeSeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; S.mode=b.dataset.mode; if(S.pos<S.toks.length&&S.mode==="line") S.pos=lineStart(S.pos); S.sweepAt=performance.now(); saveStore(); render(); });
+$("trigOn").onchange=e=>{ S.trig=e.target.checked; saveStore(); buildPassage(); render(); };
+$("mins").oninput=e=>{ S.mins=+e.target.value; saveStore(); renderDrawer(); };
+$("swait").oninput=e=>{ S.swait=+e.target.value; saveStore(); renderDrawer(); };
+$("pace").oninput=e=>{ S.pace=+e.target.value; saveStore(); renderDrawer(); };
+$("speed").oninput=e=>{ S.speed=+e.target.value; saveStore(); renderDrawer(); };
+$("changeText").onclick=openText;
+$("coverSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-cov]"); if(!b) return; S.coverPic=b.dataset.cov==="1"; saveStore(); render(); });
+pickVoice(); setTimeout(pickVoice,500);
+$("voiceSel").onchange=e=>{ S.voiceName=e.target.value; saveStore(); pickVoice(); sayNow("river"); };
+$("voiceTest").onclick=()=>sayNow("Mia walked down to the river.");
+$("uncover").onclick=()=>act("cover");
+$("tsize").oninput=e=>{ S.tsize=+e.target.value; saveStore(); renderDrawer(); measure(); place(true); if(openCard) placeCard(); };
+let rz; window.addEventListener("resize",()=>{ clearTimeout(rz); rz=setTimeout(()=>{ measure(); place(true); if(openCard) placeCard(); },120); });
+try{ document.fonts.ready.then(()=>{ measure(); place(true); if(openCard) placeCard(); }); }catch(e){}
+$("swatches").addEventListener("click",e=>{ const b=e.target.closest("[data-c]"); if(!b) return; S.colour=b.dataset.c; saveStore(); applyColour(); });
+$("voiceBtn").onclick=()=>act("voice");
+$("micBtn").onclick=toggleListen;
+$("lwin").oninput=e=>{ S.lwin=+e.target.value; saveStore(); renderDrawer(); };
+$("infoBtn").onclick=openLB; $("lbClose").onclick=closeLB;
+$("lightbox").addEventListener("click",e=>{ if(e.target.id==="lightbox") closeLB(); });
+$("lbTabs").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b) renderLB(+b.dataset.t); });
+$("vdelay").oninput=e=>{ S.vdelay=+e.target.value; saveStore(); renderDrawer(); };
+$("wordList").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]"); if(!b) return; const k=b.dataset.rm; S.manual.delete(k); S.hiddenWords.add(k); saveStore(); render(); });
+$("startGo").onclick=startSession;
+$("textCancel").onclick=()=>{ $("textOverlay").hidden=true; };
+$("textSample").onclick=()=>{ $("textInput").value=SAMPLE; };
+$("textUse").onclick=()=>{ const v=$("textInput").value.trim(); if(!v){ $("textInput").focus(); return; } load(v); $("textOverlay").hidden=true; render(); openStart(); };
+
+document.addEventListener("keydown",e=>{
+  if(/TEXTAREA|INPUT|SELECT/.test(e.target.tagName)) return;
+  if(!$("startOverlay").hidden){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); startSession(); } return; }
+  if(!$("textOverlay").hidden){ if(e.key==="Escape") $("textOverlay").hidden=true; return; }
+  if(!$("lightbox").hidden){ if(e.key==="Escape") closeLB(); return; }
+  if(!$("drawer").hidden){ if(e.key==="Escape") closeDrawer(); return; }
+  const k=e.key;
+  if(k===" "||k==="ArrowRight"){ e.preventDefault(); act("next"); }
+  else if(k==="ArrowLeft"){ e.preventDefault(); act("back"); }
+  else if(k==="ArrowUp"){ e.preventDefault(); if(S.step===1){ if(S.pos<S.toks.length) sayNow(S.toks[S.pos].w.replace(/[^\p{L}\p{N}'’-]/gu,"")); } else act("told"); }
+  else if(k==="c"||k==="C"){ act("cover"); }
+  else if(k==="f"||k==="F"){ act("ask"); }
+  else if(k==="w"||k==="W"){ act("chips"); }
+  else if(k==="v"||k==="V"){ act("voice"); }
+  else if(k==="l"||k==="L"){ toggleListen(); }
+  else if(k==="i"||k==="I"){ openLB(); }
+  else if(k==="Escape"){ if(openCard) closeCard(); else if(S.covered) act("cover"); }
+});
+
+load(S.raw);
+applyColour();
+render();
+openStart();
+requestAnimationFrame(t=>{ S.lastTick=t; frame(t); });
 </script>
 
-</body></html>
+</body>
+</html>
