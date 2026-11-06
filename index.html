@@ -321,7 +321,14 @@ textarea{width:100%;min-height:240px;font-size:1rem;line-height:1.6;padding:12px
    ============================================================ */
 const BALL=(cx,cy,r,fill='#e8655f')=>`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="#5b4a3a" stroke-width="2.5"/><path d="M${cx-r*.55} ${cy-r*.4} a${r*.6} ${r*.6} 0 0 1 ${r*.45} -${r*.32}" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/>`;
 const DOMARK=id=>`<defs><marker id="dom-${id}" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="2.7" markerHeight="2.7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d64541"/></marker></defs>`;
-const DOMLINE=(id,x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-${id})"/>`;
+/* Dominant arrows always come down diagonally from above at about 60 degrees (Axel, 6 Nov 2026). The arrow keeps its end
+   point (x2,y2), its side (from the upper right if it started to the right of its end, else the upper left) and its length,
+   up to 44; it is shortened only if it would leave the picture. */
+const DOMLINE=(id,x1,y1,x2,y2)=>{ const side=x1>=x2?1:-1, f=n=>(+n).toFixed(1);
+  let L=Math.min(44,Math.hypot(x2-x1,y2-y1)), sx, sy;
+  const at=()=>{ sx=x2+side*.5*L; sy=y2-.866*L; };
+  at(); while((sx>97||sx<3||sy<3)&&L>16){ L-=1; at(); }
+  return `<line x1="${f(sx)}" y1="${f(sy)}" x2="${x2}" y2="${y2}" stroke="#d64541" stroke-width="7.5" stroke-linecap="round" marker-end="url(#dom-${id})"/>`; };
 const FLOOR=`<rect x="4" y="88" width="92" height="4" rx="2" fill="#ece3d3"/>`;
 const svg=inner=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true">${inner}</svg>`;
 const TRAIL=(d,extra='')=>`<path class="mtrail" d="${d}" fill="none" stroke="#8a7a68" stroke-width="3" stroke-dasharray="5 4.5" stroke-linecap="round"${extra}/>`;
@@ -335,7 +342,7 @@ const TUBE_BODY=`<ellipse cx="39" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path
 const PERSON=(x,red)=>{const limb=(d,f)=>`<path d="${d}" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${f}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;const legs=limb(`M${x-3} 62 L${x-4} 82 L${x+2} 83`,'#6f7f8f')+limb(`M${x+3} 62 L${x+3} 82 L${x+9} 83`,'#6f7f8f');const body=`<rect x="${x-7}" y="38" width="14" height="26" rx="6" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/>`;const arm=limb(`M${x+2} 43 L${x+6} 53 L${x+13} 58`,'#cdbba5');const head=`<circle cx="${x}" cy="29" r="8" fill="#cdbba5" stroke="#5b4a3a" stroke-width="2.5"/><circle cx="${x+4.2}" cy="27.4" r="1.4" fill="#5b4a3a"/>`;let outline='';if(red){const s=red==='front'?1:-1;outline=`<path d="M${x} ${21-2.2} A10.2 10.2 0 0 ${s>0?1:0} ${x} ${37+2.2}" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/><path d="M${x+s*9.5} 41 L${x+s*9.5} 61" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/><path d="M${x+s*6.5} 64 L${x+s*6.5} 84" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/>`;}const shadow=`<ellipse cx="${x+2}" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`;return shadow+legs+body+head+arm+outline;};
 const ON=svg(DOMARK('on')+FLOOR+`<ellipse cx="50" cy="89" rx="32" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g>`+BALL(50,46,11)+DOMLINE('on',93,7,67,30.5));
 const UNDER=svg(DOMARK('u')+FLOOR+`<ellipse cx="50" cy="89" rx="32" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="70" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="12" y="46" width="76" height="11" rx="5.5" fill="#f2c993"/></g>`+BALL(50,77,10)+DOMLINE('u',93,22,63.6,59.7));
-const OVER=svg(DOMARK('o')+FLOOR+`<ellipse cx="50" cy="89" rx="32" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g>`+BALL(50,26,11)+DOMLINE('o',93,6,70.9,16.3));
+const OVER=svg(DOMARK('o')+FLOOR+`<ellipse cx="50" cy="89" rx="32" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g>`+BALL(50,26,11)+DOMLINE('o',93,6,66,20));
 const IN=svg(DOMARK('in')+FLOOR+BOX_BACK(0)+BALL(69,67,10)+BOX_FRONT(0)+DOMLINE('in',22,16,51,44));
 const P={into:'M12 78 C 12 30, 60 20, 69 48 L 69 67',out:'M35 71 L 35 52 C 38 16, 78 22, 82 78',onto:'M12 77 C 10 30, 42 20, 60 47',off:'M34 47 C 56 12, 82 30, 84 77',up:'M12 79 L 44 51 L 60 37 L 78 37',down:'M80 37 L 62 37 L 40 56 L 20 79',to:'M8 79 L 71 79',from:'M71 79 L 14 79',through:'M3 75 L 86 75'};
 const INTO=svg(FLOOR+BOX_BACK(0)+TRAIL(P.into)+MBALL(10)+BOX_FRONT(0));
@@ -753,6 +760,15 @@ const MOVES={
    - Past forms: the blue person starts at the "before" place on the time line and walks to "now"; then the red person
      appears, faint, in the past.
    - Continuous (-ing) forms: the person moves through time along with the growing time bar. */
+/* "here" (Axel, 6 Nov 2026): for go and come and all their forms, a person stands on a pink "here" spot, as in the "here" card,
+   so the movement is clearly away from here (go) or toward here (come). */
+const HERE_SPOT=(cx,cy=86,rx=15,ry=5)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/>`;
+const HERE_SMALL=(x,face='r')=>HERE_SPOT(x,86,10,3.6)+SMALL(x,.62,FIG({x,face}));
+/* an arrowhead at (x,y) pointing along the angle (degrees on screen) */
+const CHEV_AT=(x,y,deg)=>`<g transform="translate(${x} ${y}) rotate(${deg})">${CHEV(0,1,0)}</g>`;
+/* the arrow of a walk into or out of the distance runs straight between the "here" spot and the red person (Axel, 6 Nov 2026) */
+const TRAIL_BETWEEN=(x1,y1,x2,y2)=>{ const L=Math.hypot(x2-x1,y2-y1), ux=(x2-x1)/L, uy=(y2-y1)/L, f=n=>n.toFixed(1);
+  return TRAIL(`M${f(x1)} ${f(y1)} L ${f(x2-ux*4)} ${f(y2-uy*4)}`)+CHEV_AT(+f(x2-ux*1),+f(y2-uy*1),Math.atan2(uy,ux)*180/Math.PI); };
 const MOVE_X=(name,ms,dx,a,b,inner)=>AN(name,ms,`transform:translateX(${dx}px)`,
   `0%{transform:translateX(0)}${a}%{transform:translateX(0)}${b}%{transform:translateX(${dx}px)}100%{transform:translateX(${dx}px)}`,inner);
 const SHOW_AT=(name,ms,a,b,inner,to=1)=>AN(name,ms,`opacity:${to}`,`0%{opacity:0}${a}%{opacity:0}${b}%{opacity:${to}}100%{opacity:${to}}`,inner);
@@ -766,22 +782,33 @@ const SPACEBOX=(x1,y1,x2,y2)=>`<rect x="${x1}" y="${y1}" width="${x2-x1}" height
 
 /* go (you go): the person spoken to walks away; the speech bubble then closes round them. */
 const GO=(()=>{ const T=1500, x0=40, x1=80;
-  return svg(AN_CALM+FLOOR+FIT(FIG({x:14,point:[x1+2,50]})+TRAIL(`M${x0} 85 L ${x1-16} 85`)+
+  return svg(AN_CALM+FLOOR+FIT(HERE_SPOT(15)+FIG({x:14,point:[x1+2,50]})+TRAIL(`M${x0} 85 L ${x1-16} 85`)+
     MOVE_X('gom',T,x1-x0,0,65,CHEV(x0-14,1)+FIG({x:x0,red:true,walk:true}))+
     SHOW_AT('gob',T,65,85,BUBBLE(x1-15,x1+20)),5,102)); })();
 /* come (you come): the person spoken to walks toward the speaker with the arrow ahead of them. */
 const COME=(()=>{ const T=1500, x0=92, x1=62;
-  return svg(AN_CALM+FLOOR+FIT(FIG({x:14,point:[x1,50]})+
+  return svg(AN_CALM+FLOOR+FIT(HERE_SPOT(15)+FIG({x:14,point:[x1,50]})+
     MOVE_X('com',T,x1-x0,0,65,LEAD(x0,-1)+FIG({x:x0,red:true,face:'l',walk:true}))+
     SHOW_AT('cob',T,65,85,BUBBLE(x1-20,x1+15)),5,104)); })();
 /* goes / comes (he goes, he comes): the speaker's arm lifts first (0.9 s), then the person spoken about moves. */
 const FARFIG=(x,face,walk=true)=>AT(x,T_FAR.feet,T_FAR.s,FIG({x,red:true,face,walk}));
-const GOES=(()=>{ const T=2000, x0=70, x1=94;
-  return THIRD_SCENE({lasso:false,pulseAt:2000,target:[x1,54],box:[60,30,104,76],
-    named:AN_CALM+TRAIL(`M${x0} 72 L ${x1-10} 72`)+MOVE_X('gsm',T,x1-x0,45,95,AT(x0,T_FAR.feet,T_FAR.s,CHEV(x0-14,1)+FIG({x:x0,red:true,walk:true})))}); })();
-const COMES=(()=>{ const T=2000, x0=100, x1=80;
-  return THIRD_SCENE({lasso:false,pulseAt:2000,target:[x1+4,54],box:[60,30,108,76],
-    named:AN_CALM+MOVE_X('csm',T,x1-x0,45,95,AT(x0,T_FAR.feet,T_FAR.s,LEAD(x0,-1)+FIG({x:x0,red:true,face:'l',walk:true})))}); })();
+/* goes: after the speaker's arm has lifted, the person spoken about walks away into the distance at an angle
+   (up and to the right, growing smaller), with the arrow along that line (Axel, 6 Nov 2026). */
+const GOES=(()=>{ const x0=70, fy=T_FAR.feet, dx=20, dy=-14, k=.7, b='0.9s', d='1.1s';
+  const walker=`<g transform="translate(${x0} ${fy})"><g><animateTransform attributeName="transform" type="translate" values="0 0;${dx} ${dy}" calcMode="spline" keySplines="0.42 0 0.58 1" begin="${b}" dur="${d}" fill="freeze"/>`+
+    `<g><animateTransform attributeName="transform" type="scale" values="1;${k}" calcMode="spline" keySplines="0.42 0 0.58 1" begin="${b}" dur="${d}" fill="freeze"/>`+
+    `<g transform="translate(${-x0} ${-fy})">${AT(x0,fy,T_FAR.s,FIG({x:x0,red:true,walk:true}))}</g></g></g></g>`;
+  return THIRD_SCENE({lasso:false,pulseAt:2000,target:[x0+dx,48],box:[60,30,104,76],extra:HERE_SPOT(31,92,31,7),
+    named:TRAIL_BETWEEN(58,88,x0+dx-3,fy+dy+2)+walker}); })(); // the arrow runs from the "here" spot to the person
+/* comes: after the speaker's arm has lifted, the person spoken about walks out of the distance toward the "here" spot
+   (growing larger); the arrow runs from where they start and ends in the "here" spot (Axel, 6 Nov 2026). */
+const COMES=(()=>{ const x0=86, fy=T_FAR.feet, dx=20, dy=-14, k=.7, b='0.9s', d='1.1s';
+  // before it starts, the walker waits at the far point (the groups' own transforms), so it never shows near first
+  const walker=`<g transform="translate(${x0} ${fy})"><g transform="translate(${dx} ${dy})"><animateTransform attributeName="transform" type="translate" values="${dx} ${dy};0 0" calcMode="spline" keySplines="0.42 0 0.58 1" begin="${b}" dur="${d}" fill="freeze"/>`+
+    `<g transform="scale(${k})"><animateTransform attributeName="transform" type="scale" values="${k};1" calcMode="spline" keySplines="0.42 0 0.58 1" begin="${b}" dur="${d}" fill="freeze"/>`+
+    `<g transform="translate(${-x0} ${-fy})">${AT(x0,fy,T_FAR.s,FIG({x:x0,red:true,face:'l',walk:true}))}</g></g></g></g>`;
+  return THIRD_SCENE({lasso:false,pulseAt:2000,target:[x0+4,52],box:[60,30,104,76],extra:HERE_SPOT(31,92,31,7),
+    named:TRAIL_BETWEEN(x0+dx-4,fy+dy+2,60,90)+walker}); })();
 
 /* Continuous: a time line from a start marker to "now"; the red bar grows on past "now" and the person moves along with its end. */
 const TBAR=(name,ms,x1,x2)=>AN(name,ms,'transform:scaleX(1)','0%{transform:scaleX(0)}100%{transform:scaleX(1)}',
@@ -789,32 +816,42 @@ const TBAR=(name,ms,x1,x2)=>AN(name,ms,'transform:scaleX(1)','0%{transform:scale
   .replace('class="an" style="','class="an" style="transform-box:fill-box;transform-origin:0% 50%;animation-timing-function:linear;');
 const MOVE_LIN=(name,ms,dx,inner)=>AN(name,ms,`transform:translateX(${dx}px)`,`0%{transform:translateX(0)}100%{transform:translateX(${dx}px)}`,inner)
   .replace('ease-in-out','linear');
-const CONT=(id,inner0,innerMove,extra='')=>{ const T=1800, x0=16, x1=84;
+const CONT=(id,inner0,innerMove,extra='',x0=16,x1=84)=>{ const T=1800;
   return svg(AN_CALM+TIMELINE_CLOCKS([{x:x0,kind:'past',h:2},{x:56,kind:'now',h:4}])+TBAR(id+'b',T,x0,x1+6)+MOVING_CLOCK(T,x0,x1+6,0,100,2,20,true)+FLOOR+extra+
     FAINT(inner0(x0))+MOVE_LIN(id+'m',T,x1-x0,innerMove(x0))); };
 /* going: away from the place where the person started (pink). */
-const GOING=CONT('gng',x=>SMALL(x,.62,FIG({x,red:true,walk:true})),x=>SMALL(x,.62,FIG({x,red:true,walk:true})),
-  `<ellipse cx="16" cy="86" rx="12" ry="4" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2" stroke-dasharray="4 3.5"/>`);
+const GOING=CONT('gng',x=>SMALL(x,.62,FIG({x,red:true,walk:true})),x=>SMALL(x,.62,FIG({x,red:true,walk:true})),HERE_SMALL(9),26,86);
 /* coming: toward the place ahead (pink), still on the way. */
-const COMING=CONT('cmg',x=>SMALL(x,.62,FIG({x,red:true,walk:true})),x=>SMALL(x,.62,FIG({x,red:true,walk:true})),
-  `<ellipse cx="94" cy="86" rx="9" ry="4" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2" stroke-dasharray="4 3.5"/>`);
+const COMING=CONT('cmg',x=>SMALL(x,.62,FIG({x,red:true,walk:true})),x=>SMALL(x,.62,FIG({x,red:true,walk:true})),HERE_SMALL(91,'l'),10,70);
 /* being: the person in their space moves along with the time bar. */
 const SMALL_SPACE=x=>SPACEBOX(x-11,42,x+11,91);
 const BEING=CONT('bng',x=>SMALL_SPACE(x)+SMALL(x,.62,FIG({x,red:true})),x=>SMALL_SPACE(x)+SMALL(x,.62,FIG({x,red:true})));
 
 /* Past: the blue person walks from the "before" place to "now" (0-45%), stands there, then the red person appears, faint, in the past. */
-const BLUE_TO_NOW=(id,T,xb,xn)=>MOVE_X(id+'bm',T,xn-xb,0,40,
-    HIDE_AT(id+'bw',T,38,44,SMALL(xb,.62,FIG({x:xb,walk:true})))+SHOW_AT(id+'bs',T,38,44,SMALL(xb,.62,FIG({x:xb}))));
-const PAST_TRIP=(kind)=>{ const id='pt'+kind, T=2600;
-  return svg(AN_CALM+TIMELINE_CLOCKS([{x:18,kind:'past',h:2},{x:50,kind:'past',h:3},{x:82,kind:'now',h:5}])+FLOOR+
-    (kind==='went'?PLACE(14):`<ellipse cx="68" cy="86" rx="28" ry="4.5" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2" stroke-dasharray="4 3.5"/>`)+
-    BLUE_TO_NOW(id,T,18,82)+MOVING_CLOCK(T,18,82,0,40)+
-    SHOW_AT(id+'r',T,50,75,TRAIL('M27 85 L 38 85')+CHEV(41,1)+SMALL(18,.62,FIG({x:18,red:true,walk:true}))+SMALL(50,.62,FIG({x:50,red:true})),.38)); };
+/* moving only through time, not through space: the person keeps standing legs (Axel, 6 Nov 2026) */
+const BLUE_TO_NOW=(id,T,xb,xn)=>MOVE_X(id+'bm',T,xn-xb,0,40,SMALL(xb,.62,FIG({x:xb})));
+/* Walking into or out of the distance (Axel, 6 Nov 2026): a small time-line person (scale .62, feet at (x,88)) walks along a
+   45-degree line into the picture (away: up and to the right, growing smaller) or out of it (toward: down to the feet line,
+   growing larger). It fades in faint (the past) at begin s and walks for dur s. SVG timing, so it plays the same in every browser. */
+const DEPTH_WALK=({x,dx,dy,k,begin,dur,face='r',fade=.38,toward=false,fadeAt=null,fadeDur=1,pulseAt=null})=>{ // pulseAt: one pulse at the end (Axel, 6 Nov 2026) // fadeAt: when time passes, the person fades to faint (Axel, 6 Nov 2026) // x: where the feet are when nearest; dx,dy,k: the far point
+  const fx=x, fy=88, t=`begin="${begin}s" dur="${dur}s" fill="freeze"`;
+  return `<g opacity="0">`+(fadeAt==null?`<animate attributeName="opacity" values="0;${fade}" begin="${begin}s" dur="0.25s" fill="freeze"/>`
+      :`<animate attributeName="opacity" values="0;1" begin="${begin}s" dur="0.2s" fill="freeze"/><animate attributeName="opacity" values="1;${fade}" begin="${fadeAt}s" dur="${fadeDur}s" fill="freeze"/>`)+
+    `<g transform="translate(${fx} ${fy})"><g><animateTransform attributeName="transform" type="translate" values="${toward?`${dx} ${dy};0 0`:`0 0;${dx} ${dy}`}" calcMode="spline" keySplines="0.42 0 0.58 1" ${t}/>`+
+    `<g><animateTransform attributeName="transform" type="scale" values="${toward?`${k};1`:`1;${k}`}" calcMode="spline" keySplines="0.42 0 0.58 1" ${t}/>`+
+    `<g>${pulseAt==null?'':`<animateTransform attributeName="transform" type="scale" values="1;1.25;1" keyTimes="0;0.45;1" begin="${pulseAt}s" dur="0.5s" fill="freeze"/>`}`+
+    `<g transform="translate(${-fx} ${-fy})">${SMALL(x,.62,FIG({x,red:true,walk:true,face}))}</g></g></g></g></g></g>`; };
+/* went, came, gone (Axel, 6 Nov 2026): one blue person stands on the "here" spot at the start of the time line.
+   First the faint red person moves in the past: away from beside them into the distance (went, gone), or out of the distance
+   toward them (came). Then the blue person moves through time from "here" to "now" (standing legs), with the clock. */
+const PAST_TRIP=(kind)=>{ const id='pt'+kind, T=2600, toward=kind==='came', h=12, a=h+16, n=84;
+  return svg(AN_CALM+TIMELINE_CLOCKS([{x:h,kind:'past',h:2},{x:n,kind:'now',h:5}])+FLOOR+HERE_SPOT(h,86,10,3.6)+
+    SHOW_AT(id+'t',T,4,16,toward?TRAIL_BETWEEN(a+20,69,h+9,84):TRAIL_BETWEEN(h+9,84,a+20,69),.6)+
+    DEPTH_WALK({x:a,dx:26,dy:-22,k:.6,begin:0.1,dur:1.0,toward,face:toward?'l':'r',fadeAt:1.17,fadeDur:1.04,pulseAt:2.25})+ // full strength while walking, fading to faint as the blue person moves through time
+    MOVE_X(id+'bm',T,n-h,45,85,SMALL(h,.62,FIG({x:h})))+MOVING_CLOCK(T,h,n,45,85)); };
 const WENT=PAST_TRIP('went'), CAME=PAST_TRIP('came');
-/* gone: the red person, faint, left the place in the past; the blue person is at "now". */
-const GONE=(()=>{ const T=2400; return svg(AN_CALM+TIMELINE_CLOCKS([{x:22,kind:'past',h:2},{x:78,kind:'now',h:5}])+FLOOR+PLACE(20)+
-  BLUE_TO_NOW('gn',T,22,78)+MOVING_CLOCK(T,22,78,0,40)+
-  SHOW_AT('gnr',T,50,75,TRAIL('M31 85 L 64 85')+CHEV(67,1)+SMALL(22,.62,FIG({x:22,red:true,walk:true})),.38)); })();
+/* gone: drawn like went (has moved away). */
+const GONE=PAST_TRIP('gone');
 
 /* be family: take up space = a pink dashed space round the person. */
 /* be, are (1) (you are): the person spoken to in their space, inside the speech bubble; the speaker points at them. */
@@ -861,19 +898,19 @@ const FOR_DURING=svg(
   MOVING_CLOCK(1100,24,70,0,100,2,36));
 
 
-/* defAt (ms): past forms show and say the definition only once the red person has appeared in the past (Axel, 5 Nov 2026). */
+/* defAt (ms): the definition is shown and said only once the whole animation has finished (Axel, 6 Nov 2026; earlier: once the red person has appeared in the past (Axel, 5 Nov 2026). */
 const M=(path,r)=>({path,r});
 /* speech bubbles are drawn in from the mouth (ANIM_BUBBLE, Axel 6 Nov 2026) */
 const BATCH3_CARDS=[
   {word:'go', set:[{def:'move away',svg:ANIM_BUBBLE(GO,975),anim:2150}]},
   {word:'goes', set:[{def:'moves away',svg:GOES,anim:2000}]},
   {word:'going', set:[{def:'moving away',svg:GOING,anim:1800}], note:'card 2 still to revisit'},
-  {word:'went', set:[{def:'moved away',svg:WENT,anim:2600,defAt:1800}]},
-  {word:'gone', set:[{def:'has moved away',svg:GONE,anim:2400,defAt:1650}]},
+  {word:'went', set:[{def:'moved away',svg:WENT,anim:2750,defAt:2750}]},
+  {word:'gone', set:[{def:'has moved away',svg:GONE,anim:2750,defAt:2750}]},
   {word:'come', set:[{def:'move toward',svg:ANIM_BUBBLE(COME,975),anim:2150}]},
   {word:'comes', set:[{def:'moves toward',svg:COMES,anim:2000}]},
   {word:'coming', set:[{def:'moving toward',svg:COMING,anim:1800}]},
-  {word:'came', set:[{def:'moved toward',svg:CAME,anim:2600,defAt:1800}]},
+  {word:'came', set:[{def:'moved toward',svg:CAME,anim:2750,defAt:2750}]},
   {word:'and', set:[{def:'also / in addition to',svg:AND,move:M(MOVES.and,9)}]},
   {word:'same', set:[{def:'identical',svg:SAME}]},
   {word:'with', set:[{def:'alongside',svg:WITH,move:M(MOVES.with,8)}], note:'card 2 ("using") still to review'},
@@ -883,12 +920,132 @@ const BATCH3_CARDS=[
   {word:'are', set:[{def:'take up space',svg:ANIM_BUBBLE(BE_YOU)},{def:'take up space',svg:BE_THEY}]},
   {word:'is', set:[{def:'takes up space',svg:BE_HE}]},
   {word:'being', set:[{def:'taking up space',svg:BEING,anim:1800}]},
-  {word:'was', set:[{def:'took up space',svg:BE_WAS,anim:2400,defAt:1650}]},
-  {word:'were', set:[{def:'took up space',svg:BE_WERE,anim:2400,defAt:1650}]},
-  {word:'been', set:[{def:'has taken up space',svg:BE_BEEN,anim:2400,defAt:1650}]},
+  {word:'was', set:[{def:'took up space',svg:BE_WAS,anim:2400,defAt:2400}]},
+  {word:'were', set:[{def:'took up space',svg:BE_WERE,anim:2400,defAt:2400}]},
+  {word:'been', set:[{def:'has taken up space',svg:BE_BEEN,anim:2400,defAt:2400}]},
 ];
 
-return {ME,MINE,YOU,YOURS,HE,SHE,HIS,HERS,IT,ITS,IT_ANIMAL,ITS_ANIMAL,WE,OURS,THEY,THEIRS,BATCH3:BATCH3_CARDS};
+/* ---- Batch 4: have (possess) with has, having, had; or (alternatively, otherwise). Uses the batch 1-3 helpers. ---- */
+
+/* A person holding a ball close (possess): the front arm cradles the ball against the body. face 'r' or 'l'. */
+/* anim {id,T,a,b}: the ball comes in from in front and the arm closes round it between a% and b% (Axel: verbs are animated). */
+const HUG=({x,red,face='r',anim=null})=>{
+  let t=FIG({x,red});
+  t=t.split(`<path d="M${x+2} 43 L${x+6} 53 L${x+13} 58"`).join('<path data-old-arm="1" d=""');
+  const ball=BALL(x+13,49.5,6), arm=T_LIMB(`M${x+2} 43 L${x+4} 58 L${x+17} 57.5`,T_SKIN);
+  if(anim){ const {id,T,a,b}=anim;
+    t+=AN(id+'b',T,'transform:translate(0px,0px)',`0%{transform:translate(16px,6px)}${a}%{transform:translate(16px,6px)}${b}%{transform:translate(0px,0px)}100%{transform:translate(0px,0px)}`,ball)+
+      AN(id+'a',T,'transform:rotate(0deg)',`0%{transform:rotate(-55deg)}${a}%{transform:rotate(-55deg)}${b}%{transform:rotate(0deg)}100%{transform:rotate(0deg)}`,arm)
+        .replace('class="an" style="','class="an" style="transform-box:fill-box;transform-origin:0% 0%;');
+  } else t+=ball+arm;
+  return face==='l'?MIRROR(x,t):t;
+};
+
+/* have (you have): the person spoken to holds the ball, inside the speech bubble; the speaker points at them. */
+const HAVE=svg(FLOOR+FIT(FIG({x:14,point:[60,52]})+HUG({x:62,red:true,face:'l'})+BUBBLE(36,76,12,95),5,80));
+/* have (2) (I have): the speaker holds the ball, inside the speech bubble with the line from the mouth (as in "I") (Axel, 6 Nov 2026). */
+const HAVE_I=(()=>{ const loop=LOOP(28,11,72,95,{side:'top',x:Infinity,ccw:true});
+  return svg(FLOOR+HUG({x:44,red:true})+loop.svg+SELF_LINE(51.3,32.6,loop.jx,loop.jy)); })();
+/* has (he/she/it has): the third-person scene; the person spoken about, further away and facing away, holds the ball. */
+const HAS=(()=>{ const x=86, s=T_FAR.s;
+  return THIRD_SCENE({lasso:false,target:[x+3,54],box:[x-9*s,30,x+20*s,76],named:AT(x,T_FAR.feet,s,HUG({x,red:true}))}); })();
+/* having (continuous): the person holding the ball moves along with the growing time bar. */
+const HAVING=CONT('hvg',x=>SMALL(x,.62,HUG({x,red:true})),x=>SMALL(x,.62,HUG({x,red:true})));
+/* had (past): the blue person walks from "before" to "now"; then the red person holding the ball appears, faint, in the past. */
+const HAD=(()=>{ const T=2400, xb=30, xn=76;
+  return svg(AN_CALM+TIMELINE_CLOCKS([{x:xb,kind:'past',h:2},{x:xn,kind:'now',h:5}])+FLOOR+
+    BLUE_TO_NOW('hd',T,xb,xn)+MOVING_CLOCK(T,xb,xn,0,40)+
+    SHOW_AT('hdr',T,50,75,SMALL(xb,.62,HUG({x:xb,red:true})),.38)); })();
+
+/* or: a path that splits in two.
+   (1) alternatively: the ball goes down the first way, comes back, then goes down the other way (Axel, 6 Nov 2026).
+   (2) if not, then (was "otherwise"; Axel, 6 Nov 2026): a roadblock lies straight across the first way; the ball tries it, is stopped, comes back and takes the other way. */
+const OR_ROADS=`<path d="M4 70 L 40 70 L 94 44" fill="none" stroke="#e9dfcc" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>`+
+  `<path d="M40 70 L 94 89" fill="none" stroke="#e9dfcc" stroke-width="15" stroke-linecap="round"/>`;
+const OR_PATH1='M10 70 L 40 70 L 84 49 L 40 70 L 86 86';
+/* a faint ball stays at the end of the first way, so the last picture shows both choices (Axel, 6 Nov 2026) */
+const OR_ALT=svg(AN_CALM+OR_ROADS+TRAIL('M10 70 L 40 70 L 80 51')+TRAIL('M40 70 L 86 86')+SHOW_AT('orag',2200,44,56,BALL(84,49,6),.35)+MBALL(6));
+/* the roadblock: a striped bar at right angles to the first road (which runs at about -25.7 degrees) */
+const OR_BLOCK=`<g transform="translate(64 58.5) rotate(64.3)"><rect x="-12" y="-3.5" width="24" height="7" rx="2" fill="#fffdf8" stroke="#5b4a3a" stroke-width="2"/>`+
+  `<path d="M-7 -3.5 L -10 3.5 M-1 -3.5 L -4 3.5 M5 -3.5 L 2 3.5 M11 -3.5 L 8 3.5" stroke="#5b4a3a" stroke-width="2.2"/></g>`;
+const OR_PATH2='M10 70 L 40 70 L 54 63.3 L 40 70 L 86 86';
+const OR_OTHERWISE=svg(OR_ROADS+OR_BLOCK+TRAIL('M10 70 L 40 70 L 52 64.3')+TRAIL('M40 70 L 86 86')+MBALL(6));
+
+/* ---- Trial (Axel, 6 Nov 2026): a red dominant arrow on verb cards, pointing at the part that carries the meaning.
+   It arrives once the animation has played. Compare these with the same cards without it. ---- */
+/* The arrow always points at the person's head, so it never covers the person (Axel, 6 Nov 2026).
+   HEAD_ARROW: a dominant arrow whose tip stops at (tx,ty), coming from (fx,fy); the arrowhead reaches about 12 units past the line's end. */
+const HEAD_ARROW=(id,fx,fy,tx,ty)=>{ const side=fx>=tx?1:-1; // the arrow comes down at 60 degrees; its head reaches about 12 units past the line's end
+  return DOMARK(id)+DOMLINE(id,tx+side*30,ty-50,+(tx+side*6).toFixed(1),+(ty-10.4).toFixed(1)); };
+const WITH_ARROW=(pic,id,arrow,T,a)=>pic.replace(/<\/svg>$/,AN_CALM+SHOW_AT(id+'s',T,a,Math.min(100,a+10),arrow)+'</svg>');
+/* small time-line people (scale .62, feet on 88): head centre at y 51.4, radius about 5 */
+const HAD_A=WITH_ARROW(HAD,'tha',HEAD_ARROW('tha',66,47,37,51),2400,75);
+/* went: the arrow sits above the red person, coming down at about 60 degrees to the head, and moves from the first
+   (walking) person to the second (arriving) person while the definition is spoken (Axel, 6 Nov 2026). */
+const WENT_A=(()=>{ const T=3000;
+  return WENT.replace(/<\/svg>$/,AN_CALM+AN('twam',T,'transform:translateX(28px);opacity:1',
+    '0%{transform:translateX(0);opacity:0}58%{transform:translateX(0);opacity:0}62%{transform:translateX(0);opacity:1}93%{transform:translateX(28px);opacity:1}100%{transform:translateX(28px);opacity:1}',
+    HEAD_ARROW('twa',39,14,26,47.5))+'</svg>'); })();
+/* continuous: the arrow travels with the person along the time line, pointing at the head from behind */
+const BEING_A=CONT('bnga',x=>SMALL_SPACE(x)+SMALL(x,.62,FIG({x,red:true})),
+  x=>SMALL_SPACE(x)+SMALL(x,.62,FIG({x,red:true}))+HEAD_ARROW('tba',x-38,40,x-12,50));
+/* has: the person spoken about stands far away; their head is at about (83, 42) in the finished picture */
+const HAS_A=WITH_ARROW(HAS,'tsa',HEAD_ARROW('tsa',60,12,79,35),1100,80);
+const TRIAL_CARDS=[
+  {word:'had', trial:true, set:[{def:'possessed',svg:HAD_A,anim:2400,defAt:1650}]},
+  {word:'went', trial:true, set:[{def:'moved away',svg:WENT_A,anim:3000,defAt:1800}]},
+  {word:'being', trial:true, set:[{def:'taking up space',svg:BEING_A,anim:1800}]},
+  {word:'has', trial:true, set:[{def:'possesses',svg:HAS_A,anim:1100}]},
+];
+/* ---- Trial (6 Nov 2026): "now" shown as a short upright post on the time line, with the travelling clock
+   coming to rest on top of it, instead of the hollow circle. ---- */
+const NOW_POST=pic=>pic.replace(/<circle cx="([\d.]+)" cy="36" r="4.5" fill="#fffdf8" stroke="#5b4a3a" stroke-width="2"\/>/,
+  (m,x)=>`<rect x="${x-2.2}" y="27.5" width="4.4" height="13" rx="2" fill="#5b4a3a"/><rect x="${x-4.5}" y="39" width="9" height="2.6" rx="1.3" fill="#5b4a3a"/>`);
+const POST_CARDS=[
+  {word:'went', set:[{def:'moved away',svg:NOW_POST(WENT),anim:2600,defAt:1800}]},
+  {word:'had', set:[{def:'possessed',svg:NOW_POST(HAD),anim:2400,defAt:1650}]},
+  {word:'was', set:[{def:'took up space',svg:NOW_POST(BE_WAS),anim:2400,defAt:1650}]},
+  {word:'being', set:[{def:'taking up space',svg:NOW_POST(BEING),anim:1800}]},
+];
+const BATCH4_CARDS=[
+  {word:'have', set:[{def:'possess',svg:ANIM_BUBBLE(HAVE)},{def:'possess',svg:ANIM_BUBBLE(HAVE_I)}], note:'card 2 ("must") still to revisit'},
+  {word:'has', set:[{def:'possesses',svg:HAS,anim:900}]},
+  {word:'having', set:[{def:'possessing',svg:HAVING,anim:1800}]},
+  {word:'had', set:[{def:'possessed',svg:HAD,anim:2400,defAt:2400}], note:'card 2 ("must, in the past") still to revisit'},
+  {word:'or', set:[{def:'alternatively',svg:OR_ALT,anim:2200,move:{path:OR_PATH1,r:6,ms:2200}},{def:'if not, then',svg:OR_OTHERWISE,move:{path:OR_PATH2,r:6,ms:1800}}]},
+];
+
+/* ---- Dominant arrow on past tenses and third persons (Axel, 6 Nov 2026) ----
+   A red dominant arrow comes down at 60 degrees and stops just short of the red person's head (never covering the
+   person). It fades in once the card's animation has finished; the definition then waits for it.
+   HEADS: the red person's head in the finished picture: [x, y, radius] (measured from the drawings). side: 1 = the
+   arrow comes from the upper right, -1 = from the upper left. card: which card of the word (0 = the first). wait: when the animation ends (ms), where the card does not say. */
+const ARROW_HEADS={
+  went:{side:1,heads:[[54,44,3]]}, gone:{side:1,heads:[[54,44,3]]}, came:{side:1,heads:[[28,51.4,5]]},
+  was:{side:1,heads:[[30,51.4,5]]}, were:{side:1,heads:[[23,51.4,5],[37,51.4,5]]}, been:{side:1,heads:[[30,51.4,5]]},
+  had:{side:1,heads:[[30,51.4,5]]},
+  did:{side:1,heads:[[16,51.4,5]]}, done:{side:1,heads:[[16,51.4,5]]}, saw:{side:-1,heads:[[26,51.4,5]]}, seen:{side:-1,heads:[[26,51.4,5]]}, /* from the upper left, clear of the thought cloud */
+  goes:{side:-1,heads:[[82,42,3]]}, comes:{side:-1,heads:[[78.5,45,4.3]]}, is:{wait:1500,side:-1,heads:[[83.8,41.4,4.6]]},
+  are:{card:1,wait:1500,side:-1,heads:[[71.3,46.3,4.2],[85.1,46.3,4.2]]}, has:{side:-1,heads:[[82.9,41.9,4.5]]},
+  does:{side:-1,heads:[[73.1,45,4.3]]}, sees:{side:-1,heads:[[73.5,41.9,4.5]]},
+};
+const ADD_HEAD_ARROWS=cards=>cards.forEach(c=>{ const a=ARROW_HEADS[c.word]; if(!a) return; const card=c.set[a.card||0];
+  const svgAnim=+((/<!--anim:(\d+)-->/.exec(card.svg)||[])[1]||0), wait=a.wait ?? card.defAt ?? card.anim ?? (card.move?(card.move.ms||1000)+50:svgAnim);
+  const arrows=a.heads.map(([x,y,r],i)=>{ const g=r+1.5, tx=+(x+a.side*g*.5).toFixed(1), ty=+(y-g*.866).toFixed(1); /* the tip stops 1.5 units short of the head */
+    return HEAD_ARROW(`ha-${c.word}-${i}`,tx+a.side*10,ty-20,tx,ty-0); }).join('');
+  const k=card.svg.lastIndexOf('</svg>');
+  card.svg=card.svg.slice(0,k)+`<g opacity="0"><animate attributeName="opacity" values="0;1" begin="${(wait/1000).toFixed(2)}s" dur="0.3s" fill="freeze"/>${arrows}</g>`+card.svg.slice(k);
+  card.anim=wait+300; card.defAt=wait+300; });
+if(typeof BATCH3_CARDS!=='undefined') ADD_HEAD_ARROWS(BATCH3_CARDS);
+ADD_HEAD_ARROWS(BATCH4_CARDS);
+
+/* Continuous (-ing) verb forms speak during the animation, as the action goes on: the word at the start and the
+   definition straight after it (Axel, 6 Nov 2026). Every other animated card stays silent until its animation ends. */
+const SPEAK_DURING=cards=>cards.forEach(c=>{ if(/ing$/.test(c.word)) c.set.forEach(card=>{ card.early=true; card.defAt=0; }); });
+if(typeof BATCH3_CARDS!=='undefined') SPEAK_DURING(BATCH3_CARDS);
+SPEAK_DURING(BATCH4_CARDS);
+
+return {ME,MINE,YOU,YOURS,HE,SHE,HIS,HERS,IT,ITS,IT_ANIMAL,ITS_ANIMAL,WE,OURS,THEY,THEIRS,BATCH3:BATCH3_CARDS,BATCH4:BATCH4_CARDS};
 })();
 /* A standard person (no shadow) whose front arm points at (tx,ty), as in the pronoun cards. */
 const POINTING_PERSON=(x,tx,ty)=>{
@@ -958,13 +1115,15 @@ const CARDS={
   over:[{def:'above',svg:OVER},{def:'above and across',svg:OVER_ACROSS,move:{path:P.overAcross,r:9}}],
   under:[{def:'below',svg:UNDER}],
   through:[{def:'in one side and out the other side',svg:THROUGH,move:{path:P.through,r:9,frontAt:57}}],
-  here:[{def:'in this place',svg:svg(DOMARK('here')+`<path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="36" cy="77" rx="9" ry="2.4" fill="#e2d6c1"/>`+POINTING_PERSON(36,58,74)+`<line x1="86" y1="22" x2="60.2" y2="63.2" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-here)"/>`)}],
-  there:[{def:'in that place',svg:svg(DOMARK('there')+`<path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="86" cy="64" rx="9" ry="3.5" fill="#f5b8b2" stroke="#d64541" stroke-width="1.6"/>`+POINTING_PERSON(36,86,64)+`<line x1="90" y1="18" x2="86.7" y2="54" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-there)"/>`)}],
+  here:[{def:'in this place',svg:svg(DOMARK('here')+`<path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="36" cy="77" rx="9" ry="2.4" fill="#e2d6c1"/>`+POINTING_PERSON(36,58,74)+`${DOMLINE('here',86,22,60.2,63.2)}`)}],
+  there:[{def:'in that place',svg:svg(DOMARK('there')+`<path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="86" cy="64" rx="9" ry="3.5" fill="#f5b8b2" stroke="#d64541" stroke-width="1.6"/>`+POINTING_PERSON(36,86,64)+`${DOMLINE('there',60,18,86.7,54)}`)}],
   to:[{def:'in the direction of',svg:TO,move:{path:P.to,r:9}}],
   from:[{def:'starting at',svg:FROM,move:{path:P.from,r:9}}]
 };
 /* batch 3 cards (Axel, 5 Nov 2026) */
 PRON.BATCH3.forEach(c=>{ CARDS[c.word.toLowerCase()]=c.set; });
+/* batch 4 cards (Axel, 6 Nov 2026) */
+PRON.BATCH4.forEach(c=>{ CARDS[c.word.toLowerCase()]=c.set; });
 const SAY={onto:'ontoo','on/to the opposite of right':'on or to the opposite of right'};
 
 /* ============================================================
@@ -990,7 +1149,9 @@ Within a minute, Rex was sitting between the cat and the farmer's wife, eating h
 
 Once upon a time, Mia thought, this whole valley was a forest. Maybe one day it will be again.
 
-Every day Rex goes to the river. "Is he going again?" Sam asked. "He has gone," Mia laughed, "but he always comes home. Look, he is coming now, the same dog as before. Go and get him!"`;
+Every day Rex goes to the river. "Is he going again?" Sam asked. "He has gone," Mia laughed, "but he always comes home. Look, he is coming now, the same dog as before. Go and get him!"
+
+Sam had an apple. "Are we having a picnic here, or going home?" he asked.`;
 const TOLD_LIMIT = 4;
 const COLOURS=[["Cream","#FBF5E4"],["Butter","#FBF3C8"],["Peach","#FCE6D6"],["Rose","#F9E1E4"],["Lilac","#ECE4F5"],["Sky","#E1EDF8"],["Aqua","#DDF2EF"],["Mint","#E3F3DF"],["Stone","#EEEDE8"]];
 const GUIDE = {
@@ -1501,8 +1662,9 @@ function renderCard(swap){
   const svgAnim=+((/<!--anim:(\d+)-->/.exec(c.svg)||[])[1]||0);
   const wait=calm()?0:(c.defAt ?? c.anim ?? (c.move?(c.move.ms||1000)+50:svgAnim)), t0=performance.now();
   const ready=()=>{ if(openCard!==me) return; const left=wait-(performance.now()-t0); if(left>0) laterCard(()=>{ if(openCard===me) showDef(); },left); else showDef(); };
-  speakCardWord(openCard.word.textContent,300,ready);
-  laterCard(()=>{ if(openCard===me) showDef(); },Math.max(3000,wait+600));
+  // no voice until the animated sequence has ended: then the word, then the definition, except continuous (-ing) forms (Axel, 6 Nov 2026)
+  speakCardWord(openCard.word.textContent,c.early?300:Math.max(300,wait),ready); // continuous forms speak during the animation
+  laterCard(()=>{ if(openCard===me) showDef(); },Math.max(3000,wait+3000));
 }
 function placeCard(){
   if(!openCard||!openCard.el) return;
