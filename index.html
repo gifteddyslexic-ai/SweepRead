@@ -60,8 +60,9 @@ button{cursor:pointer}
 .passage p{margin:0 0 .8em}
 .passage p:last-child{margin-bottom:0}
 .passage .w{white-space:nowrap;cursor:default}
-.passage .w.has-card{cursor:pointer;border-bottom:2px solid var(--ul);padding-bottom:1px}
-.passage .w.has-card.trigger-active{border-bottom-color:var(--hl-deep)}
+.passage .w.has-card{cursor:pointer;border-bottom:var(--ul-w,2px) solid color-mix(in srgb,var(--ul) var(--ul-a,100%),transparent);padding-bottom:1px}
+.passage .w.has-card.trigger-active{border-bottom-color:color-mix(in srgb,var(--hl-deep) var(--ul-a,100%),transparent)}
+.passage.no-ul .w.has-card,.passage.no-ul .w.has-card.trigger-active{border-bottom-color:transparent}
 .lower{position:absolute;left:0;right:0;bottom:0;top:100%;background:var(--card);z-index:1;transition:top .35s ease}
 .spacer{height:10.5rem}
 .stopchart{position:absolute;left:0;right:0;top:0;display:grid;grid-template-columns:4fr 3fr 1.3fr;gap:0;padding-top:.9rem;font-size:1rem;color:#2A2233;text-align:center}
@@ -81,7 +82,7 @@ button{cursor:pointer}
 .chips button{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:4px 10px;font-size:.9rem;color:var(--fg)}
 .chips button.sugg{border-color:#4B2E73;border-style:dashed}
 .chips button[aria-pressed="true"]{background:#4B2E73;color:#fff;border-color:#4B2E73}
-.slider{position:absolute;left:100%;top:0;width:100%;height:0;background:var(--card);z-index:2;border-radius:3px;box-shadow:-3px 0 0 color-mix(in srgb,var(--card) 70%,#000),0 3px 8px rgba(0,0,0,.12)}
+.slider{cursor:pointer;position:absolute;left:100%;top:0;width:100%;height:0;background:var(--card);z-index:2;border-radius:3px;box-shadow:-3px 0 0 color-mix(in srgb,var(--card) 70%,#000),0 3px 8px rgba(0,0,0,.12)}
 .sweep{position:absolute;z-index:0;pointer-events:none;background:rgba(95,179,179,.28);border-radius:8px;transition:left .5s cubic-bezier(.45,0,.35,1),width .5s cubic-bezier(.45,0,.35,1),top .35s ease,height .35s ease}
 .sweep.instant{transition:none}
 .hand{position:absolute;background:var(--card);z-index:3;border-radius:5px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
@@ -225,6 +226,11 @@ textarea{width:100%;min-height:240px;font-size:1rem;line-height:1.6;padding:12px
     <div class="seg" id="viewSeg"><button data-view="cards">Two cards</button><button data-view="hl">Highlighter</button></div>
   </div>
   <label class="tog" for="trigOn"><span>Trigger-word support<small>Underline trigger words; tap one for its meaning card</small></span><input type="checkbox" id="trigOn" checked></label>
+  <label class="tog" for="ulOn" id="ulOnRow"><span>Underline trigger words<small>Off: the words still open their card, without a line under them</small></span><input type="checkbox" id="ulOn" checked></label>
+  <div class="field" id="ulField">
+    <label for="ulStr">Underline strength <output id="ulStrOut"></output></label>
+    <input type="range" id="ulStr" min="10" max="100" step="10">
+  </div>
   <div>
     <h3>Page colour</h3>
     <div class="swatches" id="swatches" role="group" aria-label="Page colour"></div>
@@ -326,7 +332,7 @@ const BOX_FRONT=dx=>`<g transform="translate(${dx} 0)"><path d="M46 66 L86 66 L8
 const STEPS=`<ellipse cx="62" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path d="M34 88 L34 74 L50 74 L50 60 L66 60 L66 46 L90 46 L90 88 Z" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>`;
 const TUBE_DEFS=`<defs><radialGradient id="hole-thr3" cx="45%" cy="50%" r="60%"><stop offset="0" stop-color="#6e5238"/><stop offset="1" stop-color="#b98d58"/></radialGradient><linearGradient id="body-thr3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6d6a6"/><stop offset=".55" stop-color="#f2c993"/><stop offset="1" stop-color="#ddb07a"/></linearGradient></defs>`;
 const TUBE_BODY=`<ellipse cx="39" cy="89" rx="30" ry="2.5" fill="#e2d6c1"/><path d="M16 62 L62 62 L62 88 L16 88 A6 13 0 0 1 16 62 Z" fill="url(#body-thr3)" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="62" cy="75" rx="6" ry="13" fill="url(#hole-thr3)" stroke="#5b4a3a" stroke-width="2.5"/>`;
-const PERSON=(x,red)=>{const limb=(d,f)=>`<path d="${d}" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${f}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;const legs=limb(`M${x-3} 62 L${x-4} 82 L${x+2} 83`,'#6f7f8f')+limb(`M${x+3} 62 L${x+3} 82 L${x+9} 83`,'#6f7f8f');const body=`<rect x="${x-7}" y="38" width="14" height="26" rx="6" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/>`;const arm=limb(`M${x+2} 43 L${x+6} 53 L${x+13} 58`,'#cdbba5');const head=`<circle cx="${x}" cy="29" r="8" fill="#cdbba5" stroke="#5b4a3a" stroke-width="2.5"/>`;let outline='';if(red){const s=red==='front'?1:-1;outline=`<path d="M${x} ${21-2.2} A10.2 10.2 0 0 ${s>0?1:0} ${x} ${37+2.2}" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/><path d="M${x+s*9.5} 41 L${x+s*9.5} 61" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/><path d="M${x+s*6.5} 64 L${x+s*6.5} 84" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/>`;}const shadow=`<ellipse cx="${x+2}" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`;return shadow+legs+body+head+arm+outline;};
+const PERSON=(x,red)=>{const limb=(d,f)=>`<path d="${d}" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${f}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;const legs=limb(`M${x-3} 62 L${x-4} 82 L${x+2} 83`,'#6f7f8f')+limb(`M${x+3} 62 L${x+3} 82 L${x+9} 83`,'#6f7f8f');const body=`<rect x="${x-7}" y="38" width="14" height="26" rx="6" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/>`;const arm=limb(`M${x+2} 43 L${x+6} 53 L${x+13} 58`,'#cdbba5');const head=`<circle cx="${x}" cy="29" r="8" fill="#cdbba5" stroke="#5b4a3a" stroke-width="2.5"/><circle cx="${x+4.2}" cy="27.4" r="1.4" fill="#5b4a3a"/>`;let outline='';if(red){const s=red==='front'?1:-1;outline=`<path d="M${x} ${21-2.2} A10.2 10.2 0 0 ${s>0?1:0} ${x} ${37+2.2}" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/><path d="M${x+s*9.5} 41 L${x+s*9.5} 61" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/><path d="M${x+s*6.5} 64 L${x+s*6.5} 84" fill="none" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/>`;}const shadow=`<ellipse cx="${x+2}" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`;return shadow+legs+body+head+arm+outline;};
 const ON=svg(DOMARK('on')+FLOOR+`<ellipse cx="50" cy="89" rx="32" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g>`+BALL(50,46,11)+DOMLINE('on',93,7,67,30.5));
 const UNDER=svg(DOMARK('u')+FLOOR+`<ellipse cx="50" cy="89" rx="32" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="70" y="52" width="8" height="36" rx="4" fill="#e9b97e"/><rect x="12" y="46" width="76" height="11" rx="5.5" fill="#f2c993"/></g>`+BALL(50,77,10)+DOMLINE('u',93,22,63.6,59.7));
 const OVER=svg(DOMARK('o')+FLOOR+`<ellipse cx="50" cy="89" rx="32" ry="2.5" fill="#e2d6c1"/><g stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"><rect x="22" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="70" y="64" width="8" height="24" rx="4" fill="#e9b97e"/><rect x="12" y="58" width="76" height="11" rx="5.5" fill="#f2c993"/></g>`+BALL(50,26,11)+DOMLINE('o',93,6,70.9,16.3));
@@ -452,6 +458,18 @@ const HAIR=(x,kind,face)=>{ // short hair cap for a male person, a ponytail for 
   if(kind==='f') return `<path d="M${x-8} 27 C ${x-8} 18, ${x+8} 18, ${x+8} 27 C ${x+4} 22, ${x-4} 22, ${x-8} 27 Z" fill="#a0673c" stroke="#5b4a3a" stroke-width="1.5" stroke-linejoin="round"/><path d="M${x-s*7} 24 C ${x-s*17} 26, ${x-s*17} 40, ${x-s*12} 46" fill="none" stroke="#5b4a3a" stroke-width="7.5" stroke-linecap="round"/><path d="M${x-s*7} 24 C ${x-s*17} 26, ${x-s*17} 40, ${x-s*12} 46" fill="none" stroke="#a0673c" stroke-width="4.5" stroke-linecap="round"/>`;
   return '';
 };
+/* A pointing arm (Axel, 6 Nov 2026): drawn from the shoulder at (sx,sy), it lifts from hanging (hang: degrees below
+   the pointing direction's level, measured as an angle on screen) to pointing at (tx,ty), turning about the shoulder with an
+   SVG rotation so it stays joined to the shoulder in every browser and inside a scaled scene. 0.9 s; rests on the final frame. */
+const POINT_ARM=(sx,sy,tx,ty,hang)=>{
+  const L=Math.hypot(tx-sx,ty-sy), ux=(tx-sx)/L, uy=(ty-sy)/L, ex=ux*14, ey=uy*14, fx=ex+ux*6, fy=ey+uy*6, f=n=>n.toFixed(1);
+  const ang=Math.atan2(uy,ux)*180/Math.PI, from=Math.max(0,hang-ang).toFixed(1), d=`M0 0 L${f(ex)} ${f(ey)}`;
+  return `<g transform="translate(${sx} ${sy})"><g>`+
+    `<animateTransform attributeName="transform" type="rotate" values="${from};${from};0" keyTimes="0;0.25;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1" dur="0.9s" begin="0s" fill="freeze"/>`+
+    `<path d="${d}" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round"/>`+
+    `<path d="M${f(ex)} ${f(ey)} L${f(fx)} ${f(fy)}" fill="none" stroke="#5b4a3a" stroke-width="4" stroke-linecap="round"/><path d="M${f(ex)} ${f(ey)} L${f(fx)} ${f(fy)}" fill="none" stroke="#cdbba5" stroke-width="1.6" stroke-linecap="round"/>`+
+    `<circle cx="${f(ex)}" cy="${f(ey)}" r="3" fill="#cdbba5" stroke="#5b4a3a" stroke-width="1.8"/></g></g>`;
+};
 const FIG=p=>{ // one standard person: {x, face:'r'|'l', red, hair}
   let t=PERSON(p.x).replace(`<ellipse cx="${p.x+2}" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`,'');
   if(p.hair==='f'){ // a female person wears a dress (Axel, 5 Nov 2026); it takes the torso colour
@@ -465,12 +483,7 @@ const FIG=p=>{ // one standard person: {x, face:'r'|'l', red, hair}
   if(p.red) t=RED_BODY(t);
   if(p.point){ // the speaker points at the person or thing the pronoun names (Axel, 4 Nov 2026)
     t=t.split(`<path d="M${p.x+2} 43 L${p.x+6} 53 L${p.x+13} 58"`).join('<path data-old-arm="1" d=""');
-    const sx=p.x+3, sy=44, [tx,ty]=p.point, L=Math.hypot(tx-sx,ty-sy), ux=(tx-sx)/L, uy=(ty-sy)/L;
-    const ex=sx+ux*14, ey=sy+uy*14, fx=ex+ux*6, fy=ey+uy*6;
-    const d=`M${sx} ${sy} L${ex.toFixed(1)} ${ey.toFixed(1)}`;
-    t+=`<path d="${d}" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round"/>`+
-       `<path d="M${ex.toFixed(1)} ${ey.toFixed(1)} L${fx.toFixed(1)} ${fy.toFixed(1)}" fill="none" stroke="#5b4a3a" stroke-width="4" stroke-linecap="round"/><path d="M${ex.toFixed(1)} ${ey.toFixed(1)} L${fx.toFixed(1)} ${fy.toFixed(1)}" fill="none" stroke="#cdbba5" stroke-width="1.6" stroke-linecap="round"/>`+
-       `<circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="3" fill="#cdbba5" stroke="#5b4a3a" stroke-width="1.8"/>`;
+    t+=POINT_ARM(p.x+3,44,p.point[0],p.point[1],72); // lifts from hanging down and forward
   }
   const shadow=SHADOW(p.x+(p.face==='l'?-2:2),89,9);
   const body=p.face==='l'?MIRROR(p.x,t):t;
@@ -503,8 +516,46 @@ const PACK=(list,opts={})=>{
   });
   return out;
 };
-const LOOP=(x1,y1,x2,y2)=>{ const w=x2-x1,h=y2-y1,r=Math.min(w/2,h/2,20);
-  return {x1,y1,x2,y2,r,svg:`<rect x="${x1.toFixed(1)}" y="${y1}" width="${w.toFixed(1)}" height="${h}" rx="${r.toFixed(1)}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2"/>`}; };
+/* The lasso: a rounded loop, drawn as a path that starts at the top left near where the mouth line joins,
+   so it can be drawn in after the line (Axel, 6 Nov 2026). */
+const LOOP=(x1,y1,x2,y2,start=null)=>{ const w=x2-x1,h=y2-y1,r=Math.min(w/2,h/2,20), f=n=>(+n).toFixed(1);
+  // drawn clockwise from the point where the mouth line joins: the top edge (default, at x1+r) or the right side at start.y
+  const A=(x,y)=>`A${f(r)} ${f(r)} 0 0 1 ${f(x)} ${f(y)}`;
+  let d;
+  if(start&&start.side==='right'){ const y=start.y;
+    d=`M${f(x2)} ${f(y)} V${f(y2-r)} ${A(x2-r,y2)} H${f(x1+r)} ${A(x1,y2-r)} V${f(y1+r)} ${A(x1+r,y1)} H${f(x2-r)} ${A(x2,y1+r)} V${f(y)} Z`; }
+  else { const x=start&&start.side==='top'?Math.max(x1+r,Math.min(x2-r,start.x)):x1+r; // a point on the top edge
+    const B=(x,y)=>`A${f(r)} ${f(r)} 0 0 0 ${f(x)} ${f(y)}`; // counterclockwise corner
+    d=start&&start.ccw // first person: drawn counterclockwise (Axel, 6 Nov 2026)
+      ?`M${f(x)} ${f(y1)} H${f(x1+r)} ${B(x1,y1+r)} V${f(y2-r)} ${B(x1+r,y2)} H${f(x2-r)} ${B(x2,y2-r)} V${f(y1+r)} ${B(x2-r,y1)} H${f(x)} Z`
+      :`M${f(x)} ${f(y1)} H${f(x2-r)} ${A(x2,y1+r)} V${f(y2-r)} ${A(x2-r,y2)} H${f(x1+r)} ${A(x1,y2-r)} V${f(y1+r)} ${A(x1+r,y1)} H${f(x)} Z`;
+    start={side:'top',x,ccw:!!(start&&start.ccw)}; }
+  return {x1,y1,x2,y2,r,jx:start.side==='right'?x2:start.x,jy:start.side==='right'?start.y:y1,
+    svg:`<path data-loop="1" d="${d}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2"/>`}; };
+/* Speech bubble animation (Axel, 6 Nov 2026): the red line is drawn out from the speaker's mouth, then the lasso is drawn
+   once the line is complete. Rests on the finished bubble; off with reduced motion. delay: ms before the line starts.
+   The picture carries <!--anim:ms--> so the app waits for it before the definition. */
+/* Trial (Axel, 6 Nov 2026): the meaning carrier gives one pulse at the end of the animated sequence.
+   On only where the page sets PULSE_ON (the card test pages); the app is unchanged until the trial is approved. */
+let PULSE_N=0;
+const PULSE=(inner,at,k=1.12)=>{ // k: how much it grows (small owned things grow more, so the pulse shows) if(typeof PULSE_ON==='undefined'||!PULSE_ON) return inner;
+  const id='pls'+(PULSE_N++), T=at+500, a=(at/T*100).toFixed(1), m=((at+220)/T*100).toFixed(1);
+  return `<style>@keyframes ${id}{0%{transform:scale(1)}${a}%{transform:scale(1)}${m}%{transform:scale(${k})}100%{transform:scale(1)}}</style>`+
+    `<g class="an" style="transform-box:fill-box;transform-origin:50% 100%;animation:${id} ${T}ms ease-in-out both">${inner}</g>`; };
+/* First person: the line leaves the speaker's mouth and comes down onto the top of the bubble (Axel, 6 Nov 2026).
+   One person: it goes out in front of the face and loops up and back onto the top. Several (we, us): it rises from the mouth
+   and arcs over the other person's head, so it never covers them. */
+const SELF_LINE=(mx,my,jx,jy,wide=false)=>{
+  const d=wide?`M${mx} ${my} C ${mx+2} ${jy-12}, ${jx-6} ${jy-16}, ${jx} ${jy}`
+              :`M${mx} ${my} C ${mx+16} ${my+2}, ${jx+18} ${jy-16}, ${jx} ${jy}`;
+  return `<path d="${d}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`; };
+const ANIM_BUBBLE=(pic,delay=150)=>{
+  if(!pic.includes('data-loop="1"')) return pic;
+  const LINE=500, RING=650, st=(ms,dl)=>` pathLength="1" class="an" style="stroke-dasharray:1.04 1;stroke-dashoffset:0;animation:bubDraw ${ms}ms ease-in-out ${dl}ms both"`;
+  pic=pic.replace(/<path d="([^"]+)" fill="none" stroke="#d64541" stroke-width="3.2" stroke-linecap="round"\/>/g,
+    (m,d)=>`<path d="${d}" fill="none" stroke="#d64541" stroke-width="3.2" stroke-linecap="round"${st(LINE,delay)}/>`);
+  pic=pic.replace(/<path data-loop="1"/g,'<path data-loop="1"'+st(RING,delay+LINE));
+  return pic.replace(/<\/svg>$/,`<style>@keyframes bubDraw{0%{stroke-dashoffset:1;opacity:0}2%{opacity:1}100%{stroke-dashoffset:0;opacity:1}}@media (prefers-reduced-motion: reduce){.an{animation:none!important}}</style><!--anim:${delay+LINE+RING}--></svg>`); };
 /* A small dog, side on, facing right (away from the speaker); its body is red as the meaning carrier. No face.
    Feet on the floor at y 88; it reaches DOG_L left of x (tail), DOG_R right of x (snout) and up to DOG_TOP (ears). */
 const DOG_L=21, DOG_R=25, DOG_TOP=50;
@@ -528,32 +579,35 @@ const SCENE=({people,things=[],extraLoop=null})=>{
   named.forEach(p=>{ x1=Math.min(x1,p.box[0]); x2=Math.max(x2,p.box[1]); });
   things.forEach(t=>{ if(t.dog){ x1=Math.min(x1,t.x-DOG_L); x2=Math.max(x2,t.x+DOG_R+(t.holds?11:0)); /* room for the ball inside the loop's rounded corner */ return; } x1=Math.min(x1,t.x-t.r); x2=Math.max(x2,t.x+t.r+(t.flag?12:0)); });
   if(things.length&&!named.length){ y1=Math.min(...things.map(t=>t.dog?DOG_TOP:t.flag?44:t.y-t.r)); }
-  const loop=LOOP(x1-LM,y1-(things.length&&!named.length?LM:0),x2+LM,y2+(things.length&&!named.length?1:0));
-  const sp=people[0], mx=sp.x+8.5, my=31, self=!!sp.named;
+  // the mouth line starts at the speaker's mouth, on the front of the head (Axel, 6 Nov 2026)
+  const sp=people[0], mx=sp.x+7.3, my=32.6, self=!!sp.named;
+  const loop=LOOP(x1-LM,y1-(things.length&&!named.length?LM:0),x2+LM,y2+(things.length&&!named.length?1:0),self?{side:'top',x:Infinity,ccw:named.length<2}:null); // first person singular counterclockwise; we, us, our, ours clockwise (Axel, 6 Nov 2026) // first person: the line joins the top of the bubble (Axel, 6 Nov 2026)
   if(!self){ // the speaker points at the middle of whoever or whatever is named
     const tx=(loop.x1+loop.x2)/2, ty= things.length&&!named.length ? (loop.y1+loop.y2)/2 : (people.length>2 ? 18 : 50); // over the listener's head when someone stands between
     sp.point=[tx,ty];
   }
-  let inner=FLOOR+people.map(FIG).join('');
-  people.forEach(p=>{ if(p.holds) inner+=BALL(p.shareX ?? handOf(p),59,p.holds); });
+  // the pulse goes to the meaning carrier: in possessives the ball, otherwise the person named (Axel, 6 Nov 2026)
+  const owns=people.some(p=>p.named&&p.holds);
+  let inner=FLOOR+people.map(p=>p.named&&!owns?PULSE(FIG(p),1300):FIG(p)).join('');
+  people.forEach(p=>{ if(p.holds) inner+=PULSE(BALL(p.shareX ?? handOf(p),59,p.holds),1300,1.3); });
   things.forEach(t=>{ if(t.dog){ inner+=DOG(t.x)+(t.holds?SHADOW(t.x+22,89,5)+BALL(t.x+22,82.5,6):''); return; } /* its (2): the dog's ball sits at its front feet, clear of its red body */ inner+=SHADOW(t.x,89,t.r*.9)+BALL(t.x,t.y,t.r);
     if(t.flag) inner+=`<path d="M${t.x+8} ${t.y-8} L ${t.x+8} 46 L ${t.x+19} 50.5 L ${t.x+8} 55" fill="#e8655f" stroke="#5b4a3a" stroke-width="2" stroke-linejoin="round"/>`; });
   inner+=loop.svg;
   if(self){ // the speaker is inside the loop: the line leaves the mouth, goes out and joins the loop's side
-    const jx=loop.x2, jy=60;
-    inner+=`<path d="M${mx} ${my+1} C ${mx+18} ${my-8}, ${jx+20} ${jy-30}, ${jx+16} ${jy-10} C ${jx+13} ${jy-2}, ${jx+6} ${jy}, ${jx} ${jy}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`;
+    const jx=loop.jx, jy=loop.jy;
+    inner+=SELF_LINE(mx,my,jx,jy,named.length>1);
   } else if(things.length&&!named.length){ // it, its: the line arcs high over the person spoken to and drops onto the top of the thing's loop
     const jx=(loop.x1+loop.x2)/2, jy=loop.y1;
     inner+=`<path d="M${mx} ${my} C ${mx+6} ${my-26}, ${jx.toFixed(1)} -6, ${jx.toFixed(1)} ${jy.toFixed(1)}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`;
   } else { // the line arcs from the speaker's mouth to the top of the loop
-    const jx=loop.x1+loop.r*.6, jy=loop.y1+loop.r*.18;
+    const jx=loop.jx, jy=loop.jy;
     inner+=`<path d="M${mx} ${my} C ${mx+8} ${my-20}, ${jx-10} ${Math.min(jy,my)-18}, ${jx.toFixed(1)} ${jy.toFixed(1)}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`;
   }
   inner+=people.map(q=>HAIR(q.x,q.hair,q.face)).join('');
   // fit: everything from the leftmost person to the loop (and the self line) inside 6..94
-  let minx=Math.min(...people.map(p=>p.box[0]),loop.x1), maxx=Math.max(...people.map(p=>p.box[1]),loop.x2+(self?22:0));
+  let minx=Math.min(...people.map(p=>p.box[0]),loop.x1), maxx=Math.max(...people.map(p=>p.box[1]),loop.x2+(self?10:0));
   const sc=Math.min(1,88/(maxx-minx)), tx=50-sc*(minx+maxx)/2, ty=92*(1-sc);
-  return svg(`<g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) scale(${sc.toFixed(3)})">${inner}</g>`);
+  return ANIM_BUBBLE(svg(`<g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) scale(${sc.toFixed(3)})">${inner}</g>`));
 };
 const N=(o={})=>({named:true,red:true,...o});
 const ME=SCENE({people:PACK([N()])});
@@ -577,42 +631,35 @@ const STAND=({x,red,back,hair='n',holds=0,armR=true})=>{
     T_LIMB(`M${x-7} 43 L${x-11} 52 L${x-11} 60`,T_SKIN)+(armR?T_LIMB(`M${x+7} 43 L${x+11} 52 L${x+11} 60`,T_SKIN):'')+
     `<rect x="${x-8}" y="38" width="16" height="26" rx="6" fill="${top}" stroke="${T_INK}" stroke-width="2.5"/>`+
     (dress?`<path d="M${x-7.5} 50 L${x+7.5} 50 L${x+13} 72 Q ${x} 76, ${x-13} 72 Z" fill="${top}" stroke="${T_INK}" stroke-width="2.5" stroke-linejoin="round"/>`:'')+
-    `<circle cx="${x}" cy="29" r="8" fill="${T_SKIN}" stroke="${T_INK}" stroke-width="2.5"/>`;
+    `<circle cx="${x}" cy="29" r="8" fill="${T_SKIN}" stroke="${T_INK}" stroke-width="2.5"/>`+
+    (back?'':`<circle cx="${x-3.2}" cy="28" r="1.3" fill="${T_INK}"/><circle cx="${x+3.2}" cy="28" r="1.3" fill="${T_INK}"/>`); // eyes: two dots facing us (Axel, 6 Nov 2026)
   if(back){ // the back of the head is covered in hair
     s+=`<path d="M${x-8} 31 C ${x-9.5} 17.5, ${x+9.5} 17.5, ${x+8} 31 C ${x+6.5} 36, ${x-6.5} 36, ${x-8} 31 Z" fill="${T_HAIR[hair]}" stroke="${T_INK}" stroke-width="2"/>`;
     if(hair==='f') s+=`<path d="M${x} 32 C ${x+1} 38, ${x-1} 42, ${x} 47" fill="none" stroke="${T_INK}" stroke-width="7.5" stroke-linecap="round"/><path d="M${x} 32 C ${x+1} 38, ${x-1} 42, ${x} 47" fill="none" stroke="${T_HAIR.f}" stroke-width="4.5" stroke-linecap="round"/>`;
   }
-  if(holds) s+=BALL(x+12,61,holds); // a held ball, in the hand on the viewer's right
+  if(holds) s+=`<g data-own="1">${BALL(x+12,61,holds)}</g>`; // a held ball, in the hand on the viewer's right (marked: it is what pulses)
   return s;
 };
 /* Scale a drawing about its feet at (x, 88), placing the feet at (x, feetY). */
 const AT=(x,feetY,s,inner)=>`<g transform="translate(${(x-s*x).toFixed(2)} ${(feetY-s*88).toFixed(2)}) scale(${s})">${inner}</g>`;
 /* The speaker's pointing arm, lifting from hanging down to pointing at (tx,ty) (CSS; rests at its final frame). */
 let T_ARM_N=0;
-const LIFT_ARM=(sx,sy,tx,ty)=>{
-  const L=Math.hypot(tx-sx,ty-sy), ux=(tx-sx)/L, uy=(ty-sy)/L, ex=sx+ux*14, ey=sy+uy*14, fx=ex+ux*6, fy=ey+uy*6, f=n=>n.toFixed(1);
-  const ang=Math.atan2(uy,ux)*180/Math.PI, from=80-ang; // hanging down and slightly out
-  const d=`M${sx} ${sy} L${f(ex)} ${f(ey)}`, id='lift'+(T_ARM_N++);
-  return `<style>@keyframes ${id}{0%{transform:rotate(${from.toFixed(1)}deg)}25%{transform:rotate(${from.toFixed(1)}deg)}100%{transform:rotate(0deg)}}@media (prefers-reduced-motion: reduce){.an{animation:none!important}}</style>`+
-    // the turning point is the shoulder, given relative to the arm's own box (fill-box), so it holds inside a scaled scene
-    `<g class="an" style="transform-box:fill-box;transform-origin:${f(sx-Math.min(sx,ex-3,fx))}px ${f(sy-Math.min(sy,ey-3,fy))}px;animation:${id} 900ms ease-in-out both">`+
-    `<path d="${d}" fill="none" stroke="${T_INK}" stroke-width="6.5" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${T_SKIN}" stroke-width="3" stroke-linecap="round"/>`+
-    `<path d="M${f(ex)} ${f(ey)} L${f(fx)} ${f(fy)}" fill="none" stroke="${T_INK}" stroke-width="4" stroke-linecap="round"/><path d="M${f(ex)} ${f(ey)} L${f(fx)} ${f(fy)}" fill="none" stroke="${T_SKIN}" stroke-width="1.6" stroke-linecap="round"/>`+
-    `<circle cx="${f(ex)}" cy="${f(ey)}" r="3" fill="${T_SKIN}" stroke="${T_INK}" stroke-width="1.8"/></g>`;
-};
+const LIFT_ARM=(sx,sy,tx,ty)=>POINT_ARM(sx,sy,tx,ty,82); // the speaker facing us: the arm hangs straight down at the side first
 /* The scene. named: drawing of what is spoken about (already placed, further away on the right) and its box [x1,y1,x2,y2]. */
 const T_SP={x:46,feet:86}, T_TO={x:15,feet:97,s:1.12}, T_FAR={feet:74,s:.6};
 /* lasso:false (goes, comes) leaves out the lasso and the mouth line; the speaker then points at target. */
-const THIRD_SCENE=({named,box,extra='',lasso=true,target=null})=>{
+const THIRD_SCENE=({named,box,extra='',lasso=true,target=null,pulseAt=null})=>{
   const loop=lasso?LOOP(box[0]-LM,box[1]-LM,box[2]+LM,box[3]+2):null;
   const dy=T_SP.feet-88, sx=T_SP.x+7, sy=43+dy;
   const [tx,ty]=target||[(loop.x1+loop.x2)/2,(loop.y1+loop.y2)/2];
   const speaker=`<g transform="translate(0 ${dy})">${STAND({x:T_SP.x,armR:false})}</g>`;
   let line='';
-  if(lasso){ const mx=T_SP.x+4, my=34+dy, jx=loop.x1+loop.r*.6, jy=loop.y1+loop.r*.15;
-    line=`<path d="M${mx} ${my} C ${mx+4} ${my-24}, ${jx-8} ${Math.min(jy,my)-20}, ${jx.toFixed(1)} ${jy.toFixed(1)}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`; }
-  const inner=named+extra+(loop?loop.svg:'')+speaker+LIFT_ARM(sx,sy,tx,ty)+line+AT(T_TO.x,T_TO.feet,T_TO.s,STAND({x:T_TO.x,back:true}));
-  return svg(GROUND+FIT3(inner,0,Math.max(100,loop?loop.x2+2:(box?box[2]+4:100))));
+  if(lasso){ const mx=T_SP.x, my=34.5+dy, jx=loop.jx, jy=loop.jy; // the speaker faces us: the mouth is at the middle of the face
+    line=`<path d="M${mx} ${my} C ${mx+14} ${my+2}, ${jx-14} ${jy-22}, ${jx.toFixed(1)} ${jy.toFixed(1)}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`; }
+  const at=pulseAt??(lasso?1450:950), own=/<g data-own="1">([\s\S]*?)<\/g>/g;
+  const pulsed=own.test(named)?named.replace(own,(m,x)=>PULSE(x,at,1.4)):PULSE(named,at); // possessives: only what is owned pulses
+  const inner=pulsed+extra+(loop?loop.svg:'')+speaker+LIFT_ARM(sx,sy,tx,ty)+line+AT(T_TO.x,T_TO.feet,T_TO.s,STAND({x:T_TO.x,back:true}));
+  return ANIM_BUBBLE(svg(GROUND+FIT3(inner,0,Math.max(100,loop?loop.x2+2:(box?box[2]+4:100)))),300);
 };
 const FIT3=(inner,minx,maxx)=>{ const s=Math.min(1,96/(maxx-minx)), tx=50-s*(minx+maxx)/2, ty=96*(1-s);
   return `<g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) scale(${s.toFixed(3)})">${inner}</g>`; };
@@ -626,15 +673,18 @@ const THIRD_OWN=hair=>{ const p=FARP(86,{hair,holds:6}); return THIRD_SCENE({nam
 const HE=THIRD('m'), SHE=THIRD('f'), HIS=THIRD_OWN('m'), HERS=THIRD_OWN('f');
 /* they, them, their, theirs: two people spoken about. */
 const THEY=(()=>{ const a=FARP(80), b=FARP(96); return THIRD_SCENE({named:a.svg+b.svg,box:UNION([a.box,b.box])}); })();
-const THEIRS=(()=>{ const a=FARP(80), b=FARP(96,{holds:6}); return THIRD_SCENE({named:a.svg+b.svg,box:UNION([a.box,b.box])}); })();
+/* their, theirs: the two people spoken about share one ball between them (Axel, 6 Nov 2026) */
+const THEIRS=(()=>{ const a=FARP(80), b=FARP(96), bx=88, by=T_FAR.feet-(88-60)*T_FAR.s, r=5;
+  const ball=`<g data-own="1">${BALL(bx,by,r)}</g>`;
+  return THIRD_SCENE({named:a.svg+b.svg+ball,box:UNION([a.box,b.box,[bx-r,by-r,bx+r,by+r]])}); })();
 /* it, its: a ball (with its flag for its) further away on the right. */
 const FAR_THING=flag=>{ const x=86, r=6, y=T_FAR.feet-r;
-  const s=SHADOW(x,T_FAR.feet+1,r*.9)+BALL(x,y,r)+(flag?`<path d="M${x+5} ${y-5} L ${x+5} ${y-20} L ${x+13} ${y-16.5} L ${x+5} ${y-13}" fill="#e8655f" stroke="#5b4a3a" stroke-width="2" stroke-linejoin="round"/>`:'');
+  const s=SHADOW(x,T_FAR.feet+1,r*.9)+BALL(x,y,r)+(flag?`<g data-own="1"><path d="M${x+5} ${y-5} L ${x+5} ${y-20} L ${x+13} ${y-16.5} L ${x+5} ${y-13}" fill="#e8655f" stroke="#5b4a3a" stroke-width="2" stroke-linejoin="round"/></g>`:'');
   return THIRD_SCENE({named:s,box:[x-r,flag?y-21:y-r,x+r+(flag?9:0),T_FAR.feet+1]}); };
 const IT=FAR_THING(false), ITS=FAR_THING(true);
 /* it (2), its (2): a dog further away, facing away (to the right); for its, the dog's ball at its front feet. */
 const FAR_ANIMAL=holds=>{ const x=84, s=.72;
-  return THIRD_SCENE({named:AT(x,T_FAR.feet,s,DOG(x)+(holds?SHADOW(x+22,89,5)+BALL(x+22,82.5,6):'')),
+  return THIRD_SCENE({named:AT(x,T_FAR.feet,s,DOG(x)+(holds?SHADOW(x+22,89,5)+`<g data-own="1">${BALL(x+22,82.5,6)}</g>`:'')),
     box:[x-DOG_L*s, T_FAR.feet-(88-DOG_TOP)*s, x+(DOG_R+(holds?6:0))*s, T_FAR.feet+1]}); };
 const IT_ANIMAL=FAR_ANIMAL(false), ITS_ANIMAL=FAR_ANIMAL(true);
 const WE=SCENE({people:PACK([N(),N({face:'l'})],{gaps:[null,6]})}); // the two face each other (Axel, 5 Nov 2026)
@@ -670,7 +720,7 @@ const CLOCK=(cx,cy,h)=>{ const a=(h%12)*30*Math.PI/180, hx=cx+4.2*Math.sin(a), h
 const TIMELINE_CLOCKS=(markers,y=36)=>`<line x1="5" y1="${y}" x2="91" y2="${y}" stroke="#8a7a68" stroke-width="2.4" stroke-linecap="round"/><path d="M88 ${y-4.5} L95 ${y} L88 ${y+4.5}" fill="none" stroke="#8a7a68" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`+
   markers.map(m=>(m.kind==='now'
     ? `<circle cx="${m.x}" cy="${y}" r="4.5" fill="#fffdf8" stroke="#5b4a3a" stroke-width="2"/>`
-    : `<circle cx="${m.x}" cy="${y}" r="4.5" fill="#e8655f" stroke="#5b4a3a" stroke-width="2"/>`)).join('');
+    : '')).join(''); // past markers have no dot: the faint red person and the moving clock show the past (Axel, 6 Nov 2026)
 /* One clock travels along the time line, its hands turning, from x0 to x1 between a% and b% of the card's T ms
    (Axel, 5 Nov 2026); it rests at x1. lin: move at an even pace (continuous forms). */
 let CLOCK_N=0;
@@ -710,7 +760,7 @@ const HIDE_AT=(name,ms,a,b,inner)=>AN(name,ms,'opacity:0',`0%{opacity:1}${a}%{op
 /* arrow ahead of a walker at x facing dir: a short dashed lead and the arrowhead, so the walker is at the start of the arrow */
 const LEAD=(x,dir,y=85)=>TRAIL(`M${x+dir*15} ${y} L ${x+dir*27} ${y}`)+CHEV(x+dir*30,dir,y);
 /* speech bubble (lasso and mouth line) for a person in the profile scene, speaker at x=14 */
-const BUBBLE=(x1,x2,y1=14,y2=93)=>{ const loop=LOOP(x1,y1,x2,y2), mx=22.5, my=31, jx=loop.x1+loop.r*.6, jy=loop.y1+loop.r*.18;
+const BUBBLE=(x1,x2,y1=14,y2=93)=>{ const loop=LOOP(x1,y1,x2,y2), mx=21.3, my=32.6, jx=loop.jx, jy=loop.jy;
   return loop.svg+`<path d="M${mx} ${my} C ${mx+8} ${my-20}, ${jx-10} ${Math.min(jy,my)-18}, ${jx.toFixed(1)} ${jy.toFixed(1)}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`; };
 const SPACEBOX=(x1,y1,x2,y2)=>`<rect x="${x1}" y="${y1}" width="${x2-x1}" height="${y2-y1}" rx="9" fill="#f5b8b2" fill-opacity=".7" stroke="#d64541" stroke-width="2.5" stroke-dasharray="5 4"/>`;
 
@@ -727,10 +777,10 @@ const COME=(()=>{ const T=1500, x0=92, x1=62;
 /* goes / comes (he goes, he comes): the speaker's arm lifts first (0.9 s), then the person spoken about moves. */
 const FARFIG=(x,face,walk=true)=>AT(x,T_FAR.feet,T_FAR.s,FIG({x,red:true,face,walk}));
 const GOES=(()=>{ const T=2000, x0=70, x1=94;
-  return THIRD_SCENE({lasso:false,target:[x1,54],box:[60,30,104,76],
+  return THIRD_SCENE({lasso:false,pulseAt:2000,target:[x1,54],box:[60,30,104,76],
     named:AN_CALM+TRAIL(`M${x0} 72 L ${x1-10} 72`)+MOVE_X('gsm',T,x1-x0,45,95,AT(x0,T_FAR.feet,T_FAR.s,CHEV(x0-14,1)+FIG({x:x0,red:true,walk:true})))}); })();
 const COMES=(()=>{ const T=2000, x0=100, x1=80;
-  return THIRD_SCENE({lasso:false,target:[x1+4,54],box:[60,30,108,76],
+  return THIRD_SCENE({lasso:false,pulseAt:2000,target:[x1+4,54],box:[60,30,108,76],
     named:AN_CALM+MOVE_X('csm',T,x1-x0,45,95,AT(x0,T_FAR.feet,T_FAR.s,LEAD(x0,-1)+FIG({x:x0,red:true,face:'l',walk:true})))}); })();
 
 /* Continuous: a time line from a start marker to "now"; the red bar grows on past "now" and the person moves along with its end. */
@@ -770,9 +820,8 @@ const GONE=(()=>{ const T=2400; return svg(AN_CALM+TIMELINE_CLOCKS([{x:22,kind:'
 /* be, are (1) (you are): the person spoken to in their space, inside the speech bubble; the speaker points at them. */
 const BE_YOU=svg(FLOOR+FIT(FIG({x:14,point:[57,50]})+SPACEBOX(42,18,72,91)+FIG({x:60,face:'l',red:true})+BUBBLE(37,77,12,95),5,80));
 /* am (I am): the speaker in their space, inside the speech bubble, with the line from the mouth (as in "I"). */
-const BE_I=(()=>{ const loop=LOOP(29,11,67,95), mx=56.5, my=31, jx=67, jy=60;
-  return svg(FLOOR+SPACEBOX(34,16,62,91)+FIG({x:48,red:true})+loop.svg+
-    `<path d="M${mx} ${my+1} C ${mx+18} ${my-8}, ${jx+20} ${jy-30}, ${jx+16} ${jy-10} C ${jx+13} ${jy-2}, ${jx+6} ${jy}, ${jx} ${jy}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`); })();
+const BE_I=(()=>{ const loop=LOOP(29,11,67,95,{side:'top',x:Infinity,ccw:true});
+  return svg(FLOOR+SPACEBOX(34,16,62,91)+FIG({x:48,red:true})+loop.svg+SELF_LINE(55.3,32.6,loop.jx,loop.jy)); })();
 /* is, are (2): the third-person scene with the person or people spoken about in their space. */
 const FAR_SPACE=list=>{ const ps=list.map(([x,o])=>FARP(x,o||{})), b=UNION(ps.map(q=>q.box));
   return THIRD_SCENE({lasso:false,target:[(b[0]+b[2])/2,(b[1]+b[3])/2],box:[b[0]-4,b[1],b[2]+4,b[3]],
@@ -814,13 +863,14 @@ const FOR_DURING=svg(
 
 /* defAt (ms): past forms show and say the definition only once the red person has appeared in the past (Axel, 5 Nov 2026). */
 const M=(path,r)=>({path,r});
+/* speech bubbles are drawn in from the mouth (ANIM_BUBBLE, Axel 6 Nov 2026) */
 const BATCH3_CARDS=[
-  {word:'go', set:[{def:'move away',svg:GO,anim:1500}]},
+  {word:'go', set:[{def:'move away',svg:ANIM_BUBBLE(GO,975),anim:2150}]},
   {word:'goes', set:[{def:'moves away',svg:GOES,anim:2000}]},
   {word:'going', set:[{def:'moving away',svg:GOING,anim:1800}], note:'card 2 still to revisit'},
   {word:'went', set:[{def:'moved away',svg:WENT,anim:2600,defAt:1800}]},
   {word:'gone', set:[{def:'has moved away',svg:GONE,anim:2400,defAt:1650}]},
-  {word:'come', set:[{def:'move toward',svg:COME,anim:1500}]},
+  {word:'come', set:[{def:'move toward',svg:ANIM_BUBBLE(COME,975),anim:2150}]},
   {word:'comes', set:[{def:'moves toward',svg:COMES,anim:2000}]},
   {word:'coming', set:[{def:'moving toward',svg:COMING,anim:1800}]},
   {word:'came', set:[{def:'moved toward',svg:CAME,anim:2600,defAt:1800}]},
@@ -828,9 +878,9 @@ const BATCH3_CARDS=[
   {word:'same', set:[{def:'identical',svg:SAME}]},
   {word:'with', set:[{def:'alongside',svg:WITH,move:M(MOVES.with,8)}], note:'card 2 ("using") still to review'},
   {word:'for', set:[{def:'to be given to',svg:FOR_GIVEN,move:M(MOVES.for,6)},{def:'during',svg:FOR_DURING,anim:1100}]},
-  {word:'be', set:[{def:'take up space',svg:BE_YOU}], group:'be'},
-  {word:'am', set:[{def:'take up space',svg:BE_I}]},
-  {word:'are', set:[{def:'take up space',svg:BE_YOU},{def:'take up space',svg:BE_THEY}]},
+  {word:'be', set:[{def:'take up space',svg:ANIM_BUBBLE(BE_YOU)}], group:'be'},
+  {word:'am', set:[{def:'take up space',svg:ANIM_BUBBLE(BE_I)}]},
+  {word:'are', set:[{def:'take up space',svg:ANIM_BUBBLE(BE_YOU)},{def:'take up space',svg:BE_THEY}]},
   {word:'is', set:[{def:'takes up space',svg:BE_HE}]},
   {word:'being', set:[{def:'taking up space',svg:BEING,anim:1800}]},
   {word:'was', set:[{def:'took up space',svg:BE_WAS,anim:2400,defAt:1650}]},
@@ -944,9 +994,9 @@ Every day Rex goes to the river. "Is he going again?" Sam asked. "He has gone," 
 const TOLD_LIMIT = 4;
 const COLOURS=[["Cream","#FBF5E4"],["Butter","#FBF3C8"],["Peach","#FCE6D6"],["Rose","#F9E1E4"],["Lilac","#ECE4F5"],["Sky","#E1EDF8"],["Aqua","#DDF2EF"],["Mint","#E3F3DF"],["Stone","#EEEDE8"]];
 const GUIDE = {
- 1:{say:"Spell the word as the letters are revealed. Then I will say the word, and you say it back while looking at it.",keys:["→: reveal the next letter","←: go back a letter","↑: say the word now","Tap any underlined word for its meaning card"],watch:["A letter swapped, missed or changed","Head moving closer to the page","Hesitation, speeding up, slowing down, or a flat voice"],next:"Move on when the student recognises most words on their own."},
- 2:{say:"Let your eyes sweep over the word. If it doesn't just come out of your mouth, sweep it again. If it still doesn't, spell it.",keys:["→: next word","←: sweep again, then spell it","↑: say the word","Tap any underlined word for its meaning card"],watch:["At the first sign of disorientation, cover the text (C)"],next:`Only words you had to say ${TOLD_LIMIT} times are listed for Symbol Mastery.`},
- 3:{say:"Now we add meaning. When you reach a STOP sign, stop and make a picture in your mind of what you just read.",keys:["→: next word; at a STOP sign, → covers the words","N: at a STOP sign, go on to the next word without asking","←: sweep again; press again to spell it","↑: say the word","Tap an underlined word for its meaning card"],watch:["Unknown words: explain them or look them up together."],next:"The job is done when the student starts reading for pleasure."}
+ 1:{say:"Spell the word as the letters are revealed. Then I will say the word, and you say it back while looking at it.",keys:["→: reveal the next letter","←: go back a letter","↑: say the word now; on an underlined word, open its meaning card (↑ again: next card)","↓: close the card","Tap any underlined word for its meaning card"],watch:["A letter swapped, missed or changed","Head moving closer to the page","Hesitation, speeding up, slowing down, or a flat voice"],next:"Move on when the student recognises most words on their own."},
+ 2:{say:"Let your eyes sweep over the word. If it doesn't just come out of your mouth, sweep it again. If it still doesn't, spell it.",keys:["→: next word","←: sweep again, then spell it","↑: say the word; on an underlined word, open its meaning card (↑ again: next card)","↓: close the card","In the two-card view, click the top card for the next word","Tap any underlined word for its meaning card"],watch:["At the first sign of disorientation, cover the text (C)"],next:`Only words you had to say ${TOLD_LIMIT} times are listed for Symbol Mastery.`},
+ 3:{say:"Now we add meaning. When you reach a STOP sign, stop and make a picture in your mind of what you just read.",keys:["→: next word; at a STOP sign, → covers the words","N: at a STOP sign, go on to the next word without asking","←: sweep again; press again to spell it","↑: say the word; on an underlined word, open its meaning card (↑ again: next card)","↓: close the card","In the two-card view, click the top card for the next word","Tap an underlined word for its meaning card"],watch:["Unknown words: explain them or look them up together."],next:"The job is done when the student starts reading for pleasure."}
 };
 const PURPOSE={1:["Train left-to-right eye movement","Recognise groups of letters as words","Understanding is not the goal yet"],2:["Continue left-to-right eye movement","Continue word recognition","Understanding is still not the goal"],3:["Understanding what is read","Goal: full comprehension"]};
 const VOICE_NOTE={1:"With Voice on, the app says the word about a second after the last letter appears.",2:"With Voice on, ↑ speaks the word after the delay and counts it.",3:"With Voice on, ↑ speaks it after the delay and counts it."};
@@ -954,11 +1004,11 @@ const CHECKS = ["The room is well lit and comfortable","Sit across from the stud
 
 const STORE_KEY="three-step-reading-v2";
 function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY))||{}; }catch(e){ return {}; } }
-function saveStore(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify({counts:S.counts,manual:[...S.manual],hidden:[...S.hiddenWords],mins:S.mins,speed:S.speed,coverPic:S.coverPic,swait:S.swait,pace:S.pace,listen:S.listen,lwin:S.lwin,voiceName:S.voiceName,tsize:S.tsize,colour:S.colour,voice:S.voice,vdelay:S.vdelay,step:S.step,mode:S.mode,view:S.view,trig:S.trig,raw:S.raw})); }catch(e){} }
+function saveStore(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify({counts:S.counts,manual:[...S.manual],hidden:[...S.hiddenWords],mins:S.mins,speed:S.speed,coverPic:S.coverPic,swait:S.swait,pace:S.pace,listen:S.listen,lwin:S.lwin,voiceName:S.voiceName,tsize:S.tsize,colour:S.colour,voice:S.voice,vdelay:S.vdelay,step:S.step,mode:S.mode,view:S.view,trig:S.trig,ulOn:S.ulOn,ul:S.ul,raw:S.raw})); }catch(e){} }
 
 const st=loadStore();
 const S={
-  step:st.step||1, view:st.view||"cards", mode:st.mode||"word", coverPic:st.coverPic!==false, check:-1, chips:false, desc:[], swait:st.swait||2, pace:st.pace||1, spell:false, backs:0, resweep:0, listen:!!st.listen, lwin:Math.min(1,Math.max(.2,st.lwin||.8)), voiceName:st.voiceName||"", tsize:st.tsize||2.2, colour:st.colour||"#FBF5E4", voice:!!st.voice, vdelay:Math.min(1,Math.max(0.1,st.vdelay||1)), mins:st.mins||8, speed:st.speed||0.6, trig:st.trig!==false, raw:st.raw||SAMPLE, reSweeping:false,
+  step:st.step||1, view:st.view||"cards", mode:st.mode||"word", coverPic:st.coverPic!==false, check:-1, chips:false, desc:[], swait:st.swait||2, pace:st.pace||1, spell:false, backs:0, resweep:0, listen:!!st.listen, lwin:Math.min(1,Math.max(.2,st.lwin||.8)), voiceName:st.voiceName||"", tsize:st.tsize||2.2, colour:st.colour||"#FBF5E4", voice:!!st.voice, vdelay:Math.min(1,Math.max(0.1,st.vdelay||1)), mins:st.mins||8, speed:st.speed||0.6, trig:st.trig!==false, ulOn:st.ulOn!==false, ul:Math.min(100,Math.max(10,st.ul||60)), raw:st.raw||SAMPLE, reSweeping:false,
   counts:st.counts||{}, manual:new Set(st.manual||[]), hiddenWords:new Set(st.hidden||[]),
   toks:[], lines:[], proper:new Set(), pos:0, k:0, chunkStart:0, phase:"read", ask:"see",
   toldHere:new Set(), sweepAt:0, covered:false, running:false, elapsed:0, lastTick:0
@@ -1012,6 +1062,10 @@ const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&qu
 const letters=w=>Math.max(1,(w.match(/[\p{L}\p{N}]/gu)||[]).length);
 
 let WE=[], M=null, lastKey="", lastLine=-1, pend=null, lowPend=null;
+/* Underline strength: thicker and darker as it rises; off hides the line (Axel, 6 Nov 2026). */
+function applyUl(){ const page=$("page");
+  page.style.setProperty("--ul-w",(1+3*S.ul/100).toFixed(2)+"px"); page.style.setProperty("--ul-a",Math.round(25+75*S.ul/100)+"%");
+  $("passage").classList.toggle("no-ul",!S.ulOn); }
 function buildPassage(){
   const T=S.toks; let h="<p>";
   T.forEach((t,i)=>{
@@ -1024,6 +1078,7 @@ function buildPassage(){
 }
 function measure(){
   const page=$("page"); page.style.setProperty("--ts",S.tsize+"rem");
+  applyUl();
   const lh=parseFloat(getComputedStyle($("passage")).lineHeight);
   const rPage=page.getBoundingClientRect();
   const words=WE.map(el=>{
@@ -1284,6 +1339,8 @@ function renderDrawer(){
   $("coverSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.cov==="1")===S.coverPic)));
   $("speedField").hidden=S.step===1;
   $("trigOn").checked=!!S.trig;
+  $("ulOnRow").hidden=!S.trig; $("ulField").hidden=!S.trig||!S.ulOn; $("ulOn").checked=!!S.ulOn;
+  $("ulStr").value=S.ul; $("ulStrOut").textContent=S.ul+"%";
   $("mins").value=S.mins; $("minsOut").textContent=S.mins+" min";
   $("swait").value=S.swait; $("swaitOut").textContent=S.swait.toFixed(1)+" s"; $("swaitField").hidden=S.step===1;
   $("pace").value=S.pace; $("paceOut").textContent=S.pace.toFixed(1)+" s per letter"; $("paceField").hidden=S.step===1;
@@ -1387,7 +1444,7 @@ function moveBall(svgEl,move,done){
   put(0);
   const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
   let start=0;
-  const tick=now=>{if(!start)start=now;const t=Math.min(1,(now-start)/1000);put(ease(t)*L);if(t<1)requestAnimationFrame(tick);else if(done)done();};
+  const tick=now=>{if(!start)start=now;const t=Math.min(1,(now-start)/(move.ms||1000));put(ease(t)*L);if(t<1)requestAnimationFrame(tick);else if(done)done();};
   requestAnimationFrame(tick);
 }
 function wipeDef(def){
@@ -1433,13 +1490,16 @@ function renderCard(swap){
   el.querySelector(".card").addEventListener("click",e=>{e.stopPropagation(); stepCard();});
   layer.append(el);
   const pic=el.querySelector(".pic svg");
+  // reduced motion: SVG-timed parts (the pointing arm) jump straight to their final frame
+  if(pic && calm() && pic.setCurrentTime){ try{ pic.setCurrentTime(30); pic.pauseAnimations(); }catch(e){} }
   if(pic && c.move) moveBall(pic, c.move);
   openCard.el=el; openCard.defShown=false;
   placeCard();
   const me=openCard;
   // the definition follows once the word is said and the picture is ready: defAt (past forms: the red person has
   // appeared), else the end of its animation or movement (Axel, 5 Nov 2026); no wait with reduced motion
-  const wait=calm()?0:(c.defAt ?? c.anim ?? (c.move?1050:0)), t0=performance.now();
+  const svgAnim=+((/<!--anim:(\d+)-->/.exec(c.svg)||[])[1]||0);
+  const wait=calm()?0:(c.defAt ?? c.anim ?? (c.move?(c.move.ms||1000)+50:svgAnim)), t0=performance.now();
   const ready=()=>{ if(openCard!==me) return; const left=wait-(performance.now()-t0); if(left>0) laterCard(()=>{ if(openCard===me) showDef(); },left); else showDef(); };
   speakCardWord(openCard.word.textContent,300,ready);
   laterCard(()=>{ if(openCard===me) showDef(); },Math.max(3000,wait+600));
@@ -1697,12 +1757,16 @@ document.addEventListener("click", e => {
 });
 
 $("reader").addEventListener("scroll", ()=>{ if(openCard) placeCard(); }, {passive:true});
+/* Two-card view: clicking the top card goes on to the next word, like the right arrow (Axel, 6 Nov 2026). */
+$("slider").addEventListener("click", e=>{ e.stopPropagation(); if(openCard){ closeCard(); return; } act("next"); });
 
 $("helperBtn").onclick=openDrawer; $("closeDrawer").onclick=closeDrawer; $("shade").onclick=closeDrawer;
 $("stepSel").addEventListener("change",e=>{ S.step=+e.target.value; e.target.blur(); cancelVoice(); reset(); saveStore(); closeDrawer(); lastKey=""; lastSent=-1; $("sweeps").innerHTML=""; if(!S.running) S.running=true; render(); if(S.listen){ startRec(); armSweep(); } });
 $("viewSeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; S.view=b.dataset.view; saveStore(); lastKey=""; render(); });
 $("modeSeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; S.mode=b.dataset.mode; if(S.pos<S.toks.length&&S.mode==="line") S.pos=lineStart(S.pos); S.sweepAt=performance.now(); saveStore(); render(); });
-$("trigOn").onchange=e=>{ S.trig=e.target.checked; saveStore(); buildPassage(); render(); };
+$("trigOn").onchange=e=>{ S.trig=e.target.checked; saveStore(); buildPassage(); render(); renderDrawer(); };
+$("ulOn").onchange=e=>{ S.ulOn=e.target.checked; saveStore(); applyUl(); renderDrawer(); };
+$("ulStr").oninput=e=>{ S.ul=+e.target.value; saveStore(); applyUl(); renderDrawer(); };
 $("mins").oninput=e=>{ S.mins=+e.target.value; saveStore(); renderDrawer(); };
 $("swait").oninput=e=>{ S.swait=+e.target.value; saveStore(); renderDrawer(); };
 $("pace").oninput=e=>{ S.pace=+e.target.value; saveStore(); renderDrawer(); };
@@ -1739,6 +1803,9 @@ document.addEventListener("keydown",e=>{
   const k=e.key;
   if(k===" "||k==="ArrowRight"){ e.preventDefault(); act("next"); }
   else if(k==="ArrowLeft"){ e.preventDefault(); act("back"); }
+  else if(k==="ArrowUp"&&openCard){ e.preventDefault(); stepCard(); }
+  else if(k==="ArrowUp"&&S.trig&&S.pos<S.toks.length&&CARDS[S.toks[S.pos].key]&&!S.covered){ e.preventDefault(); openCardFor(S.pos); }
+  else if(k==="ArrowDown"){ if(openCard){ e.preventDefault(); closeCard(); } }
   else if(k==="ArrowUp"){ e.preventDefault(); if(S.step===1){ if(S.pos<S.toks.length) sayNow(S.toks[S.pos].w.replace(/[^\p{L}\p{N}'’-]/gu,"")); } else act("told"); }
   else if(k==="c"||k==="C"){ act("cover"); }
   else if(k==="f"||k==="F"){ act("ask"); }
