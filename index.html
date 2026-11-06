@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Three-Step Reading Trainer</title>
+<title>SweepReader</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2048%2048%22%3E%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%2246%22%20height%3D%2246%22%20rx%3D%2211%22%20fill%3D%22%23FFFDF7%22%20stroke%3D%22%23000%22%20stroke-opacity%3D%22.16%22%20stroke-width%3D%221.4%22/%3E%3Crect%20x%3D%229%22%20y%3D%2212%22%20width%3D%2222%22%20height%3D%225%22%20rx%3D%222.5%22%20fill%3D%22%23000%22/%3E%3Ccircle%20cx%3D%2236%22%20cy%3D%2214.5%22%20r%3D%222.7%22%20fill%3D%22%234B2E73%22/%3E%3Crect%20x%3D%228%22%20y%3D%2230%22%20width%3D%2232%22%20height%3D%2210%22%20rx%3D%222%22%20fill%3D%22%23DFD6C2%22/%3E%3Crect%20x%3D%229%22%20y%3D%2222%22%20width%3D%229%22%20height%3D%225%22%20rx%3D%222.5%22%20fill%3D%22%23000%22/%3E%3Crect%20x%3D%2220%22%20y%3D%2219.5%22%20width%3D%2220%22%20height%3D%2210%22%20rx%3D%221.5%22%20fill%3D%22%23DFD6C2%22/%3E%3Crect%20x%3D%2220%22%20y%3D%2219.5%22%20width%3D%221.8%22%20height%3D%2210%22%20fill%3D%22%23A99C7E%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&display=swap">
 <style>
@@ -25,7 +26,14 @@ button{cursor:pointer}
 .bar{height:5px;background:var(--line);flex:none}
 .bar i{display:block;height:100%;width:0;background:var(--bar);transition:width 1s linear,background .6s}
 .bar.done i{background:var(--barEnd)}
-.top{display:flex;justify-content:space-between;align-items:center;padding-inline:16px;padding-block:10px;color:var(--muted);font-size:.85rem;flex:none}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding-inline:16px 8px;padding-block:8px 6px;color:var(--muted);font-size:.85rem;flex:none}
+.brand{display:flex;align-items:center;gap:9px;color:var(--fg);flex:none}
+.brand .mark{flex:none;display:block}
+.wm{font-size:19px;line-height:1;letter-spacing:-.01em;font-weight:500;white-space:nowrap}
+.wm span{font-weight:300}
+.top .pills{margin-left:auto}
+.top .stepsel{order:3;flex:none}
+@media (min-width:720px){.top .stepsel{order:0}.top{padding-inline:16px}}
 .ghost{background:none;border:0;color:var(--muted);padding:6px 8px;border-radius:8px;position:relative}
 .ghost:hover{color:var(--fg)}
 .stepsel{appearance:none;-webkit-appearance:none;border:1px solid var(--line);background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236E6A60' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 12px center;border-radius:999px;padding:5px 32px 5px 14px;font-size:.88rem;color:var(--fg);cursor:pointer;max-width:62vw}
@@ -66,14 +74,15 @@ button{cursor:pointer}
 .sc-s.sc-sm{font-size:1.5rem;line-height:1.75;white-space:nowrap}
 .sc-n{font-size:.7rem;line-height:1.25;color:#3d3547}
 @media (max-width:560px){.stopchart{grid-template-columns:1fr 1fr 1fr}.sc-n{display:none}.sc-i{min-width:1.4em}.sc-row{gap:2px 10px}.spacer{height:8rem}}
-.peek{position:absolute;z-index:4;background:var(--bg);border-radius:6px;box-shadow:0 0 0 2px #4B2E73;padding:0 .12em;margin-left:-.12em;line-height:inherit;letter-spacing:.04em;white-space:nowrap;display:flex;align-items:center}
+.passage .w.pointed{background:color-mix(in srgb,#4B2E73 18%,var(--bg));box-shadow:0 0 0 2px #4B2E73;border-radius:6px}
+.peek{position:absolute;z-index:4;background:color-mix(in srgb,#4B2E73 18%,var(--bg));border-radius:6px;box-shadow:0 0 0 2px #4B2E73;padding:0 .12em;margin-left:-.12em;line-height:inherit;letter-spacing:.04em;white-space:nowrap;display:flex;align-items:center}
 .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:44rem}
 .chips .lbl{width:100%;text-align:center;color:var(--muted);font-size:.82rem}
 .chips button{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:4px 10px;font-size:.9rem;color:var(--fg)}
 .chips button.sugg{border-color:#4B2E73;border-style:dashed}
 .chips button[aria-pressed="true"]{background:#4B2E73;color:#fff;border-color:#4B2E73}
 .slider{position:absolute;left:100%;top:0;width:100%;height:0;background:var(--card);z-index:2;border-radius:3px;box-shadow:-3px 0 0 color-mix(in srgb,var(--card) 70%,#000),0 3px 8px rgba(0,0,0,.12)}
-.sweep{position:absolute;z-index:0;pointer-events:none;background:rgba(95,179,179,.28);border-radius:8px;transition:left .35s ease,width .35s ease,top .35s ease,height .35s ease}
+.sweep{position:absolute;z-index:0;pointer-events:none;background:rgba(95,179,179,.28);border-radius:8px;transition:left .5s cubic-bezier(.45,0,.35,1),width .5s cubic-bezier(.45,0,.35,1),top .35s ease,height .35s ease}
 .sweep.instant{transition:none}
 .hand{position:absolute;background:var(--card);z-index:3;border-radius:5px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
 .line{width:100%;font-size:clamp(2rem,5.5vw,3.6rem);letter-spacing:.04em;word-spacing:.25em;line-height:1.7;max-width:22em;text-align:left;overflow-wrap:anywhere}
@@ -141,6 +150,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
 .overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
 .modal{max-width:520px;width:100%;display:flex;flex-direction:column;gap:16px;text-align:center;align-items:center}
+.modal.home{max-width:min(920px,100%);gap:20px}
+.hero{margin:0 0 4vh;width:100%;display:flex;align-items:center;justify-content:center;gap:clamp(10px,2.6vw,30px);color:var(--fg);font-weight:500}
+.hmark{width:clamp(48px,13vw,124px);height:auto;flex:none}
+.hwm{font-size:clamp(2rem,9.6vw,5.8rem);line-height:1;letter-spacing:-.015em;font-weight:500;white-space:nowrap}
+.hwm span{font-weight:300}
 .slow{font-size:clamp(1.8rem,5vw,2.6rem);letter-spacing:.08em}
 .modal.left{text-align:left;align-items:stretch}
 textarea{width:100%;min-height:240px;font-size:1rem;line-height:1.6;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--paper);resize:vertical}
@@ -153,6 +167,7 @@ textarea{width:100%;min-height:240px;font-size:1rem;line-height:1.6;padding:12px
 <div class="app">
   <div class="bar" id="bar" role="progressbar" aria-label="Session time" aria-valuemin="0" aria-valuemax="100"><i id="fill"></i></div>
   <div class="top">
+    <div class="brand" role="img" aria-label="SweepReader"><svg class="mark" width="28" height="28" viewBox="0 0 48 48" aria-hidden="true"><rect x="1" y="1" width="46" height="46" rx="11" fill="#FFFDF7" stroke="#000" stroke-opacity=".16" stroke-width="1.4"/><rect x="9" y="12" width="22" height="5" rx="2.5" fill="#000"/><circle cx="36" cy="14.5" r="2.7" fill="#4B2E73"/><rect x="8" y="30" width="32" height="10" rx="2" fill="#DFD6C2"/><rect x="9" y="22" width="9" height="5" rx="2.5" fill="#000"/><rect x="20" y="19.5" width="20" height="10" rx="1.5" fill="#DFD6C2"/><rect x="20" y="19.5" width="1.8" height="10" fill="#A99C7E"/></svg><span class="wm" aria-hidden="true">Sweep<span>Reader</span></span></div>
     <select id="stepSel" class="stepsel" aria-label="Reading exercise">
       <option value="1">1 · Spell-Reading</option>
       <option value="2">2 · Sweep-Sweep-Spell</option>
@@ -187,7 +202,7 @@ textarea{width:100%;min-height:240px;font-size:1rem;line-height:1.6;padding:12px
           </div></div>
         </div>
       </div>
-      <div class="sweep" id="sweep" aria-hidden="true" hidden></div>
+      <div id="sweeps" aria-hidden="true"></div>
       <div class="slider" id="slider" aria-hidden="true"></div>
       <div id="hands" aria-hidden="true"></div>
     </div>
@@ -274,7 +289,8 @@ textarea{width:100%;min-height:240px;font-size:1rem;line-height:1.6;padding:12px
 </div>
 
 <div class="overlay" id="startOverlay" hidden>
-  <div class="modal">
+  <div class="modal home">
+    <h1 class="hero" aria-label="SweepReader"><svg class="hmark" viewBox="0 0 48 48" aria-hidden="true"><rect x="1" y="1" width="46" height="46" rx="11" fill="#FFFDF7" stroke="#000" stroke-opacity=".14" stroke-width="1"/><rect x="9" y="12" width="22" height="5" rx="2.5" fill="#000"/><circle cx="36" cy="14.5" r="2.7" fill="#4B2E73"/><rect x="8" y="30" width="32" height="10" rx="2" fill="#DFD6C2"/><rect x="9" y="22" width="9" height="5" rx="2.5" fill="#000"/><rect x="20" y="19.5" width="20" height="10" rx="1.5" fill="#DFD6C2"/><rect x="20" y="19.5" width="1.8" height="10" fill="#A99C7E"/></svg><span class="hwm" aria-hidden="true">Sweep<span>Reader</span></span></h1>
     <div class="slow">Go s-l-o-w and easy.</div>
     <div class="muted">Check orientation. No sounding out.</div>
     <button class="b main" id="startGo">Start<span class="k">Enter</span></button>
@@ -352,7 +368,525 @@ const UPON=svg(FLOOR+ROCK+TRAIL(P.upon)+MBALL(9));
 const ABOUT_SUBJECT=svg(DOMARK('abt')+FLOOR+`<rect x="28" y="30" width="40" height="58" rx="2" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/><rect x="68" y="34" width="5" height="50" rx="1" fill="#fffdf8" stroke="#5b4a3a" stroke-width="1.5"/><rect x="47" y="64" width="4" height="14" fill="#d64541"/><circle cx="49" cy="55" r="11" fill="#d64541"/>`+DOMLINE('abt',4,12,38,46));
 const ABOUT_ROUGHLY=svg(DOMARK('abr')+FLOOR+`<circle cx="50" cy="55" r="30" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5"/><line x1="50" y1="27" x2="50" y2="33" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/><line x1="78" y1="55" x2="72" y2="55" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/><line x1="50" y1="83" x2="50" y2="77" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/><line x1="22" y1="55" x2="28" y2="55" stroke="#5b4a3a" stroke-width="2.5" stroke-linecap="round"/><path d="M50 55 L 75.33 60.85 A 26 26 0 0 1 69.02 72.73 Z" fill="#d64541" opacity=".22"/><line x1="50" y1="55" x2="50" y2="35" stroke="#5b4a3a" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="55" x2="65" y2="63" stroke="#d64541" stroke-width="3.5" stroke-linecap="round"/>`+DOMLINE('abr',96,16,74,62));
 const OVER_ACROSS=svg(FLOOR+TABLE(22,78,58)+TRAIL(P.overAcross='M8 78 C 18 6, 82 6, 92 78')+MBALL(9));
+/* ---- New cards, batch 1 (a, an, the, of, be family). Uses the app's helpers above. ---- */
+const NEUTRAL='#d9c9ae';
+const RED_BODY=t=>t.split('fill="#9fb6c9"').join('fill="#e8655f"');
+
+const SHADOW=(cx,cy,rx)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="2.4" fill="#e2d6c1"/>`;
+const GROUND=`<path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/>`;
+const PERSON_NS=x=>PERSON(x).replace(`<ellipse cx="${x+2}" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`,'');
+/* Small time line: 'now' is the hollow circle; red marks the time meant. */
+const TIMELINE=mark=>`<line x1="10" y1="12" x2="84" y2="12" stroke="#8a7a68" stroke-width="2.4" stroke-linecap="round"/><path d="M81 7.5 L88 12 L81 16.5" fill="none" stroke="#8a7a68" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`+
+  (mark==='now'
+    ? `<circle cx="58" cy="12" r="5" fill="#e8655f" stroke="#5b4a3a" stroke-width="2"/>`
+    : `<circle cx="58" cy="12" r="5" fill="#fffdf8" stroke="#5b4a3a" stroke-width="2"/><circle cx="30" cy="12" r="5" fill="#e8655f" stroke="#5b4a3a" stroke-width="2"/>`);
+
+/* a / an = one: a single ball, on its own. */
+const ONE=svg(FLOOR+SHADOW(50,89,15)+BALL(50,70,17));
+
+/* the (1) = that one here: the speaker in their circle points at one red ball among others. */
+const THE_HERE=svg(DOMARK('th1')+GROUND+
+  `<ellipse cx="50" cy="77" rx="40" ry="13" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/>`+
+  SHADOW(24,84,9)+PERSON_NS(22)+
+  SHADOW(46,85,6)+BALL(46,80,6,NEUTRAL)+SHADOW(60,83,7)+BALL(60,77,7)+SHADOW(76,86,6)+BALL(76,81,6,NEUTRAL)+
+  DOMLINE('th1',94,22,68,59));
+
+/* the (2) = that one I mentioned: the ball in the speech bubble is the red ball on the floor. */
+const THE_MENTIONED=svg(DOMARK('th2')+FLOOR+
+  `<path d="M38 30 L30 25 L42 33 Z" fill="#fffdf8" stroke="#5b4a3a" stroke-width="2.2" stroke-linejoin="round"/>`+
+  `<rect x="38" y="6" width="44" height="28" rx="12" fill="#fffdf8" stroke="#5b4a3a" stroke-width="2.2"/>`+
+  `<path d="M38.4 30.4 L41.6 32.6" stroke="#fffdf8" stroke-width="3"/>`+
+  BALL(60,20,7.5)+
+  `<path d="M60 31 L62 68" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="3.5 3.5" stroke-linecap="round"/>`+
+  SHADOW(22,85,11)+PERSON_NS(20)+
+  SHADOW(63,89,8)+BALL(63,80,8)+SHADOW(84,89,7)+BALL(84,81,7,NEUTRAL)+
+  DOMLINE('th2',97,46,76,67));
+
+/* of (1) = containing: a cup with red tea in it. */
+const OF_CONTAINING=svg(DOMARK('of1')+FLOOR+SHADOW(46,89,22)+
+  `<path d="M64 56 C82 56 82 78 62 78" fill="none" stroke="#5b4a3a" stroke-width="7" stroke-linecap="round"/><path d="M64 56 C82 56 82 78 62 78" fill="none" stroke="#9fb6c9" stroke-width="3.5" stroke-linecap="round"/>`+
+  `<ellipse cx="46" cy="48" rx="21" ry="6" fill="#7f97ab" stroke="#5b4a3a" stroke-width="2.5"/>`+
+  `<ellipse cx="46" cy="50" rx="17.5" ry="4.4" fill="#e8655f" stroke="#5b4a3a" stroke-width="1.6"/>`+
+  `<path d="M25 48 L29 84 Q46 91 63 84 L67 48 A21 6 0 0 1 25 48 Z" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>`+
+  DOMLINE('of1',94,12,62,37));
+
+/* of (2) = from the whole: a cake with one slice red. */
+const OF_PART=(()=>{
+  const cx=48, cy=58, rx=32, ry=11, rad=a=>a*Math.PI/180, P=a=>[cx+rx*Math.cos(rad(a)), cy+ry*Math.sin(rad(a))];
+  const [x1,y1]=P(-42), [x2,y2]=P(42);
+  const cuts=[90,150,210,270].map(a=>{const [x,y]=P(a); return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#c9a06b" stroke-width="1.6"/>`;}).join('');
+  return svg(DOMARK('of2')+FLOOR+
+    `<ellipse cx="${cx}" cy="78" rx="42" ry="10" fill="#fffdf8" stroke="#5b4a3a" stroke-width="2.2"/>`+
+    `<path d="M${cx-rx} ${cy} L${cx-rx} ${cy+16} A${rx} ${ry} 0 0 0 ${cx+rx} ${cy+16} L${cx+rx} ${cy} Z" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>`+
+    `<path d="M${x2.toFixed(1)} ${y2.toFixed(1)} L${x2.toFixed(1)} ${(y2+16).toFixed(1)} A${rx} ${ry} 0 0 0 ${cx+rx} ${cy+16} L${cx+rx} ${cy} A${rx} ${ry} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="#d64541" stroke="#5b4a3a" stroke-width="2" stroke-linejoin="round"/>`+
+    `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#f6dcae" stroke="#5b4a3a" stroke-width="2.5"/>`+cuts+
+    `<path d="M${cx} ${cy} L${x1.toFixed(1)} ${y1.toFixed(1)} A${rx} ${ry} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="#e8655f" stroke="#5b4a3a" stroke-width="2" stroke-linejoin="round"/>`+
+    DOMLINE('of2',97,18,82,42));
+})();
+
+/* of (3) = belonging to: a table with one leg red. */
+const OF_BELONGING=svg(DOMARK('of3')+FLOOR+TABLE(14,82,50)+
+  `<rect x="64" y="56" width="8" height="32" rx="4" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.5"/>`+
+  `<rect x="14" y="50" width="68" height="11" rx="5.5" fill="#f2c993" stroke="#5b4a3a" stroke-width="2.5"/>`+
+  DOMLINE('of3',98,36,82,58));
+
+/* be = take up space: a ball with the space it takes up outlined in red. */
+const SPACE=(top)=>`<rect x="27" y="${top}" width="46" height="${88-top}" rx="10" fill="#f5b8b2" fill-opacity=".7" stroke="#d64541" stroke-width="2.5" stroke-dasharray="5 4"/>`;
+const BE=svg(FLOOR+SPACE(34)+SHADOW(50,89,15)+BALL(50,69,18));
+const BE_NOW=svg(TIMELINE('now')+FLOOR+SPACE(34)+SHADOW(50,89,15)+BALL(50,69,18));
+const BE_PAST=svg(TIMELINE('past')+FLOOR+SPACE(34)+SHADOW(50,89,15)+BALL(50,69,18));
+
+
+const MIRROR=(x,inner)=>`<g transform="translate(${2*x} 0) scale(-1 1)">${inner}</g>`;
+/* Pronoun pictures, kept in their own scope so their names can't clash with the app's. */
+const PRON=(()=>{
+/* ---- Pronoun cards (Axel's Grammar Mastery model, 3 Nov 2026) ----
+   A closed red lasso goes round only the person (or thing) the pronoun names; that person has a red torso.
+   A separate red line joins the lasso to the speaker's mouth.
+   Third person: speaker, person spoken to (facing the speaker) and the person spoken about.
+   Possessives: the same, with a ball in the owner's hand (Axel, 5 Nov 2026). */
+const LASSO_RED='#d64541';
+const HAIR=(x,kind,face)=>{ // short hair cap for a male person, a ponytail for a female person
+  const s=face==='l'?-1:1;
+  if(kind==='m') return `<path d="M${x-8.5} 30 C ${x-10} 16, ${x+10} 16, ${x+8.5} 30 C ${x+5} 23, ${x-5} 23, ${x-8.5} 30 Z" fill="#6b4f36" stroke="#5b4a3a" stroke-width="1.5" stroke-linejoin="round"/>`;
+  if(kind==='f') return `<path d="M${x-8} 27 C ${x-8} 18, ${x+8} 18, ${x+8} 27 C ${x+4} 22, ${x-4} 22, ${x-8} 27 Z" fill="#a0673c" stroke="#5b4a3a" stroke-width="1.5" stroke-linejoin="round"/><path d="M${x-s*7} 24 C ${x-s*17} 26, ${x-s*17} 40, ${x-s*12} 46" fill="none" stroke="#5b4a3a" stroke-width="7.5" stroke-linecap="round"/><path d="M${x-s*7} 24 C ${x-s*17} 26, ${x-s*17} 40, ${x-s*12} 46" fill="none" stroke="#a0673c" stroke-width="4.5" stroke-linecap="round"/>`;
+  return '';
+};
+const FIG=p=>{ // one standard person: {x, face:'r'|'l', red, hair}
+  let t=PERSON(p.x).replace(`<ellipse cx="${p.x+2}" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`,'');
+  if(p.hair==='f'){ // a female person wears a dress (Axel, 5 Nov 2026); it takes the torso colour
+    const bodyEnd=`height="26" rx="6" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5"/>`;
+    t=t.replace(bodyEnd, bodyEnd+`<path d="M${p.x-7} 50 L${p.x+7} 50 L${p.x+12} 72 Q ${p.x} 76, ${p.x-12} 72 Z" fill="#9fb6c9" stroke="#5b4a3a" stroke-width="2.5" stroke-linejoin="round"/>`);
+  }
+  if(p.walk){ // a moving person walks: front leg forward, back leg behind (Axel, 5 Nov 2026)
+    t=t.split(`M${p.x-3} 62 L${p.x-4} 82 L${p.x+2} 83`).join(`M${p.x-1} 62 L${p.x-8} 80.5 L${p.x-2.5} 83`)
+       .split(`M${p.x+3} 62 L${p.x+3} 82 L${p.x+9} 83`).join(`M${p.x+1} 62 L${p.x+8} 80 L${p.x+14} 81`);
+  }
+  if(p.red) t=RED_BODY(t);
+  if(p.point){ // the speaker points at the person or thing the pronoun names (Axel, 4 Nov 2026)
+    t=t.split(`<path d="M${p.x+2} 43 L${p.x+6} 53 L${p.x+13} 58"`).join('<path data-old-arm="1" d=""');
+    const sx=p.x+3, sy=44, [tx,ty]=p.point, L=Math.hypot(tx-sx,ty-sy), ux=(tx-sx)/L, uy=(ty-sy)/L;
+    const ex=sx+ux*14, ey=sy+uy*14, fx=ex+ux*6, fy=ey+uy*6;
+    const d=`M${sx} ${sy} L${ex.toFixed(1)} ${ey.toFixed(1)}`;
+    t+=`<path d="${d}" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round"/>`+
+       `<path d="M${ex.toFixed(1)} ${ey.toFixed(1)} L${fx.toFixed(1)} ${fy.toFixed(1)}" fill="none" stroke="#5b4a3a" stroke-width="4" stroke-linecap="round"/><path d="M${ex.toFixed(1)} ${ey.toFixed(1)} L${fx.toFixed(1)} ${fy.toFixed(1)}" fill="none" stroke="#cdbba5" stroke-width="1.6" stroke-linecap="round"/>`+
+       `<circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="3" fill="#cdbba5" stroke="#5b4a3a" stroke-width="1.8"/>`;
+  }
+  const shadow=SHADOW(p.x+(p.face==='l'?-2:2),89,9);
+  const body=p.face==='l'?MIRROR(p.x,t):t;
+  return shadow+body; // hair is drawn last, over the lasso, so the lasso never hides the ponytail
+};
+/* ---- Layout: the lasso never touches anyone it doesn't name (Axel, 5 Nov 2026) ----
+   Each person has a box (body, arm, feet, ponytail, any held ball). People are packed left to right;
+   the lasso is a rounded loop drawn 5 units outside the boxes of the people or things it names, and
+   anyone not named stands at least 4 units clear of it. The whole scene is then scaled to fit the card. */
+const LM=5, CLEAR=4;
+const BOX=p=>{ // horizontal extent of one person, before any ball
+  const l=p.face==='l'; let a=l?p.x-14:p.x-9, b=l?p.x+9:p.x+14;
+  if(p.hair==='f'){ if(l) b=Math.max(b,p.x+17); else a=Math.min(a,p.x-17); a=Math.min(a,p.x-12); b=Math.max(b,p.x+12); }
+  return [a,b];
+};
+const handOf=p=>p.face==='l'?p.x-13:p.x+13;
+/* people: list of {face, red, hair, holds} in order, speaker first. named: true for those inside the lasso.
+   Returns positioned people. */
+const PACK=(list,opts={})=>{
+  let right=null; const out=[];
+  list.forEach((p,i)=>{
+    const q={...p,x:0}; const [a0,b0]=BOX(q); let a=a0,b=b0;
+    if(q.holds){ const h=handOf(q); a=Math.min(a,h-q.holds-1); b=Math.max(b,h+q.holds+1); }
+    if(i===0 && !q.named) b=Math.max(b,23); // room for the speaker's pointing arm and finger
+    let gap=3;
+    if(i>0){ const prev=out[i-1]; if(!!prev.named!==!!q.named) gap=LM+CLEAR+2; }
+    if(opts.gaps && opts.gaps[i]!=null) gap=opts.gaps[i];
+    const x = right===null ? -a : right+gap-a;
+    q.x=x; q.box=[a+x,b+x]; right=b+x; out.push(q);
+  });
+  return out;
+};
+const LOOP=(x1,y1,x2,y2)=>{ const w=x2-x1,h=y2-y1,r=Math.min(w/2,h/2,20);
+  return {x1,y1,x2,y2,r,svg:`<rect x="${x1.toFixed(1)}" y="${y1}" width="${w.toFixed(1)}" height="${h}" rx="${r.toFixed(1)}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2"/>`}; };
+/* A small dog, side on, facing right (away from the speaker); its body is red as the meaning carrier. No face.
+   Feet on the floor at y 88; it reaches DOG_L left of x (tail), DOG_R right of x (snout) and up to DOG_TOP (ears). */
+const DOG_L=21, DOG_R=25, DOG_TOP=50;
+const DOG=x=>{ const o='stroke="#5b4a3a" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"', R='#e8655f';
+  const leg=(lx)=>`<rect x="${lx-2.3}" y="72" width="4.6" height="16" rx="2.3" fill="${R}" ${o}/>`;
+  return SHADOW(x+1,89,17)+
+    `<path d="M${x-12} 67 C ${x-17} 64, ${x-20} 58, ${x-19} 53" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round"/><path d="M${x-12} 67 C ${x-17} 64, ${x-20} 58, ${x-19} 53" fill="none" stroke="${R}" stroke-width="3" stroke-linecap="round"/>`+
+    leg(x-8)+leg(x+8)+
+    `<rect x="${x-14}" y="62" width="28" height="15" rx="7.5" fill="${R}" ${o}/>`+
+    leg(x-4)+leg(x+12)+
+    `<path d="M${x+9} 64 L ${x+12} 57" fill="none" stroke="#5b4a3a" stroke-width="9" stroke-linecap="round"/><path d="M${x+9} 64 L ${x+12} 57" fill="none" stroke="${R}" stroke-width="5" stroke-linecap="round"/>`+
+    `<ellipse cx="${x+20}" cy="60.5" rx="5" ry="3.6" fill="${R}" ${o}/>`+
+    `<circle cx="${x+14}" cy="57" r="7" fill="${R}" ${o}/>`+
+    `<path d="M${x+10} 52 C ${x+7} 51, ${x+6} 57, ${x+8} 61 C ${x+10} 59, ${x+12} 55, ${x+10} 52 Z" fill="#b8443c" ${o}/>`+
+    `<circle cx="${x+24.2}" cy="59.8" r="1.6" fill="#5b4a3a"/>`;
+};
+const SCENE=({people,things=[],extraLoop=null})=>{
+  // people: positioned list (from PACK); things: [{x,y,r,flag}] items named instead of people (it, its)
+  const named=people.filter(p=>p.named);
+  let x1=Infinity,x2=-Infinity,y1=21-LM,y2=89;
+  named.forEach(p=>{ x1=Math.min(x1,p.box[0]); x2=Math.max(x2,p.box[1]); });
+  things.forEach(t=>{ if(t.dog){ x1=Math.min(x1,t.x-DOG_L); x2=Math.max(x2,t.x+DOG_R+(t.holds?11:0)); /* room for the ball inside the loop's rounded corner */ return; } x1=Math.min(x1,t.x-t.r); x2=Math.max(x2,t.x+t.r+(t.flag?12:0)); });
+  if(things.length&&!named.length){ y1=Math.min(...things.map(t=>t.dog?DOG_TOP:t.flag?44:t.y-t.r)); }
+  const loop=LOOP(x1-LM,y1-(things.length&&!named.length?LM:0),x2+LM,y2+(things.length&&!named.length?1:0));
+  const sp=people[0], mx=sp.x+8.5, my=31, self=!!sp.named;
+  if(!self){ // the speaker points at the middle of whoever or whatever is named
+    const tx=(loop.x1+loop.x2)/2, ty= things.length&&!named.length ? (loop.y1+loop.y2)/2 : (people.length>2 ? 18 : 50); // over the listener's head when someone stands between
+    sp.point=[tx,ty];
+  }
+  let inner=FLOOR+people.map(FIG).join('');
+  people.forEach(p=>{ if(p.holds) inner+=BALL(p.shareX ?? handOf(p),59,p.holds); });
+  things.forEach(t=>{ if(t.dog){ inner+=DOG(t.x)+(t.holds?SHADOW(t.x+22,89,5)+BALL(t.x+22,82.5,6):''); return; } /* its (2): the dog's ball sits at its front feet, clear of its red body */ inner+=SHADOW(t.x,89,t.r*.9)+BALL(t.x,t.y,t.r);
+    if(t.flag) inner+=`<path d="M${t.x+8} ${t.y-8} L ${t.x+8} 46 L ${t.x+19} 50.5 L ${t.x+8} 55" fill="#e8655f" stroke="#5b4a3a" stroke-width="2" stroke-linejoin="round"/>`; });
+  inner+=loop.svg;
+  if(self){ // the speaker is inside the loop: the line leaves the mouth, goes out and joins the loop's side
+    const jx=loop.x2, jy=60;
+    inner+=`<path d="M${mx} ${my+1} C ${mx+18} ${my-8}, ${jx+20} ${jy-30}, ${jx+16} ${jy-10} C ${jx+13} ${jy-2}, ${jx+6} ${jy}, ${jx} ${jy}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`;
+  } else if(things.length&&!named.length){ // it, its: the line arcs high over the person spoken to and drops onto the top of the thing's loop
+    const jx=(loop.x1+loop.x2)/2, jy=loop.y1;
+    inner+=`<path d="M${mx} ${my} C ${mx+6} ${my-26}, ${jx.toFixed(1)} -6, ${jx.toFixed(1)} ${jy.toFixed(1)}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`;
+  } else { // the line arcs from the speaker's mouth to the top of the loop
+    const jx=loop.x1+loop.r*.6, jy=loop.y1+loop.r*.18;
+    inner+=`<path d="M${mx} ${my} C ${mx+8} ${my-20}, ${jx-10} ${Math.min(jy,my)-18}, ${jx.toFixed(1)} ${jy.toFixed(1)}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`;
+  }
+  inner+=people.map(q=>HAIR(q.x,q.hair,q.face)).join('');
+  // fit: everything from the leftmost person to the loop (and the self line) inside 6..94
+  let minx=Math.min(...people.map(p=>p.box[0]),loop.x1), maxx=Math.max(...people.map(p=>p.box[1]),loop.x2+(self?22:0));
+  const sc=Math.min(1,88/(maxx-minx)), tx=50-sc*(minx+maxx)/2, ty=92*(1-sc);
+  return svg(`<g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) scale(${sc.toFixed(3)})">${inner}</g>`);
+};
+const N=(o={})=>({named:true,red:true,...o});
+const ME=SCENE({people:PACK([N()])});
+const MINE=SCENE({people:PACK([N({holds:6})])});
+const YOU=SCENE({people:PACK([{} ,N({face:'l'})],{gaps:[null,18]})});
+const YOURS=SCENE({people:PACK([{},N({face:'l',holds:6})],{gaps:[null,18]})});
+/* ---- Third-person scene (Axel, 5 Nov 2026) ----
+   The speaker stands in the middle facing us. The person spoken to stands on the left in the foreground with their back
+   to us, facing the speaker. The person (or thing) spoken about is further away on the right, facing away.
+   The speaker's arm lifts to point at them. People seen from behind show the back of the head covered in hair;
+   the speaker, facing us, has a bare head. The lasso and the line from the speaker's mouth work as before. */
+const T_SKIN='#cdbba5', T_LEG='#6f7f8f', T_TOP='#9fb6c9', T_RED='#e8655f', T_INK='#5b4a3a';
+const T_LIMB=(d,f)=>`<path d="${d}" fill="none" stroke="${T_INK}" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${f}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+const T_HAIR={m:'#6b4f36', f:'#a0673c', n:'#7d6a58'};
+/* A person seen from the front (back:false) or from behind (back:true), feet on y=88, centred on x.
+   hair: 'm' | 'f' | 'n' (back view only); armR:false leaves out the arm on the viewer's right (the speaker's pointing arm). */
+const STAND=({x,red,back,hair='n',holds=0,armR=true})=>{
+  const top=red?T_RED:T_TOP, dress=hair==='f';
+  let s=SHADOW(x,89,10)+T_LIMB(`M${x-3.5} 62 L${x-3.5} 84`,T_LEG)+T_LIMB(`M${x+3.5} 62 L${x+3.5} 84`,T_LEG)+
+    `<ellipse cx="${x-4.2}" cy="85.6" rx="3.4" ry="2.1" fill="${T_LEG}" stroke="${T_INK}" stroke-width="1.8"/><ellipse cx="${x+4.2}" cy="85.6" rx="3.4" ry="2.1" fill="${T_LEG}" stroke="${T_INK}" stroke-width="1.8"/>`+
+    T_LIMB(`M${x-7} 43 L${x-11} 52 L${x-11} 60`,T_SKIN)+(armR?T_LIMB(`M${x+7} 43 L${x+11} 52 L${x+11} 60`,T_SKIN):'')+
+    `<rect x="${x-8}" y="38" width="16" height="26" rx="6" fill="${top}" stroke="${T_INK}" stroke-width="2.5"/>`+
+    (dress?`<path d="M${x-7.5} 50 L${x+7.5} 50 L${x+13} 72 Q ${x} 76, ${x-13} 72 Z" fill="${top}" stroke="${T_INK}" stroke-width="2.5" stroke-linejoin="round"/>`:'')+
+    `<circle cx="${x}" cy="29" r="8" fill="${T_SKIN}" stroke="${T_INK}" stroke-width="2.5"/>`;
+  if(back){ // the back of the head is covered in hair
+    s+=`<path d="M${x-8} 31 C ${x-9.5} 17.5, ${x+9.5} 17.5, ${x+8} 31 C ${x+6.5} 36, ${x-6.5} 36, ${x-8} 31 Z" fill="${T_HAIR[hair]}" stroke="${T_INK}" stroke-width="2"/>`;
+    if(hair==='f') s+=`<path d="M${x} 32 C ${x+1} 38, ${x-1} 42, ${x} 47" fill="none" stroke="${T_INK}" stroke-width="7.5" stroke-linecap="round"/><path d="M${x} 32 C ${x+1} 38, ${x-1} 42, ${x} 47" fill="none" stroke="${T_HAIR.f}" stroke-width="4.5" stroke-linecap="round"/>`;
+  }
+  if(holds) s+=BALL(x+12,61,holds); // a held ball, in the hand on the viewer's right
+  return s;
+};
+/* Scale a drawing about its feet at (x, 88), placing the feet at (x, feetY). */
+const AT=(x,feetY,s,inner)=>`<g transform="translate(${(x-s*x).toFixed(2)} ${(feetY-s*88).toFixed(2)}) scale(${s})">${inner}</g>`;
+/* The speaker's pointing arm, lifting from hanging down to pointing at (tx,ty) (CSS; rests at its final frame). */
+let T_ARM_N=0;
+const LIFT_ARM=(sx,sy,tx,ty)=>{
+  const L=Math.hypot(tx-sx,ty-sy), ux=(tx-sx)/L, uy=(ty-sy)/L, ex=sx+ux*14, ey=sy+uy*14, fx=ex+ux*6, fy=ey+uy*6, f=n=>n.toFixed(1);
+  const ang=Math.atan2(uy,ux)*180/Math.PI, from=80-ang; // hanging down and slightly out
+  const d=`M${sx} ${sy} L${f(ex)} ${f(ey)}`, id='lift'+(T_ARM_N++);
+  return `<style>@keyframes ${id}{0%{transform:rotate(${from.toFixed(1)}deg)}25%{transform:rotate(${from.toFixed(1)}deg)}100%{transform:rotate(0deg)}}@media (prefers-reduced-motion: reduce){.an{animation:none!important}}</style>`+
+    // the turning point is the shoulder, given relative to the arm's own box (fill-box), so it holds inside a scaled scene
+    `<g class="an" style="transform-box:fill-box;transform-origin:${f(sx-Math.min(sx,ex-3,fx))}px ${f(sy-Math.min(sy,ey-3,fy))}px;animation:${id} 900ms ease-in-out both">`+
+    `<path d="${d}" fill="none" stroke="${T_INK}" stroke-width="6.5" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${T_SKIN}" stroke-width="3" stroke-linecap="round"/>`+
+    `<path d="M${f(ex)} ${f(ey)} L${f(fx)} ${f(fy)}" fill="none" stroke="${T_INK}" stroke-width="4" stroke-linecap="round"/><path d="M${f(ex)} ${f(ey)} L${f(fx)} ${f(fy)}" fill="none" stroke="${T_SKIN}" stroke-width="1.6" stroke-linecap="round"/>`+
+    `<circle cx="${f(ex)}" cy="${f(ey)}" r="3" fill="${T_SKIN}" stroke="${T_INK}" stroke-width="1.8"/></g>`;
+};
+/* The scene. named: drawing of what is spoken about (already placed, further away on the right) and its box [x1,y1,x2,y2]. */
+const T_SP={x:46,feet:86}, T_TO={x:15,feet:97,s:1.12}, T_FAR={feet:74,s:.6};
+/* lasso:false (goes, comes) leaves out the lasso and the mouth line; the speaker then points at target. */
+const THIRD_SCENE=({named,box,extra='',lasso=true,target=null})=>{
+  const loop=lasso?LOOP(box[0]-LM,box[1]-LM,box[2]+LM,box[3]+2):null;
+  const dy=T_SP.feet-88, sx=T_SP.x+7, sy=43+dy;
+  const [tx,ty]=target||[(loop.x1+loop.x2)/2,(loop.y1+loop.y2)/2];
+  const speaker=`<g transform="translate(0 ${dy})">${STAND({x:T_SP.x,armR:false})}</g>`;
+  let line='';
+  if(lasso){ const mx=T_SP.x+4, my=34+dy, jx=loop.x1+loop.r*.6, jy=loop.y1+loop.r*.15;
+    line=`<path d="M${mx} ${my} C ${mx+4} ${my-24}, ${jx-8} ${Math.min(jy,my)-20}, ${jx.toFixed(1)} ${jy.toFixed(1)}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`; }
+  const inner=named+extra+(loop?loop.svg:'')+speaker+LIFT_ARM(sx,sy,tx,ty)+line+AT(T_TO.x,T_TO.feet,T_TO.s,STAND({x:T_TO.x,back:true}));
+  return svg(GROUND+FIT3(inner,0,Math.max(100,loop?loop.x2+2:(box?box[2]+4:100))));
+};
+const FIT3=(inner,minx,maxx)=>{ const s=Math.min(1,96/(maxx-minx)), tx=50-s*(minx+maxx)/2, ty=96*(1-s);
+  return `<g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) scale(${s.toFixed(3)})">${inner}</g>`; };
+/* A far-away person spoken about at x: their drawing and box. */
+const FARP=(x,o={})=>{ const s=T_FAR.s, w=(o.hair==='f'?13:11.5)*s, hb=o.holds?(12+o.holds+1)*s:0;
+  return {svg:AT(x,T_FAR.feet,s,STAND({x,red:true,back:true,hair:o.hair||'n',holds:o.holds})),
+          box:[x-w, T_FAR.feet-(88-20)*s, Math.max(x+w,x+hb), T_FAR.feet+1]}; };
+const UNION=bs=>[Math.min(...bs.map(b=>b[0])),Math.min(...bs.map(b=>b[1])),Math.max(...bs.map(b=>b[2])),Math.max(...bs.map(b=>b[3]))];
+const THIRD=hair=>{ const p=FARP(86,{hair}); return THIRD_SCENE({named:p.svg,box:p.box}); };
+const THIRD_OWN=hair=>{ const p=FARP(86,{hair,holds:6}); return THIRD_SCENE({named:p.svg,box:p.box}); };
+const HE=THIRD('m'), SHE=THIRD('f'), HIS=THIRD_OWN('m'), HERS=THIRD_OWN('f');
+/* they, them, their, theirs: two people spoken about. */
+const THEY=(()=>{ const a=FARP(80), b=FARP(96); return THIRD_SCENE({named:a.svg+b.svg,box:UNION([a.box,b.box])}); })();
+const THEIRS=(()=>{ const a=FARP(80), b=FARP(96,{holds:6}); return THIRD_SCENE({named:a.svg+b.svg,box:UNION([a.box,b.box])}); })();
+/* it, its: a ball (with its flag for its) further away on the right. */
+const FAR_THING=flag=>{ const x=86, r=6, y=T_FAR.feet-r;
+  const s=SHADOW(x,T_FAR.feet+1,r*.9)+BALL(x,y,r)+(flag?`<path d="M${x+5} ${y-5} L ${x+5} ${y-20} L ${x+13} ${y-16.5} L ${x+5} ${y-13}" fill="#e8655f" stroke="#5b4a3a" stroke-width="2" stroke-linejoin="round"/>`:'');
+  return THIRD_SCENE({named:s,box:[x-r,flag?y-21:y-r,x+r+(flag?9:0),T_FAR.feet+1]}); };
+const IT=FAR_THING(false), ITS=FAR_THING(true);
+/* it (2), its (2): a dog further away, facing away (to the right); for its, the dog's ball at its front feet. */
+const FAR_ANIMAL=holds=>{ const x=84, s=.72;
+  return THIRD_SCENE({named:AT(x,T_FAR.feet,s,DOG(x)+(holds?SHADOW(x+22,89,5)+BALL(x+22,82.5,6):'')),
+    box:[x-DOG_L*s, T_FAR.feet-(88-DOG_TOP)*s, x+(DOG_R+(holds?6:0))*s, T_FAR.feet+1]}); };
+const IT_ANIMAL=FAR_ANIMAL(false), ITS_ANIMAL=FAR_ANIMAL(true);
+const WE=SCENE({people:PACK([N(),N({face:'l'})],{gaps:[null,6]})}); // the two face each other (Axel, 5 Nov 2026)
+const OURS=(()=>{ const ppl=PACK([N(),N({face:'l'})],{gaps:[null,4]}); const mid=(handOf(ppl[0])+handOf(ppl[1]))/2; ppl[0].holds=6.5; ppl[0].shareX=mid; return SCENE({people:ppl}); })(); // the two share one ball (Axel, 5 Nov 2026)
+
+/* ---- Batch 3: go and come (with their forms), and, same, with, for. Uses the app's helpers and the pronoun people (FIG). ----
+   Verb rules (Axel, 5 Nov 2026):
+   - the base form (go, come) shows the first or second person moving: here the person spoken to ("you go");
+   - the -s form (goes, comes) shows the third person moving (he/she/it goes): speaker, person spoken to, and the person spoken about;
+   - the -ing form shows a duration: the person faint at the start of the arrow and full at the end;
+   - past forms use a time line with a clock at each marker: faint red-torso person walking and arriving in the past,
+     and the person at "now" at full strength.
+   The person who moves has a red torso (the meaning carrier). */
+const PERSON_AT=x=>SHADOW(x+2,89,9)+PERSON_NS(x);
+const FAINT=s=>`<g opacity=".38">${s}</g>`;
+const CHEV=(x,dir,y=85)=>`<path d="M${x-dir*7} ${y-5} L${x} ${y} L${x-dir*7} ${y+5}" fill="none" stroke="#8a7a68" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`;
+/* A person (or people) that walks along a path: the whole group moves. The arrowhead sits just behind the back foot,
+   or just in front of the leading foot (front=true: come, comes, coming, Axel 5 Nov 2026). */
+const MOVER=(inner,dir,back=14,front=false)=>`<g class="mhead"></g><g class="mball">${front?CHEV(dir*23,dir):CHEV(-dir*back,dir)}${inner}</g>`;
+/* Timed animation inside a picture (CSS), for scenes with several steps (went, came, gone, during).
+   Each part's resting style is its final frame, so a device set to reduce motion, or a frozen card, shows the final picture.
+   AN(name, ms, restingStyle, keyframes, inner); the picture's total length goes in the card's anim (ms). */
+const AN=(name,ms,rest,frames,inner)=>`<style>@keyframes ${name}{${frames}}</style><g class="an" style="${rest};animation:${name} ${ms}ms ease-in-out both">${inner}</g>`;
+const AN_CALM=`<style>@media (prefers-reduced-motion: reduce){.an{animation:none!important}}</style>`;
+const FIT=(inner,minx,maxx)=>{ const s=Math.min(1,92/(maxx-minx)), tx=50-s*(minx+maxx)/2, ty=92*(1-s);
+  return `<g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) scale(${s.toFixed(3)})">${inner}</g>`; };
+const SMALL=(x,s,inner)=>`<g transform="translate(${(x*(1-s)).toFixed(1)} ${(88*(1-s)).toFixed(1)}) scale(${s})">${inner}</g>`;
+const CLOCK=(cx,cy,h)=>{ const a=(h%12)*30*Math.PI/180, hx=cx+4.2*Math.sin(a), hy=cy-4.2*Math.cos(a);
+  return `<circle cx="${cx}" cy="${cy}" r="7.5" fill="#fffdf8" stroke="#5b4a3a" stroke-width="2"/>`+
+    `<line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy-5.6}" stroke="#5b4a3a" stroke-width="1.6" stroke-linecap="round"/>`+
+    `<line x1="${cx}" y1="${cy}" x2="${hx.toFixed(1)}" y2="${hy.toFixed(1)}" stroke="#5b4a3a" stroke-width="2.2" stroke-linecap="round"/>`; };
+/* Time line with markers: each marker {x, kind:'past'|'now', h} has a clock above it (Axel, 5 Nov 2026). */
+const TIMELINE_CLOCKS=(markers,y=36)=>`<line x1="5" y1="${y}" x2="91" y2="${y}" stroke="#8a7a68" stroke-width="2.4" stroke-linecap="round"/><path d="M88 ${y-4.5} L95 ${y} L88 ${y+4.5}" fill="none" stroke="#8a7a68" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`+
+  markers.map(m=>(m.kind==='now'
+    ? `<circle cx="${m.x}" cy="${y}" r="4.5" fill="#fffdf8" stroke="#5b4a3a" stroke-width="2"/>`
+    : `<circle cx="${m.x}" cy="${y}" r="4.5" fill="#e8655f" stroke="#5b4a3a" stroke-width="2"/>`)).join('');
+/* One clock travels along the time line, its hands turning, from x0 to x1 between a% and b% of the card's T ms
+   (Axel, 5 Nov 2026); it rests at x1. lin: move at an even pace (continuous forms). */
+let CLOCK_N=0;
+const MOVING_CLOCK=(T,x0,x1,a,b,h0=2,y=20,lin=false)=>{ const id='clk'+(CLOCK_N++), dx=x1-x0, ease=lin?'linear':'ease-in-out';
+  const kf=(n,p0,p1,unit)=>`@keyframes ${n}{0%{transform:${unit}(${p0})}${a}%{transform:${unit}(${p0})}${b}%{transform:${unit}(${p1})}100%{transform:${unit}(${p1})}}`;
+  const hand=(n,len,w,from,to)=>`<g style="transform-box:fill-box;transform-origin:50% 100%;transform:rotate(${to}deg);animation:${n} ${T}ms ${ease} both" class="an"><line x1="${x0}" y1="${y}" x2="${x0}" y2="${y-len}" stroke="#5b4a3a" stroke-width="${w}" stroke-linecap="round"/></g>`;
+  return `<style>${kf(id+'m','0px',dx+'px','translateX')}${kf(id+'h',(h0*30)+'deg',(h0*30+90)+'deg','rotate')}${kf(id+'n','0deg','1080deg','rotate')}</style>`+
+    `<g class="an" style="transform:translateX(${dx}px);animation:${id}m ${T}ms ${ease} both">`+
+    `<circle cx="${x0}" cy="${y}" r="7.5" fill="#fffdf8" stroke="#5b4a3a" stroke-width="2"/>`+
+    hand(id+'n',5.6,1.6,0,1080)+hand(id+'h',4.2,2.2,h0*30,h0*30+90)+`<circle cx="${x0}" cy="${y}" r="1.3" fill="#5b4a3a"/></g>`;
+};
+const PLACE=x=>`<ellipse cx="${x}" cy="86" rx="13" ry="4" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2" stroke-dasharray="4 3.5"/>`;
+
+const MOVES={
+  going:'M40 0 L 84 0',       // going: from where they started (faint) to where they are now on the way
+  coming:'M90 0 L 56 0',
+  go:'M40 0 L 84 0',          // you go: the person spoken to walks away from the speaker
+  come:'M86 0 L 56 0',        // you come: the person spoken to walks toward the speaker
+  goes:'M68 0 L 96 0',        // he goes: the person spoken about walks away
+  comes:'M118 0 L 86 0',      // he comes: the person spoken about walks toward the speaker and the person spoken to
+  and:'M92 79 C 88 26, 66 26, 60 79', // and = in addition to: a second ball is thrown in beside the first (Axel, 5 Nov 2026)
+  with:'M30 0 L 76 0',        // with = alongside: two people walk together
+  for:'M33 58 C 42 42, 58 42, 67 58', // for = to be given to: the ball goes from one hand to the other person's hand
+};
+/* ---- Verb cards (go, come, be families), Axel's rules of 5 Nov 2026 ----
+   - First and second person (go, come, be, am, are 1) use the speech bubble: a lasso round the person meant and a red line
+     from the speaker's mouth. In the second person the speaker points at the person spoken to.
+   - Third person (goes, comes, is, are 2) uses the third-person scene; the speaker's arm lifts first, then the person moves.
+   - The moving person has a red torso and walking legs, and really moves (CSS animation; each part rests on its final frame).
+   - Past forms: the blue person starts at the "before" place on the time line and walks to "now"; then the red person
+     appears, faint, in the past.
+   - Continuous (-ing) forms: the person moves through time along with the growing time bar. */
+const MOVE_X=(name,ms,dx,a,b,inner)=>AN(name,ms,`transform:translateX(${dx}px)`,
+  `0%{transform:translateX(0)}${a}%{transform:translateX(0)}${b}%{transform:translateX(${dx}px)}100%{transform:translateX(${dx}px)}`,inner);
+const SHOW_AT=(name,ms,a,b,inner,to=1)=>AN(name,ms,`opacity:${to}`,`0%{opacity:0}${a}%{opacity:0}${b}%{opacity:${to}}100%{opacity:${to}}`,inner);
+const HIDE_AT=(name,ms,a,b,inner)=>AN(name,ms,'opacity:0',`0%{opacity:1}${a}%{opacity:1}${b}%{opacity:0}100%{opacity:0}`,inner);
+/* arrow ahead of a walker at x facing dir: a short dashed lead and the arrowhead, so the walker is at the start of the arrow */
+const LEAD=(x,dir,y=85)=>TRAIL(`M${x+dir*15} ${y} L ${x+dir*27} ${y}`)+CHEV(x+dir*30,dir,y);
+/* speech bubble (lasso and mouth line) for a person in the profile scene, speaker at x=14 */
+const BUBBLE=(x1,x2,y1=14,y2=93)=>{ const loop=LOOP(x1,y1,x2,y2), mx=22.5, my=31, jx=loop.x1+loop.r*.6, jy=loop.y1+loop.r*.18;
+  return loop.svg+`<path d="M${mx} ${my} C ${mx+8} ${my-20}, ${jx-10} ${Math.min(jy,my)-18}, ${jx.toFixed(1)} ${jy.toFixed(1)}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`; };
+const SPACEBOX=(x1,y1,x2,y2)=>`<rect x="${x1}" y="${y1}" width="${x2-x1}" height="${y2-y1}" rx="9" fill="#f5b8b2" fill-opacity=".7" stroke="#d64541" stroke-width="2.5" stroke-dasharray="5 4"/>`;
+
+/* go (you go): the person spoken to walks away; the speech bubble then closes round them. */
+const GO=(()=>{ const T=1500, x0=40, x1=80;
+  return svg(AN_CALM+FLOOR+FIT(FIG({x:14,point:[x1+2,50]})+TRAIL(`M${x0} 85 L ${x1-16} 85`)+
+    MOVE_X('gom',T,x1-x0,0,65,CHEV(x0-14,1)+FIG({x:x0,red:true,walk:true}))+
+    SHOW_AT('gob',T,65,85,BUBBLE(x1-15,x1+20)),5,102)); })();
+/* come (you come): the person spoken to walks toward the speaker with the arrow ahead of them. */
+const COME=(()=>{ const T=1500, x0=92, x1=62;
+  return svg(AN_CALM+FLOOR+FIT(FIG({x:14,point:[x1,50]})+
+    MOVE_X('com',T,x1-x0,0,65,LEAD(x0,-1)+FIG({x:x0,red:true,face:'l',walk:true}))+
+    SHOW_AT('cob',T,65,85,BUBBLE(x1-20,x1+15)),5,104)); })();
+/* goes / comes (he goes, he comes): the speaker's arm lifts first (0.9 s), then the person spoken about moves. */
+const FARFIG=(x,face,walk=true)=>AT(x,T_FAR.feet,T_FAR.s,FIG({x,red:true,face,walk}));
+const GOES=(()=>{ const T=2000, x0=70, x1=94;
+  return THIRD_SCENE({lasso:false,target:[x1,54],box:[60,30,104,76],
+    named:AN_CALM+TRAIL(`M${x0} 72 L ${x1-10} 72`)+MOVE_X('gsm',T,x1-x0,45,95,AT(x0,T_FAR.feet,T_FAR.s,CHEV(x0-14,1)+FIG({x:x0,red:true,walk:true})))}); })();
+const COMES=(()=>{ const T=2000, x0=100, x1=80;
+  return THIRD_SCENE({lasso:false,target:[x1+4,54],box:[60,30,108,76],
+    named:AN_CALM+MOVE_X('csm',T,x1-x0,45,95,AT(x0,T_FAR.feet,T_FAR.s,LEAD(x0,-1)+FIG({x:x0,red:true,face:'l',walk:true})))}); })();
+
+/* Continuous: a time line from a start marker to "now"; the red bar grows on past "now" and the person moves along with its end. */
+const TBAR=(name,ms,x1,x2)=>AN(name,ms,'transform:scaleX(1)','0%{transform:scaleX(0)}100%{transform:scaleX(1)}',
+  `<rect x="${x1}" y="31" width="${x2-x1}" height="10" rx="5" fill="#e8655f" stroke="#5b4a3a" stroke-width="2"/>`)
+  .replace('class="an" style="','class="an" style="transform-box:fill-box;transform-origin:0% 50%;animation-timing-function:linear;');
+const MOVE_LIN=(name,ms,dx,inner)=>AN(name,ms,`transform:translateX(${dx}px)`,`0%{transform:translateX(0)}100%{transform:translateX(${dx}px)}`,inner)
+  .replace('ease-in-out','linear');
+const CONT=(id,inner0,innerMove,extra='')=>{ const T=1800, x0=16, x1=84;
+  return svg(AN_CALM+TIMELINE_CLOCKS([{x:x0,kind:'past',h:2},{x:56,kind:'now',h:4}])+TBAR(id+'b',T,x0,x1+6)+MOVING_CLOCK(T,x0,x1+6,0,100,2,20,true)+FLOOR+extra+
+    FAINT(inner0(x0))+MOVE_LIN(id+'m',T,x1-x0,innerMove(x0))); };
+/* going: away from the place where the person started (pink). */
+const GOING=CONT('gng',x=>SMALL(x,.62,FIG({x,red:true,walk:true})),x=>SMALL(x,.62,FIG({x,red:true,walk:true})),
+  `<ellipse cx="16" cy="86" rx="12" ry="4" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2" stroke-dasharray="4 3.5"/>`);
+/* coming: toward the place ahead (pink), still on the way. */
+const COMING=CONT('cmg',x=>SMALL(x,.62,FIG({x,red:true,walk:true})),x=>SMALL(x,.62,FIG({x,red:true,walk:true})),
+  `<ellipse cx="94" cy="86" rx="9" ry="4" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2" stroke-dasharray="4 3.5"/>`);
+/* being: the person in their space moves along with the time bar. */
+const SMALL_SPACE=x=>SPACEBOX(x-11,42,x+11,91);
+const BEING=CONT('bng',x=>SMALL_SPACE(x)+SMALL(x,.62,FIG({x,red:true})),x=>SMALL_SPACE(x)+SMALL(x,.62,FIG({x,red:true})));
+
+/* Past: the blue person walks from the "before" place to "now" (0-45%), stands there, then the red person appears, faint, in the past. */
+const BLUE_TO_NOW=(id,T,xb,xn)=>MOVE_X(id+'bm',T,xn-xb,0,40,
+    HIDE_AT(id+'bw',T,38,44,SMALL(xb,.62,FIG({x:xb,walk:true})))+SHOW_AT(id+'bs',T,38,44,SMALL(xb,.62,FIG({x:xb}))));
+const PAST_TRIP=(kind)=>{ const id='pt'+kind, T=2600;
+  return svg(AN_CALM+TIMELINE_CLOCKS([{x:18,kind:'past',h:2},{x:50,kind:'past',h:3},{x:82,kind:'now',h:5}])+FLOOR+
+    (kind==='went'?PLACE(14):`<ellipse cx="68" cy="86" rx="28" ry="4.5" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2" stroke-dasharray="4 3.5"/>`)+
+    BLUE_TO_NOW(id,T,18,82)+MOVING_CLOCK(T,18,82,0,40)+
+    SHOW_AT(id+'r',T,50,75,TRAIL('M27 85 L 38 85')+CHEV(41,1)+SMALL(18,.62,FIG({x:18,red:true,walk:true}))+SMALL(50,.62,FIG({x:50,red:true})),.38)); };
+const WENT=PAST_TRIP('went'), CAME=PAST_TRIP('came');
+/* gone: the red person, faint, left the place in the past; the blue person is at "now". */
+const GONE=(()=>{ const T=2400; return svg(AN_CALM+TIMELINE_CLOCKS([{x:22,kind:'past',h:2},{x:78,kind:'now',h:5}])+FLOOR+PLACE(20)+
+  BLUE_TO_NOW('gn',T,22,78)+MOVING_CLOCK(T,22,78,0,40)+
+  SHOW_AT('gnr',T,50,75,TRAIL('M31 85 L 64 85')+CHEV(67,1)+SMALL(22,.62,FIG({x:22,red:true,walk:true})),.38)); })();
+
+/* be family: take up space = a pink dashed space round the person. */
+/* be, are (1) (you are): the person spoken to in their space, inside the speech bubble; the speaker points at them. */
+const BE_YOU=svg(FLOOR+FIT(FIG({x:14,point:[57,50]})+SPACEBOX(42,18,72,91)+FIG({x:60,face:'l',red:true})+BUBBLE(37,77,12,95),5,80));
+/* am (I am): the speaker in their space, inside the speech bubble, with the line from the mouth (as in "I"). */
+const BE_I=(()=>{ const loop=LOOP(29,11,67,95), mx=56.5, my=31, jx=67, jy=60;
+  return svg(FLOOR+SPACEBOX(34,16,62,91)+FIG({x:48,red:true})+loop.svg+
+    `<path d="M${mx} ${my+1} C ${mx+18} ${my-8}, ${jx+20} ${jy-30}, ${jx+16} ${jy-10} C ${jx+13} ${jy-2}, ${jx+6} ${jy}, ${jx} ${jy}" fill="none" stroke="${LASSO_RED}" stroke-width="3.2" stroke-linecap="round"/>`); })();
+/* is, are (2): the third-person scene with the person or people spoken about in their space. */
+const FAR_SPACE=list=>{ const ps=list.map(([x,o])=>FARP(x,o||{})), b=UNION(ps.map(q=>q.box));
+  return THIRD_SCENE({lasso:false,target:[(b[0]+b[2])/2,(b[1]+b[3])/2],box:[b[0]-4,b[1],b[2]+4,b[3]],
+    named:SPACEBOX(b[0]-4,b[1]-4,b[2]+4,b[3]+3)+ps.map(q=>q.svg).join('')}); };
+const BE_HE=FAR_SPACE([[86]]), BE_THEY=FAR_SPACE([[80],[96]]);
+/* was, were: the blue person (or people) walk from "before" to "now"; then the red person, faint, appears in their space in the past. */
+const PAST_SPACE=(xs,id,band=false)=>{ const T=2400, xb=30, xn=76;
+  return svg(AN_CALM+TIMELINE_CLOCKS([{x:xb,kind:'past',h:2},{x:xn,kind:'now',h:5}])+FLOOR+
+    xs.map((d,i)=>BLUE_TO_NOW(id+i,T,xb+d,xn+d)).join('')+MOVING_CLOCK(T,xb,xn,0,40)+
+    SHOW_AT(id+'r',T,50,75,SPACEBOX(xb-11-(xs.length-1)*7,42,xb+11+(xs.length-1)*7,91)+xs.map(d=>SMALL(xb+d,.62,FIG({x:xb+d,red:true}))).join(''),.38)+
+    (band?AN(id+'band',T,'transform:scaleX(1)','0%{transform:scaleX(0)}70%{transform:scaleX(0)}100%{transform:scaleX(1)}',
+      `<rect x="${xb}" y="31" width="${xn-xb}" height="10" rx="5" fill="#e8655f" stroke="#5b4a3a" stroke-width="2"/>`)
+      .replace('class="an" style="','class="an" style="transform-box:fill-box;transform-origin:0% 50%;'):'')); };
+const BE_WAS=PAST_SPACE([0],'bw'), BE_WERE=PAST_SPACE([-7,7],'bwr');
+/* been = has taken up space: as was, with the red stretch running from that past time up to "now". */
+const BE_BEEN=PAST_SPACE([0],'bn',true);
+
+/* and = also / in addition to: one ball is there; a red ball arrives and joins it. */
+const AND=svg(FLOOR+SHADOW(40,89,8)+BALL(40,79,9,NEUTRAL)+TRAIL(MOVES.and)+MBALL(9));
+
+/* same = identical: two red balls exactly alike, outlined together; a smaller, plain ball is different. */
+const SAME=svg(FLOOR+SHADOW(18,89,5)+BALL(18,82,6,NEUTRAL)+
+  `<rect x="33" y="62" width="56" height="28" rx="12" fill="#f5b8b2" fill-opacity=".55" stroke="#d64541" stroke-width="2.5" stroke-dasharray="5 4"/>`+
+  SHADOW(48,89,9)+BALL(48,78,10)+SHADOW(74,89,9)+BALL(74,78,10));
+
+/* with = alongside: two people walk together; the one alongside has the red torso (Axel, 5 Nov 2026). */
+const WITH=svg(FLOOR+FIT(TRAIL('M8 85 L 40 85')+MOVER(FIG({x:-22,red:true,walk:true})+FIG({x:0,walk:true}),1,36),-1,90));
+
+/* for (1) = to be given to: the red ball goes from one person's hand to the receiving person (red torso, Axel, 5 Nov 2026). */
+const FOR_GIVEN=svg(FLOOR+FIG({x:20})+FIG({x:80,face:'l',red:true})+TRAIL(MOVES.for)+MBALL(6));
+
+/* for (2) = during: a long time line with a stretch of time marked in red, and a clock at each marker. */
+const FOR_DURING=svg(
+  `<line x1="8" y1="62" x2="86" y2="62" stroke="#8a7a68" stroke-width="3" stroke-linecap="round"/><path d="M82 56 L90 62 L82 68" fill="none" stroke="#8a7a68" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`+
+  AN_CALM+AN('dur',1100,'transform:scaleX(1)','0%{transform:scaleX(0)}100%{transform:scaleX(1)}',`<rect x="24" y="55" width="46" height="14" rx="7" fill="#e8655f" stroke="#5b4a3a" stroke-width="2.2"/>`).replace('class="an" style="','class="an" style="transform-origin:24px 62px;transform-box:view-box;')+
+  `<line x1="24" y1="48" x2="24" y2="76" stroke="#5b4a3a" stroke-width="2.4" stroke-linecap="round"/><line x1="70" y1="48" x2="70" y2="76" stroke="#5b4a3a" stroke-width="2.4" stroke-linecap="round"/>`+
+  MOVING_CLOCK(1100,24,70,0,100,2,36));
+
+
+/* defAt (ms): past forms show and say the definition only once the red person has appeared in the past (Axel, 5 Nov 2026). */
+const M=(path,r)=>({path,r});
+const BATCH3_CARDS=[
+  {word:'go', set:[{def:'move away',svg:GO,anim:1500}]},
+  {word:'goes', set:[{def:'moves away',svg:GOES,anim:2000}]},
+  {word:'going', set:[{def:'moving away',svg:GOING,anim:1800}], note:'card 2 still to revisit'},
+  {word:'went', set:[{def:'moved away',svg:WENT,anim:2600,defAt:1800}]},
+  {word:'gone', set:[{def:'has moved away',svg:GONE,anim:2400,defAt:1650}]},
+  {word:'come', set:[{def:'move toward',svg:COME,anim:1500}]},
+  {word:'comes', set:[{def:'moves toward',svg:COMES,anim:2000}]},
+  {word:'coming', set:[{def:'moving toward',svg:COMING,anim:1800}]},
+  {word:'came', set:[{def:'moved toward',svg:CAME,anim:2600,defAt:1800}]},
+  {word:'and', set:[{def:'also / in addition to',svg:AND,move:M(MOVES.and,9)}]},
+  {word:'same', set:[{def:'identical',svg:SAME}]},
+  {word:'with', set:[{def:'alongside',svg:WITH,move:M(MOVES.with,8)}], note:'card 2 ("using") still to review'},
+  {word:'for', set:[{def:'to be given to',svg:FOR_GIVEN,move:M(MOVES.for,6)},{def:'during',svg:FOR_DURING,anim:1100}]},
+  {word:'be', set:[{def:'take up space',svg:BE_YOU}], group:'be'},
+  {word:'am', set:[{def:'take up space',svg:BE_I}]},
+  {word:'are', set:[{def:'take up space',svg:BE_YOU},{def:'take up space',svg:BE_THEY}]},
+  {word:'is', set:[{def:'takes up space',svg:BE_HE}]},
+  {word:'being', set:[{def:'taking up space',svg:BEING,anim:1800}]},
+  {word:'was', set:[{def:'took up space',svg:BE_WAS,anim:2400,defAt:1650}]},
+  {word:'were', set:[{def:'took up space',svg:BE_WERE,anim:2400,defAt:1650}]},
+  {word:'been', set:[{def:'has taken up space',svg:BE_BEEN,anim:2400,defAt:1650}]},
+];
+
+return {ME,MINE,YOU,YOURS,HE,SHE,HIS,HERS,IT,ITS,IT_ANIMAL,ITS_ANIMAL,WE,OURS,THEY,THEIRS,BATCH3:BATCH3_CARDS};
+})();
+/* A standard person (no shadow) whose front arm points at (tx,ty), as in the pronoun cards. */
+const POINTING_PERSON=(x,tx,ty)=>{
+  let t=PERSON(x).replace(`<ellipse cx="${x+2}" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`,'');
+  t=t.split(`<path d="M${x+2} 43 L${x+6} 53 L${x+13} 58"`).join('<path data-old-arm="1" d=""');
+  const sx=x+3, sy=44, L=Math.hypot(tx-sx,ty-sy), ux=(tx-sx)/L, uy=(ty-sy)/L;
+  const ex=sx+ux*14, ey=sy+uy*14, fx=ex+ux*6, fy=ey+uy*6, f=n=>n.toFixed(1), d=`M${sx} ${sy} L${f(ex)} ${f(ey)}`;
+  return t+`<path d="${d}" fill="none" stroke="#5b4a3a" stroke-width="6.5" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#cdbba5" stroke-width="3" stroke-linecap="round"/>`+
+    `<path d="M${f(ex)} ${f(ey)} L${f(fx)} ${f(fy)}" fill="none" stroke="#5b4a3a" stroke-width="4" stroke-linecap="round"/><path d="M${f(ex)} ${f(ey)} L${f(fx)} ${f(fy)}" fill="none" stroke="#cdbba5" stroke-width="1.6" stroke-linecap="round"/>`+
+    `<circle cx="${f(ex)}" cy="${f(ey)}" r="3" fill="#cdbba5" stroke="#5b4a3a" stroke-width="1.8"/>`;
+};
 const CARDS={
+  a:[{def:'one',svg:ONE}],
+  an:[{def:'one',svg:ONE}],
+  the:[{def:'that one here',svg:THE_HERE},{def:'that one I mentioned',svg:THE_MENTIONED}],
+  of:[{def:'containing',svg:OF_CONTAINING},{def:'from the whole',svg:OF_PART},{def:'belonging to',svg:OF_BELONGING}],
+  be:[{def:'take up space',svg:BE}],
+  being:[{def:'taking up space',svg:BE}],
+  am:[{def:'take up space',svg:BE_NOW}],
+  are:[{def:'take up space',svg:BE_NOW}],
+  is:[{def:'takes up space',svg:BE_NOW}],
+  was:[{def:'took up space',svg:BE_PAST}],
+  were:[{def:'took up space',svg:BE_PAST}],
+  been:[{def:'has taken up space',svg:BE_PAST}],
+  /* pronouns (approved by Axel, 5 Nov 2026) */
+  i:[{def:'the person speaking',svg:PRON.ME}],
+  me:[{def:'the person speaking',svg:PRON.ME}],
+  my:[{def:'belonging to me',svg:PRON.MINE}],
+  mine:[{def:'belonging to me',svg:PRON.MINE}],
+  you:[{def:'the person spoken to',svg:PRON.YOU}],
+  your:[{def:'belonging to you',svg:PRON.YOURS}],
+  yours:[{def:'belonging to you',svg:PRON.YOURS}],
+  he:[{def:'that male person or animal',svg:PRON.HE}],
+  him:[{def:'that male person or animal',svg:PRON.HE}],
+  his:[{def:'belonging to him',svg:PRON.HIS}],
+  she:[{def:'that female person or animal',svg:PRON.SHE}],
+  her:[{def:'that female person or animal',svg:PRON.SHE},{def:'belonging to that female person',svg:PRON.HERS}],
+  hers:[{def:'belonging to her',svg:PRON.HERS}],
+  it:[{def:'that thing',svg:PRON.IT},{def:'that animal',svg:PRON.IT_ANIMAL}],
+  its:[{def:'belonging to it',svg:PRON.ITS},{def:'belonging to that animal',svg:PRON.ITS_ANIMAL}],
+  we:[{def:'the speaker and others',svg:PRON.WE}],
+  us:[{def:'the speaker and others',svg:PRON.WE}],
+  our:[{def:'belonging to us',svg:PRON.OURS}],
+  ours:[{def:'belonging to us',svg:PRON.OURS}],
+  they:[{def:'those people or things',svg:PRON.THEY}],
+  them:[{def:'those people or things',svg:PRON.THEY}],
+  their:[{def:'belonging to them',svg:PRON.THEIRS}],
+  theirs:[{def:'belonging to them',svg:PRON.THEIRS}],
   back:[{def:'to where it was before',svg:BACK_RETURN,move:{path:P.backReturn,r:8}},{def:'the side facing away',svg:BACK_PART},{def:'toward the side facing away',svg:BACK_DIR,move:{path:P.backDir,r:8}}],
   front:[{def:'the side facing forward',svg:FRONT_PART},{def:'ahead of',svg:FRONT_AHEAD}],
   left:[{def:'went away from',svg:LEFT_AWAY,move:{path:P.leftAway,r:9}},{def:'on/to the opposite of right',svg:LEFT_DIR}],
@@ -374,11 +908,13 @@ const CARDS={
   over:[{def:'above',svg:OVER},{def:'above and across',svg:OVER_ACROSS,move:{path:P.overAcross,r:9}}],
   under:[{def:'below',svg:UNDER}],
   through:[{def:'in one side and out the other side',svg:THROUGH,move:{path:P.through,r:9,frontAt:57}}],
-  here:[{def:'in this place',svg:svg(DOMARK('here')+`<path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="36" cy="77" rx="9" ry="2.4" fill="#e2d6c1"/>`+PERSON(36).replace(`<ellipse cx="38" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`,'')+`<line x1="86" y1="22" x2="60.2" y2="63.2" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-here)"/>`)}],
-  there:[{def:'in that place',svg:svg(DOMARK('there')+`<path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="86" cy="64" rx="9" ry="3.5" fill="#f5b8b2" stroke="#d64541" stroke-width="1.6"/>`+PERSON(36).replace(`<ellipse cx="38" cy="85" rx="11" ry="2.4" fill="#e2d6c1"/>`,'')+`<line x1="90" y1="18" x2="86.7" y2="54" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-there)"/>`)}],
+  here:[{def:'in this place',svg:svg(DOMARK('here')+`<path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="#f5b8b2" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="36" cy="77" rx="9" ry="2.4" fill="#e2d6c1"/>`+POINTING_PERSON(36,58,74)+`<line x1="86" y1="22" x2="60.2" y2="63.2" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-here)"/>`)}],
+  there:[{def:'in that place',svg:svg(DOMARK('there')+`<path d="M0 50 Q50 45 100 50 L100 100 L0 100 Z" fill="#efe6d6"/><ellipse cx="36" cy="76" rx="30" ry="11" fill="none" stroke="#8a7a68" stroke-width="2.2" stroke-dasharray="4 3.5"/><ellipse cx="86" cy="64" rx="9" ry="3.5" fill="#f5b8b2" stroke="#d64541" stroke-width="1.6"/>`+POINTING_PERSON(36,86,64)+`<line x1="90" y1="18" x2="86.7" y2="54" stroke="#d64541" stroke-width="7" stroke-linecap="round" marker-end="url(#dom-there)"/>`)}],
   to:[{def:'in the direction of',svg:TO,move:{path:P.to,r:9}}],
   from:[{def:'starting at',svg:FROM,move:{path:P.from,r:9}}]
 };
+/* batch 3 cards (Axel, 5 Nov 2026) */
+PRON.BATCH3.forEach(c=>{ CARDS[c.word.toLowerCase()]=c.set; });
 const SAY={onto:'ontoo','on/to the opposite of right':'on or to the opposite of right'};
 
 /* ============================================================
@@ -388,13 +924,29 @@ const SAMPLE = `Mia walked down to the river after lunch. The water was cold, cl
 
 "Come back," Mia called, "the ducks want to swim in peace." The dog stopped, looked at her, and sat down in the long grass.
 
-Long ago, a wooden bridge crossed the river here. Now only three old posts stand in the water; birds like to rest on them.`;
+Long ago, a wooden bridge crossed the river here. Now only three old posts stand in the water; birds like to rest on them.
+
+Mia's brother Sam ran up the path with an apple in his hand. "Is that dog yours?" he asked.
+
+"No, it is not mine," said Mia. "I think it lives on the farm over there. Its name is Rex. Wait for me, and we can take him back to them."
+
+"They will be glad to see their dog," Sam said. "My legs are tired, but our farm is on the way. The red gate in front of the barn is ours, and the blue one on the left is theirs."
+
+The children went over the field, through the gate and into the yard. Rex ran away from them, then came back and jumped onto a box by the barn door. Under the box, a cat sat next to a bowl of milk.
+
+The farmer climbed off his tractor. "Where were you, Rex? You have been out all day! Being a dog is hard work, I am sure." He looked up at the sky. "It is about time for your dinner."
+
+Within a minute, Rex was sitting between the cat and the farmer's wife, eating his food. "Thank you for bringing him back to us," she said. "Take this pie home to your mother; it is hers to keep."
+
+Once upon a time, Mia thought, this whole valley was a forest. Maybe one day it will be again.
+
+Every day Rex goes to the river. "Is he going again?" Sam asked. "He has gone," Mia laughed, "but he always comes home. Look, he is coming now, the same dog as before. Go and get him!"`;
 const TOLD_LIMIT = 4;
 const COLOURS=[["Cream","#FBF5E4"],["Butter","#FBF3C8"],["Peach","#FCE6D6"],["Rose","#F9E1E4"],["Lilac","#ECE4F5"],["Sky","#E1EDF8"],["Aqua","#DDF2EF"],["Mint","#E3F3DF"],["Stone","#EEEDE8"]];
 const GUIDE = {
  1:{say:"Spell the word as the letters are revealed. Then I will say the word, and you say it back while looking at it.",keys:["→: reveal the next letter","←: go back a letter","↑: say the word now","Tap any underlined word for its meaning card"],watch:["A letter swapped, missed or changed","Head moving closer to the page","Hesitation, speeding up, slowing down, or a flat voice"],next:"Move on when the student recognises most words on their own."},
  2:{say:"Let your eyes sweep over the word. If it doesn't just come out of your mouth, sweep it again. If it still doesn't, spell it.",keys:["→: next word","←: sweep again, then spell it","↑: say the word","Tap any underlined word for its meaning card"],watch:["At the first sign of disorientation, cover the text (C)"],next:`Only words you had to say ${TOLD_LIMIT} times are listed for Symbol Mastery.`},
- 3:{say:"Now we add meaning. When you reach a STOP sign, stop and make a picture in your mind of what you just read.",keys:["→: next word; at a STOP sign, → covers the words","←: sweep again; press again to spell it","↑: say the word","Tap an underlined word for its meaning card"],watch:["Unknown words: explain them or look them up together."],next:"The job is done when the student starts reading for pleasure."}
+ 3:{say:"Now we add meaning. When you reach a STOP sign, stop and make a picture in your mind of what you just read.",keys:["→: next word; at a STOP sign, → covers the words","N: at a STOP sign, go on to the next word without asking","←: sweep again; press again to spell it","↑: say the word","Tap an underlined word for its meaning card"],watch:["Unknown words: explain them or look them up together."],next:"The job is done when the student starts reading for pleasure."}
 };
 const PURPOSE={1:["Train left-to-right eye movement","Recognise groups of letters as words","Understanding is not the goal yet"],2:["Continue left-to-right eye movement","Continue word recognition","Understanding is still not the goal"],3:["Understanding what is read","Goal: full comprehension"]};
 const VOICE_NOTE={1:"With Voice on, the app says the word about a second after the last letter appears.",2:"With Voice on, ↑ speaks the word after the delay and counts it.",3:"With Voice on, ↑ speaks it after the delay and counts it."};
@@ -459,7 +1011,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const letters=w=>Math.max(1,(w.match(/[\p{L}\p{N}]/gu)||[]).length);
 
-let WE=[], M=null, lastKey="", lastLine=-1, pend=null;
+let WE=[], M=null, lastKey="", lastLine=-1, pend=null, lowPend=null;
 function buildPassage(){
   const T=S.toks; let h="<p>";
   T.forEach((t,i)=>{
@@ -468,7 +1020,7 @@ function buildPassage(){
   });
   $("passage").innerHTML = T.length ? h+"</p>" : `<p class="end">Add a reading text in Settings.</p>`;
   WE=[...$("passage").querySelectorAll(".w")];
-  measure(); lastKey=""; lastLine=-1;
+  measure(); lastKey=""; lastLine=-1; lastSent=-1; $("sweeps").innerHTML="";
 }
 function measure(){
   const page=$("page"); page.style.setProperty("--ts",S.tsize+"rem");
@@ -496,7 +1048,7 @@ function nextLineStart(p){ const L=M.idx[p]; let i=p; while(i<S.toks.length&&M.i
 function place(force){
   if(!M) return;
   const sl=$("slider"), lo=$("lower"), n=S.toks.length;
-  const band=$("sweep"), hands=$("hands");
+  const hands=$("hands");
 
   if(S.view!=="hl"){
     S.reSweeping=false;
@@ -505,64 +1057,74 @@ function place(force){
   if(S.view==="hl"){
     sl.hidden=true; lo.hidden=true;
     hands.innerHTML="";
-    if(!n || S.pos>=n){ band.hidden=true; lastLine=-1; return; }
+    if(!n || S.pos>=n){ setBands([]); lastLine=-1; return; }
     const Lh=M.idx[S.pos], boxH=lineBox(Lh), Wh=M.words[S.pos];
-    const prevIdx = S.pos - 1, nextIdx = S.pos + 1;
-    const sameLineAsPrev = prevIdx >= 0 && M.idx[prevIdx] === Lh && !S.toks[prevIdx].stop;
-    const sameLineAsNext = nextIdx < n && M.idx[nextIdx] === Lh && !S.toks[S.pos].stop;
-    const start = sameLineAsPrev ? (M.words[prevIdx].end + Wh.l) / 2 : Wh.l;
-    const endFull = sameLineAsNext ? (Wh.end + M.words[nextIdx].l) / 2 : Wh.end;
-    let end;
+    const nextIdx=S.pos+1;
+    const sameLineAsNext = nextIdx<n && M.idx[nextIdx]===Lh && !S.toks[S.pos].stop;
+    const endFull = sameLineAsNext ? (Wh.end + M.words[nextIdx].l)/2 : Wh.end;
+    let lastIdx=S.pos, end;
     if(S.step===1){
-      if(S.k<=0) end = start;
-      else if(S.k>=Wh.lt.length) end = endFull;
-      else end = Wh.lt[S.k];
+      end = S.k<=0 ? Wh.l : (S.k>=Wh.lt.length ? endFull : Wh.lt[S.k]);
     } else if(S.step===2 && S.mode==="line"){
-      const ls = lineStart(S.pos), ne = nextLineStart(S.pos);
-      const fw = M.words[ls], lw = M.words[ne-1];
-      const lineStartX = fw.l, lineEndX = lw.l + lw.w;
-      band.hidden=false;
-      band.style.transition="";
-      band.classList.toggle("instant",!!force);
-      band.style.left = (lineStartX - 3) + "px";
-      band.style.top = (boxH.top + 4) + "px";
-      band.style.height = (boxH.height - 8) + "px";
-      band.style.width = Math.max(3, lineEndX - lineStartX + 3) + "px";
-      if(force) requestAnimationFrame(()=>band.classList.remove("instant"));
-      keepInView(boxH.top);
-      lastLine = Lh;
-      return;
-    } else {
-      end = endFull;
+      lastIdx = nextLineStart(S.pos)-1; const lw=M.words[lastIdx]; end = lw.l+lw.w;
+    } else end = endFull;
+    /* Spell-Reading: the band sits on the word being spelled. It shows only the letter just
+       revealed, then the whole word once every letter has been spelled. */
+    if(S.step===1){
+      const len=Wh.lt.length;
+      if(S.pos!==lastSent){ $("sweeps").innerHTML=""; lastSent=S.pos; }
+      let l1, r1, pad=3;
+      if(S.k<=0){ l1=Wh.l; r1=Wh.l; pad=0; }
+      else if(S.k<len){ l1=Wh.lt[S.k-1]; r1=Wh.lt[S.k]; }
+      else if(S.k===len){ l1=Wh.lt[len-1]; r1=Wh.end; }
+      else {
+        /* Whole word: stretch to the middle of the space on each side. */
+        const pv=M.words[S.pos-1], nx=M.words[S.pos+1];
+        const midL = (pv && M.idx[S.pos-1]===Lh) ? (pv.end+Wh.l)/2 : Wh.l-M.sp/2;
+        const midR = (nx && M.idx[S.pos+1]===Lh) ? (Wh.end+nx.l)/2 : Wh.end+M.sp/2;
+        l1=midL+3; r1=midR; pad=0;
+      }
+      setBands([{left:l1, right:r1+pad, top:boxH.top, height:boxH.height}], force, null);
+      keepInView(boxH.top); lastLine=Lh; return;
     }
-    band.hidden=false;
-    band.classList.toggle("instant",!!force);
-    band.style.left = (start - 3) + "px";
-    band.style.top = (boxH.top + 4) + "px";
-    band.style.height = (boxH.height - 8) + "px";
-    const fullW = Math.max(3, end - start + 3);
-    if(S.reSweeping && !force){
-      S.reSweeping = false;
-      band.style.transition = "none";
-      band.style.width = "3px";
-      void band.offsetWidth;
-      band.style.transition = `width ${sweepDur()/1000}s linear`;
-      band.style.width = fullW + "px";
-    } else {
-      band.style.transition = "";
-      band.style.width = fullW + "px";
+    /* Other exercises: the band is anchored at the start of the sentence and grows to the
+       current position, one segment per line the sentence covers. */
+    const s0=sentStart(S.pos);
+    if(s0!==lastSent){ $("sweeps").innerHTML=""; lastSent=s0; }
+    const segs=[]; let a=s0;
+    while(a<=lastIdx){
+      const L=M.idx[a]; let b=a; while(b+1<=lastIdx && M.idx[b+1]===L) b++;
+      const bx=lineBox(L);
+      segs.push({left:M.words[a].l, right:(b===lastIdx?end:M.words[b].end), top:bx.top, height:bx.height});
+      a=b+1;
     }
-    if(force) requestAnimationFrame(()=>band.classList.remove("instant"));
+    S.reSweeping=false;
+    /* Same pace as the two-card view: the current word sweeps at the sweep speed
+       (20% slower on the second sweep, after its half-second pause); a whole line
+       glides in 0.6 s. */
+    let anim=null;
+    if(!force){
+      if(S.step===2 && S.mode==="line") anim={from:null, dur:.6, delay:0, ease:"ease"};
+      else if(S.phase!=="ask" && !S.spell){
+        const d=sweepDur()/1000, el=(performance.now()-S.sweepAt)/1000;
+        if(el<d){
+          const startX = segs.length && segs[segs.length-1].left>Wh.l ? segs[segs.length-1].left : Wh.l;
+          const fx = startX + (end-startX)*Math.max(0,el/d);
+          anim={from:fx, dur:Math.max(.05,d-Math.max(0,el)), delay:Math.max(0,-el), ease:"linear"};
+        }
+      }
+    }
+    setBands(segs, force, anim);
     keepInView(boxH.top);
     lastLine = Lh;
     return;
   }
 
-  band.hidden=true;
+  setBands([]); lastSent=-1;
   sl.hidden=false; lo.hidden=false;
   const key=[S.step,S.pos,S.k,S.mode,S.phase,S.tsize,S.spell,S.resweep,S.check,S.coverPic].join("|");
   if(key===lastKey && !force) return;
-  lastKey=key; clearTimeout(pend);
+  lastKey=key; clearTimeout(pend); clearTimeout(lowPend);
   renderHands();
   $("stopChart").hidden=S.step!==3;
   if(!n||S.pos>=n){
@@ -570,9 +1132,13 @@ function place(force){
     lo.style.top=M.H+"px"; lastLine=-1; return;
   }
   const L=M.idx[S.pos], box=lineBox(L), W=M.words[S.pos];
-  lo.style.transition=force?"none":"top .35s ease";
-  lo.style.top=(box.top+box.height)+"px";
-  const newLine = L!==lastLine; lastLine=L;
+  const newLine = L!==lastLine, firstLine = lastLine<0; lastLine=L;
+  /* On a new line the top card first goes back to the left (and down onto the new line, which the
+     lower card still covers); only then does the lower card drop to reveal the line (Axel, 5 Nov 2026). */
+  const dropLower=()=>{ lo.style.transition=force?"none":"top .35s ease"; lo.style.top=(box.top+box.height)+"px"; };
+  const staged = newLine && !force && !firstLine;
+  if(staged) lowPend=setTimeout(dropLower,360); else dropLower();
+  const revealAt = staged ? 720 : 360;
   const setTop=()=>{ sl.style.top=box.top+"px"; sl.style.height=box.height+"px"; };
   let from=null, to, dur="left .5s cubic-bezier(.45,0,.35,1)";
   const nx=M.words[S.pos+1];
@@ -597,8 +1163,8 @@ function place(force){
     const start=M.words[lineStart(S.pos)].l;
     sl.style.transition="top .35s ease, height .35s ease, left .35s ease";
     setTop(); sl.style.left=(S.step===2&&S.mode==="line"?start:Math.min(start,from??to))+"px";
-    if(from!==null){ S.sweepAt=performance.now()+350; from=M.words[S.pos].l; }
-    pend=setTimeout(go,360);
+    if(from!==null){ S.sweepAt=performance.now()+revealAt; from=M.words[S.pos].l; }
+    pend=setTimeout(go,revealAt);
   } else {
     setTop();
     const wait=S.sweepAt-performance.now();
@@ -606,6 +1172,38 @@ function place(force){
     else go();
   }
   keepInView(box.top);
+}
+let lastSent=-1;
+function sentStart(p){ let i=p; while(i>0 && !S.toks[i].start) i--; return i; }
+function setBands(segs, force, anim){
+  const c=$("sweeps");
+  while(c.children.length>segs.length) c.lastChild.remove();
+  segs.forEach((g,k)=>{
+    let d=c.children[k]; const fresh=!d;
+    const w=Math.max(3, g.right-g.left+3);
+    if(fresh){
+      d=document.createElement("div"); d.className="sweep instant";
+      d.style.left=(g.left-3)+"px"; d.style.top=(g.top+4)+"px"; d.style.height=(g.height-8)+"px"; d.style.width="3px";
+      c.append(d); void d.offsetWidth;
+      if(!force) d.classList.remove("instant");
+    } else {
+      d.classList.toggle("instant",!!force);
+    }
+    d.style.left=(g.left-3)+"px"; d.style.top=(g.top+4)+"px"; d.style.height=(g.height-8)+"px";
+    if(anim && k===segs.length-1){
+      if(anim.from!=null){
+        d.style.transition="none";
+        d.style.width=Math.max(3, anim.from-g.left+3)+"px";
+        void d.offsetWidth;
+      }
+      d.style.transition=`width ${anim.dur}s ${anim.ease} ${anim.delay}s, left .35s ease, top .35s ease, height .35s ease`;
+      d.style.width=w+"px";
+    } else {
+      d.style.transition="";
+      d.style.width=w+"px";
+    }
+    if(force) requestAnimationFrame(()=>d.classList.remove("instant"));
+  });
 }
 function keepInView(top){
   const rd=$("reader"), y=top+$("page").offsetTop;
@@ -625,6 +1223,7 @@ function updateMarks(){
   WE.forEach((el,i)=>{
     el.classList.toggle("told",S.toldHere.has(i));
     el.classList.toggle("flagged",S.step===3&&S.manual.has(S.toks[i].key));
+    el.classList.toggle("pointed",S.step===3&&S.phase==="ask"&&S.check===i);
     const has=S.trig && !!CARDS[S.toks[i].key];
     el.classList.toggle("has-card",has);
     el.classList.toggle("trigger-active",has && i===S.pos);
@@ -653,21 +1252,23 @@ function renderControls(){
   if(!n){ h=B("Add text","text",""); }
   else if(end){ hint="The end."; h=B("Read again","restart","","main"); }
   else if(S.step===1){
-    h=B("Reveal letter","next","→","main")+B("Back","back","←")+B("Cover","cover","C");
+    const wl=[...S.toks[S.pos].w].length;
+    h=B(S.view==="hl"&&S.k===wl?"Whole word":(S.view==="hl"&&S.k>wl?"Next word":"Reveal letter"),"next","→","main")+B("Back","back","←")+B("Cover","cover","C");
   } else if(S.step===2 && S.mode==="line"){
     hint="Tap any word you had to say. Tap an underlined word for its meaning card.";
     h=B("Next line","next","→","main")+B("Back","back","←")+B("Cover","cover","C");
   } else if(S.step===2){
     if(S.spell) hint = "Spell the word, one letter at a time.";
     else if(S.backs===1) hint = "Second sweep — say the word if it comes to you.";
-    h=B(sssNext("Next word"),"next","→","main")+B(told?"Said it ✓":(S.voice?"Say the word":"I said it"),"told","↑",told?"on":"")+B(sssBack(),"back","←")+B("Cover","cover","C");
+    h=B(sssNext("Next word"),"next","→","main")+B(told?"Said it ✓":(S.voice?"Say the word":"Helper said it"),"told","↑",told?"on":"")+B(sssBack(),"back","←")+B("Cover","cover","C");
   } else if(S.phase==="ask"){
     if(S.check>=0) hint=`Ask: <b>How is “${esc(cleanW(S.toks[S.check].w))}” in your picture?</b>`;
     else hint = S.ask==="see" ? `Ask: <b>What do you see?</b>` : `Ask: <b>What do you feel?</b> or <b>What does that mean to you?</b>`;
-    h=B("Carry on","next","→","main")+B(S.ask==="see"?"Ask 'feel'":"Ask 'see'","ask","F")+B(S.check>=0?"Point out another word":"Point out a missing word","chips","W",S.chips?"on":"")+(S.coverPic?B("Show words","show",""):"");
+    h=B("Next","next","→","main")+B(S.ask==="see"?"Ask 'feel'":"Ask 'see'","ask","F")+B(S.check>=0?"Point out another word":"Point out a missing word","chips","W",S.chips?"on":"")+(S.coverPic?B("Show words","show",""):"");
   } else {
-    if(S.toks[S.pos].stop) hint=S.coverPic?"STOP sign. When the word is read, → covers the words.":"STOP sign. When the word is read, press → and ask.";
-    h=B(sssNext(S.toks[S.pos].stop?(S.coverPic?"Cover and ask":"Stop and ask"):"Next word"),"next","→","main")+B(told?"Said it ✓":(S.voice?"Say the word":"I said it"),"told","↑",told?"on":"")+B(sssBack(),"back","←")+B("Cover","cover","C");
+    if(S.spell) hint="Spell the word, one letter at a time.";
+    else if(S.toks[S.pos].stop) hint=S.coverPic?"STOP sign. When the word is read, Next covers the words and you ask.":"STOP sign. When the word is read, press Next and ask.";
+    h=B("Next","next","→","main")+(S.toks[S.pos].stop&&!S.spell?B("Next word, no question","skip","N"):"")+B(told?"Said it ✓":(S.voice?"Say the word":"Helper said it"),"told","↑",told?"on":"")+B(sssBack(),"back","←")+B("Cover","cover","C");
   }
   if(S.elapsed>=S.mins*60 && S.running) hint = hint || "Time is up. Finish at the next full stop.";
   if(S.note) hint=esc(S.note);
@@ -836,8 +1437,12 @@ function renderCard(swap){
   openCard.el=el; openCard.defShown=false;
   placeCard();
   const me=openCard;
-  speakCardWord(openCard.word.textContent,300,()=>{ if(openCard===me) showDef(); });
-  laterCard(()=>{ if(openCard===me) showDef(); },3000);
+  // the definition follows once the word is said and the picture is ready: defAt (past forms: the red person has
+  // appeared), else the end of its animation or movement (Axel, 5 Nov 2026); no wait with reduced motion
+  const wait=calm()?0:(c.defAt ?? c.anim ?? (c.move?1050:0)), t0=performance.now();
+  const ready=()=>{ if(openCard!==me) return; const left=wait-(performance.now()-t0); if(left>0) laterCard(()=>{ if(openCard===me) showDef(); },left); else showDef(); };
+  speakCardWord(openCard.word.textContent,300,ready);
+  laterCard(()=>{ if(openCard===me) showDef(); },Math.max(3000,wait+600));
 }
 function placeCard(){
   if(!openCard||!openCard.el) return;
@@ -997,7 +1602,7 @@ function act(a,arg){
       clearPending();
       if(S.step===1){
         let len=[...S.toks[S.pos].w].length;
-        if(S.k>=len){ cancelVoice(); S.pos++; S.k=0; if(S.pos>=n) break; len=[...S.toks[S.pos].w].length; }
+        if(S.k>=len+(S.view==="hl"?1:0)){ cancelVoice(); S.pos++; S.k=0; if(S.pos>=n) break; len=[...S.toks[S.pos].w].length; }
         S.k++; if(S.k===len){ const now=performance.now(); if(!expectWord(S.pos,now,now+500)) speakLater(S.toks[S.pos].w,500); }
       }
       else if(S.step===2&&S.mode==="line"){ S.pos=nextLineStart(S.pos); }
@@ -1008,7 +1613,7 @@ function act(a,arg){
       else advanceWord();
       break;
     case "back": cancelVoice(); closeCard();
-      if(S.step===1){ if(S.k>1||(S.k===1&&S.pos===0)) S.k--; else if(S.pos>0){ S.pos--; S.k=[...S.toks[S.pos].w].length; } }
+      if(S.step===1){ if(S.k>1||(S.k===1&&S.pos===0)) S.k--; else if(S.pos>0){ S.pos--; S.k=[...S.toks[S.pos].w].length+(S.view==="hl"?1:0); } }
       else if(S.step===2&&S.mode==="line"){ const cur=S.pos>=n?n:lineStart(S.pos); if(cur>0) S.pos=lineStart(cur-1); }
       else if(S.phase==="read"&&!end){
         if(S.backs===0){ S.backs=1; S.resweep++; S.sweepAt=performance.now()+500; S.reSweeping=true; }
@@ -1025,6 +1630,10 @@ function act(a,arg){
       else if(S.step===3&&S.phase!=="ask"){ const k=S.toks[arg].key; if(!k) return; S.manual.has(k)?S.manual.delete(k):S.manual.add(k); S.hiddenWords.delete(k); saveStore(); }
       else return;
       break;
+    case "skip":
+      if(S.step!==3||end||S.phase!=="read"||S.spell||!S.toks[S.pos].stop) return;
+      closeCard(); clearPending(); advanceWord(); S.chunkStart=S.pos; S.ask="see"; S.check=-1; S.chips=false;
+      break;
     case "ask": if(S.phase==="ask") S.ask=S.ask==="see"?"feel":"see"; break;
     case "show": if(S.phase==="ask"){ S.phase="read"; S.sweepAt=0; S.check=-1; S.chips=false; } break;
     case "chips": if(S.phase==="ask") S.chips=!S.chips; break;
@@ -1039,7 +1648,7 @@ function act(a,arg){
     default: return;
   }
   render();
-  if(a==="next"&&!S.spell) armSweep();
+  if((a==="next"||a==="skip")&&!S.spell) armSweep();
   if(a==="back"&&S.backs===1&&!S.spell) scheduleSecondSweep();
 }
 
@@ -1090,7 +1699,7 @@ document.addEventListener("click", e => {
 $("reader").addEventListener("scroll", ()=>{ if(openCard) placeCard(); }, {passive:true});
 
 $("helperBtn").onclick=openDrawer; $("closeDrawer").onclick=closeDrawer; $("shade").onclick=closeDrawer;
-$("stepSel").addEventListener("change",e=>{ S.step=+e.target.value; e.target.blur(); cancelVoice(); reset(); saveStore(); closeDrawer(); render(); openStart(); });
+$("stepSel").addEventListener("change",e=>{ S.step=+e.target.value; e.target.blur(); cancelVoice(); reset(); saveStore(); closeDrawer(); lastKey=""; lastSent=-1; $("sweeps").innerHTML=""; if(!S.running) S.running=true; render(); if(S.listen){ startRec(); armSweep(); } });
 $("viewSeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; S.view=b.dataset.view; saveStore(); lastKey=""; render(); });
 $("modeSeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; S.mode=b.dataset.mode; if(S.pos<S.toks.length&&S.mode==="line") S.pos=lineStart(S.pos); S.sweepAt=performance.now(); saveStore(); render(); });
 $("trigOn").onchange=e=>{ S.trig=e.target.checked; saveStore(); buildPassage(); render(); };
@@ -1134,6 +1743,7 @@ document.addEventListener("keydown",e=>{
   else if(k==="c"||k==="C"){ act("cover"); }
   else if(k==="f"||k==="F"){ act("ask"); }
   else if(k==="w"||k==="W"){ act("chips"); }
+  else if(k==="n"||k==="N"){ act("skip"); }
   else if(k==="v"||k==="V"){ act("voice"); }
   else if(k==="l"||k==="L"){ toggleListen(); }
   else if(k==="i"||k==="I"){ openLB(); }
