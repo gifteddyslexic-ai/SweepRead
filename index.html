@@ -229,6 +229,10 @@ textarea{width:100%;min-height:240px;font-size:1rem;line-height:1.6;padding:12px
   <label class="tog" for="trigOn"><span>Trigger-word support<small>Underline trigger words; tap one for its meaning card</small></span><input type="checkbox" id="trigOn" checked></label>
   <label class="tog" for="ulOn" id="ulOnRow"><span>Underline trigger words<small>Off: the words still open their card, without a line under them</small></span><input type="checkbox" id="ulOn" checked></label>
   <label class="tog" for="redStops"><span>Red stop signs<small>Colour full stops, commas and the other stop signs red in the text</small></span><input type="checkbox" id="redStops"></label>
+  <div class="field" id="animField">
+    <label for="animSp">Card animation speed <output id="animSpOut"></output></label>
+    <input type="range" id="animSp" min="0.5" max="2" step="0.25">
+  </div>
   <div class="field" id="ulField">
     <label for="ulStr">Underline strength <output id="ulStrOut"></output></label>
     <input type="range" id="ulStr" min="10" max="100" step="10">
@@ -255,7 +259,7 @@ textarea{width:100%;min-height:240px;font-size:1rem;line-height:1.6;padding:12px
   </div>
   <div class="field" id="speedField">
     <label for="speed">Sweep speed <output id="speedOut"></output></label>
-    <input type="range" id="speed" min="0.3" max="1.2" step="0.05">
+    <input type="range" id="speed" min="0.1" max="1.2" step="0.05">
   </div>
   <div id="revealField">
     <h3>Reveal</h3>
@@ -2135,6 +2139,13 @@ CARDS.by[1]={...CARDS.by[1],def:'using',svg:CARDS.by[1].svg.replace(
   .replace('</g></g></g></g></g></g><defs><marker id="dom-bym"','</g></g></g></g></g></g></g></g><defs><marker id="dom-bym"')};
 if(!CARDS.by[1].svg.includes('values="1 1.000;1 0.866')) console.warn('r92: by (2) key turn not replaced');
 })();
+/* ---- Round 93 (Axel, 16 Nov 2026) ---- */
+/* come: the definition is now "move closer" (pairs with go = "move away"). */
+CARDS.come[0]={...CARDS.come[0],def:'move closer'};
+/* comes, coming, came follow come (Axel, 16 Nov 2026) */
+CARDS.comes[0]={...CARDS.comes[0],def:'moves closer'};
+CARDS.coming[0]={...CARDS.coming[0],def:'moving closer'};
+CARDS.came[0]={...CARDS.came[0],def:'moved closer'};
 /* </r92> */
 
 const SAY={onto:'ontoo','on/to the opposite of right':'on or to the opposite of right'};
@@ -2172,7 +2183,7 @@ Before lunch we went to the park, and after lunch we came back. "Is Rex here now
 
 "This ball is mine, and that one is yours," Mia said. "These shoes are new, but those are old." Sam can lift the box. A fish cannot walk, and I can't reach the top shelf. Rex could swim when he was little. "Could you help me?" Mia asked. "It will rain soon, so I won't go out. We shall see." Sam said he would come. "Would you like to play?"`;
 const TOLD_LIMIT = 4;
-const COLOURS=[["Cream","#FBF5E4"],["Butter","#FBF3C8"],["Peach","#FCE6D6"],["Rose","#F9E1E4"],["Lilac","#ECE4F5"],["Sky","#E1EDF8"],["Aqua","#DDF2EF"],["Mint","#E3F3DF"],["Stone","#EEEDE8"]];
+const COLOURS=[["Cream","#FBF5E4"],["Butter","#FBF3C8"],["Peach","#FCE6D6"],["Rose","#F9E1E4"],["Lilac","#ECE4F5"],["Sky","#E1EDF8"],["Aqua","#DDF2EF"],["Mint","#E3F3DF"],["Stone","#EEEDE8"],["White","#FFFFFF"]];
 const GUIDE = {
  1:{say:"Spell the word as the letters are revealed. Then I will say the word, and you say it back while looking at it.",keys:["→: reveal the next letter","←: go back a letter","↑: say the word now; on an underlined word, open its meaning card (↑ again: next card)","↓: close the card","Tap any underlined word for its meaning card"],watch:["A letter swapped, missed or changed","Head moving closer to the page","Hesitation, speeding up, slowing down, or a flat voice"],next:"Move on when the student recognises most words on their own."},
  2:{say:"Let your eyes sweep over the word. If it doesn't just come out of your mouth, sweep it again. If it still doesn't, spell it.",keys:["→: next word","←: sweep again, then spell it","↑: say the word; on an underlined word, open its meaning card (↑ again: next card)","↓: close the card","In the two-card view, tap either card for the next move","Tap any underlined word for its meaning card"],watch:["At the first sign of disorientation, cover the text (C)"],next:`Only words you had to say ${TOLD_LIMIT} times are listed for Symbol Mastery.`},
@@ -2184,11 +2195,11 @@ const CHECKS = ["The room is well lit and comfortable","Sit across from the stud
 
 const STORE_KEY="three-step-reading-v2";
 function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY))||{}; }catch(e){ return {}; } }
-function saveStore(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify({counts:S.counts,manual:[...S.manual],hidden:[...S.hiddenWords],mins:S.mins,speed:S.speed,coverPic:S.coverPic,swait:S.swait,pace:S.pace,listen:S.listen,lwin:S.lwin,voiceName:S.voiceName,tsize:S.tsize,colour:S.colour,voice:S.voice,vdelay:S.vdelay,step:S.step,mode:S.mode,view:S.view,trig:S.trig,ulOn:S.ulOn,ul:S.ul,redStops:S.redStops,raw:S.raw})); }catch(e){} }
+function saveStore(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify({counts:S.counts,manual:[...S.manual],hidden:[...S.hiddenWords],mins:S.mins,speed:S.speed,animSp:S.animSp,coverPic:S.coverPic,swait:S.swait,pace:S.pace,listen:S.listen,lwin:S.lwin,voiceName:S.voiceName,tsize:S.tsize,colour:S.colour,voice:S.voice,vdelay:S.vdelay,step:S.step,mode:S.mode,view:S.view,trig:S.trig,ulOn:S.ulOn,ul:S.ul,redStops:S.redStops,raw:S.raw})); }catch(e){} }
 
 const st=loadStore();
 const S={
-  step:st.step||1, view:st.view||"cards", mode:st.mode||"word", coverPic:st.coverPic!==false, check:-1, chips:false, desc:[], swait:st.swait||2, pace:st.pace||1, spell:false, backs:0, resweep:0, listen:!!st.listen, lwin:Math.min(1,Math.max(.2,st.lwin||.8)), voiceName:st.voiceName||"", tsize:st.tsize||2.2, colour:st.colour||"#FBF5E4", voice:!!st.voice, vdelay:Math.min(1,Math.max(0.1,st.vdelay||1)), mins:st.mins||8, speed:st.speed||0.6, trig:st.trig!==false, ulOn:st.ulOn!==false, redStops:!!st.redStops, ul:Math.min(100,Math.max(10,st.ul||60)), raw:st.raw||SAMPLE, reSweeping:false,
+  step:st.step||1, view:st.view||"cards", mode:st.mode||"word", coverPic:st.coverPic!==false, check:-1, chips:false, desc:[], swait:st.swait||2, pace:st.pace||1, spell:false, backs:0, resweep:0, listen:!!st.listen, lwin:Math.min(1,Math.max(.2,st.lwin||.8)), voiceName:st.voiceName||"", tsize:st.tsize||2.2, colour:st.colour||"#FBF5E4", voice:!!st.voice, vdelay:Math.min(1,Math.max(0.1,st.vdelay||1)), mins:st.mins||8, speed:st.speed||0.6, animSp:Math.min(2,Math.max(.5,st.animSp||1)), trig:st.trig!==false, ulOn:st.ulOn!==false, redStops:!!st.redStops, ul:Math.min(100,Math.max(10,st.ul||60)), raw:st.raw||SAMPLE, reSweeping:false,
   counts:st.counts||{}, manual:new Set(st.manual||[]), hiddenWords:new Set(st.hidden||[]),
   toks:[], lines:[], proper:new Set(), pos:0, k:0, chunkStart:0, phase:"read", ask:"see",
   toldHere:new Set(), sweepAt:0, covered:false, running:false, elapsed:0, lastTick:0
@@ -2522,6 +2533,7 @@ function renderDrawer(){
   $("trigOn").checked=!!S.trig; $("redStops").checked=!!S.redStops; document.body.classList.toggle("red-stops",!!S.redStops);
   $("ulOnRow").hidden=!S.trig; $("ulField").hidden=!S.trig||!S.ulOn; $("ulOn").checked=!!S.ulOn;
   $("ulStr").value=S.ul; $("ulStrOut").textContent=S.ul+"%";
+  $("animSp").value=S.animSp; $("animSpOut").textContent=(S.animSp===1?"normal":S.animSp<1?S.animSp+"× (slower)":S.animSp+"× (faster)");
   $("mins").value=S.mins; $("minsOut").textContent=S.mins+" min";
   $("swait").value=S.swait; $("swaitOut").textContent=S.swait.toFixed(1)+" s"; $("swaitField").hidden=S.step===1;
   $("pace").value=S.pace; $("paceOut").textContent=S.pace.toFixed(1)+" s per letter"; $("paceField").hidden=S.step===1;
@@ -2571,7 +2583,9 @@ function pickVoice(){
     : `<option value="">No voices found on this device</option>`;
   sel.disabled=!list.length;
 }
-function sayNow(text){ try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); if(voicePick) u.voice=voicePick; u.lang=voicePick?voicePick.lang:"en-GB"; u.rate=0.8; speechSynthesis.speak(u); }catch(e){} }
+/* a single word is spoken in lower case, except "I", so a capital letter is never read out as "capital A" (Axel, 16 Nov 2026) */
+function spoken(t){ t=String(t); return (/\s/.test(t.trim())||t==='I')?t:t.toLowerCase(); }
+function sayNow(text){ text=spoken(text); try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); if(voicePick) u.voice=voicePick; u.lang=voicePick?voicePick.lang:"en-GB"; u.rate=0.8; speechSynthesis.speak(u); }catch(e){} }
 try{ speechSynthesis.onvoiceschanged=pickVoice; }catch(e){}
 function cancelVoice(){ clearTimeout(voiceTimer); voiceTimer=null; clearPending(); clearAuto(); try{ speechSynthesis.cancel(); }catch(e){} }
 function speakLater(word,extra=0){
@@ -2579,7 +2593,7 @@ function speakLater(word,extra=0){
   const clean=word.replace(/[^\p{L}\p{N}'’-]/gu,"").replace(/^['’-]+|['’-]+$/g,"");
   if(!S.voice||!clean) return;
   voiceTimer=setTimeout(()=>{
-    try{ const u=new SpeechSynthesisUtterance(clean); if(voicePick) u.voice=voicePick; u.lang=voicePick?voicePick.lang:"en-GB"; u.rate=0.8; speechSynthesis.speak(u); }catch(e){}
+    try{ const u=new SpeechSynthesisUtterance(spoken(clean)); if(voicePick) u.voice=voicePick; u.lang=voicePick?voicePick.lang:"en-GB"; u.rate=0.8; speechSynthesis.speak(u); }catch(e){}
   },S.vdelay*1000+extra);
 }
 const SPK='<path d="M11 5 6 9H3v6h3l5 4z"/>';
@@ -2751,7 +2765,7 @@ function wipeDef(def,voiceMatches=true){
 function speakCardWord(text,delay,then,started,onWord){
   laterCard(()=>{
     let done=false, began=false;
-    const said=SAY[text.toLowerCase()]||text;
+    const said=SAY[text.toLowerCase()]||spoken(text);
     const finish=()=>{ if(done)return; done=true; if(then)then(); };
     const begin=()=>{ if(began)return; began=true; if(started)started(); };
     if(!S.voice){ begin(); laterCard(finish,500); return; }
@@ -2765,12 +2779,22 @@ function speakCardWord(text,delay,then,started,onWord){
     }catch(e){ begin(); finish(); }
   },delay);
 }
+/* Card animation speed (Axel, 16 Nov 2026): every timing in the card picture and the card's waits are divided by the
+   speed setting (2 = twice as fast). The arrow's slide-in and pulse at the end keep their own short timings. */
+function scaleCard(c){ const sp=S.animSp||1; if(sp===1) return c; const k=1/sp, t=n=>+(n*k).toFixed(3);
+  let v=c.svg.replace(/(begin|dur)="(\d*\.?\d+)s"/g,(m,a,n)=>`${a}="${t(+n)}s"`)
+    .replace(/animation:([\w-]+) (\d*\.?\d+)ms/g,(m,a,n)=>`animation:${a} ${Math.round(+n*k)}ms`)
+    .replace(/(ease-in-out|linear|ease) (\d*\.?\d+)ms both/g,(m,a,n)=>`${a} ${Math.round(+n*k)}ms both`)
+    .replace(/<!--anim:(\d+)-->/,(m,n)=>`<!--anim:${Math.round(+n*k)}-->`);
+  const o={...c,svg:v}; if(c.anim!=null) o.anim=Math.round(c.anim*k); if(c.defAt!=null) o.defAt=Math.round(c.defAt*k);
+  if(c.move) o.move={...c.move,ms:Math.round((c.move.ms||1000)*k),delay:Math.round((c.move.delay??550)*k)};
+  return o; }
 function renderCard(swap){
   const layer=$("cards");
   if(openCard&&openCard.el) openCard.el.remove();
   layer.innerHTML="";
   if(!openCard) return;
-  const set=CARDS[openCard.key], c=set[openCard.which];
+  const set=CARDS[openCard.key], c=scaleCard(set[openCard.which]);
   const ahead=set.length-1-openCard.which;
   const el=document.createElement("div");
   el.className="stack"+(swap?" swap":"");
@@ -3067,6 +3091,7 @@ $("modeSeg").addEventListener("click",e=>{ const b=e.target.closest("button"); i
 $("redStops").onchange=e=>{ S.redStops=e.target.checked; saveStore(); renderDrawer(); };
 $("trigOn").onchange=e=>{ S.trig=e.target.checked; saveStore(); buildPassage(); render(); renderDrawer(); };
 $("ulOn").onchange=e=>{ S.ulOn=e.target.checked; saveStore(); applyUl(); renderDrawer(); };
+$("animSp").oninput=e=>{ S.animSp=+e.target.value; saveStore(); renderDrawer(); };
 $("ulStr").oninput=e=>{ S.ul=+e.target.value; saveStore(); applyUl(); renderDrawer(); };
 $("mins").oninput=e=>{ S.mins=+e.target.value; saveStore(); renderDrawer(); };
 $("swait").oninput=e=>{ S.swait=+e.target.value; saveStore(); renderDrawer(); };
